@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { Request } from 'express';
-import { Observable, of, tap } from 'rxjs';
+import { from, Observable, of, switchMap } from 'rxjs';
 
 import { PrismaService } from '../../database/prisma.service';
 
@@ -15,11 +15,11 @@ const IDEMPOTENCY_HEADER = 'idempotency-key';
 const TTL_HOURS = 24;
 
 /**
- * IdempotencyInterceptor — reads the Idempotency-Key header.
- * On first call: stores request hash + response.
+ * IdempotencyInterceptor - reads the Idempotency-Key header.
+ * On first call: stores request hash + response (SYNCHRONOUSLY, before the response is sent).
  * On replay: returns the stored response without re-executing the handler.
  *
- * TDD section 11.2 — order and payment endpoints must be retry-safe.
+ * TDD section 11.2 - order and payment endpoints must be retry-safe.
  */
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {
@@ -49,7 +49,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
       if (existing.responseBody) {
         return of(existing.responseBody);
       }
-      // In-flight — first call not yet completed
+      // In-flight - first call not yet completed (rare; retry-safe)
       return next.handle();
     }
 
@@ -67,9 +67,9 @@ export class IdempotencyInterceptor implements NestInterceptor {
     });
 
     return next.handle().pipe(
-      tap({
-        next: (response) => {
-          void this.prisma.idempotencyKey
+      switchMap((response) =>
+        from(
+          this.prisma.idempotencyKey
             .update({
               where: { key },
               data: {
@@ -77,9 +77,10 @@ export class IdempotencyInterceptor implements NestInterceptor {
                 statusCode: 200,
               },
             })
-            .catch(() => undefined);
-        },
-      }),
+            .then(() => response)
+            .catch(() => response),
+        ),
+      ),
     );
   }
 
