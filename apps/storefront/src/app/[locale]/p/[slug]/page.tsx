@@ -6,7 +6,9 @@ import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
 import { PdpClient, type PdpVariant, type PdpImage } from '@/components/pdp';
 
-export const revalidate = 60;
+// PDP fetches product + variants + reviews per request — dynamic for now.
+// Step 11 (SEO) may switch to ISR with generateStaticParams for popular slugs.
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: { locale: string; slug: string };

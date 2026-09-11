@@ -5,7 +5,6 @@ import Link from 'next/link';
 import styles from './DealStrip.module.css';
 
 export interface DealStripProps {
-  /** Server-provided end time (ISO string). Client computes countdown. */
   endsAtIso: string;
   label: string;
   ctaLabel: string;
@@ -13,7 +12,6 @@ export interface DealStripProps {
   locale: 'bn' | 'en';
 }
 
-/** Format remaining ms as "07 : 42 : 18" per UI Spec C1. */
 function formatRemaining(ms: number): string {
   if (ms <= 0) return '00 : 00 : 00';
   const total = Math.floor(ms / 1000);
@@ -24,22 +22,26 @@ function formatRemaining(ms: number): string {
 }
 
 export function DealStrip({ endsAtIso, label, ctaLabel, ctaHref, locale }: DealStripProps) {
-  const [remaining, setRemaining] = useState(() =>
-    Math.max(0, new Date(endsAtIso).getTime() - Date.now()),
-  );
+  // Start null so server + first client render agree (placeholder); countdown
+  // fills in after hydration. Avoids "text content does not match" hydration errors.
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    const id = setInterval(() => {
+    const tick = () => {
       setRemaining(Math.max(0, new Date(endsAtIso).getTime() - Date.now()));
-    }, 1000);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [endsAtIso]);
+
+  const display = remaining === null ? '-- : -- : --' : formatRemaining(remaining);
 
   return (
     <div className={styles.strip} role="status" aria-live="polite">
       <span className={styles.icon} aria-hidden="true">⚡</span>
       <span className={styles.label}>{label}</span>
-      <span className={styles.timer + ' sk-tabular'}>{formatRemaining(remaining)}</span>
+      <span className={styles.timer + ' sk-tabular'} suppressHydrationWarning>{display}</span>
       <Link href={ctaHref} className={styles.cta}>{ctaLabel}</Link>
     </div>
   );

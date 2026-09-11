@@ -5,7 +5,8 @@ import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layou
 import { PlpClient } from '@/components/plp';
 import type { Metadata } from 'next';
 
-export const revalidate = 60;
+// Search results depend on runtime searchParams — must be dynamic.
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: { locale: string };

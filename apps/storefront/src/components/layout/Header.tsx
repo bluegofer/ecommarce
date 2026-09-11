@@ -194,7 +194,7 @@ export function Header({
               {navLinks.map((link) =>
                 link.opensMegaMenu ? (
                   <button
-                    key={link.href}
+                    key={`nav-${link.href}-${link.label}`}
                     type="button"
                     className={styles.navLink}
                     onClick={() => setMegaOpen(true)}
@@ -202,7 +202,7 @@ export function Header({
                     {link.label}
                   </button>
                 ) : (
-                  <Link key={link.href} href={link.href} className={styles.navLink}>
+                  <Link key={`nav-${link.href}-${link.label}`} href={link.href} className={styles.navLink}>
                     {link.label}
                   </Link>
                 ),
@@ -221,7 +221,7 @@ export function Header({
               {labels.megaMenu.mainMenu}
             </button>
             {navLinks.slice(0, 4).map((link) => (
-              <Link key={link.href} href={link.href} className={styles.chip}>
+              <Link key={`chip-${link.href}-${link.label}`} href={link.href} className={styles.chip}>
                 {link.label}
               </Link>
             ))}

@@ -5,7 +5,8 @@ import type { CategoryNode } from '@/lib/api/types';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
 import { PlpClient } from '@/components/plp';
 
-export const revalidate = 60;
+// Category PLP depends on runtime searchParams (filters) — dynamic.
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: { locale: string; slug: string };

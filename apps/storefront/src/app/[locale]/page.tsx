@@ -49,7 +49,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
 
   const promoBanners = [
     {
-      imageUrl: placeholderSvg('Smartphones under', 'EFF7FB', '25729A'),
+      imageUrl: placeholderSvg('', 'EFF7FB', '25729A'),
       titleEn: 'Smartphones under ৳20,000',
       titleBn: '২০,০০০ টাকার নিচে স্মার্টফোন',
       ctaHref: `/${locale}/c/smartphones`,
@@ -57,7 +57,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
       ctaLabelBn: 'কিনুন',
     },
     {
-      imageUrl: placeholderSvg('Fashion Fest', 'FEF5E7', 'B45309'),
+      imageUrl: placeholderSvg('', 'FEF5E7', 'B45309'),
       titleEn: 'Fashion Fest — Min 50% off',
       titleBn: 'ফ্যাশন ফেস্ট — ন্যূনতম ৫০% ছাড়',
       ctaHref: `/${locale}/c/fashion`,
@@ -65,7 +65,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
       ctaLabelBn: 'দেখুন',
     },
     {
-      imageUrl: placeholderSvg('Grocery Days', 'EAF7EF', '16A34A'),
+      imageUrl: placeholderSvg('', 'EAF7EF', '16A34A'),
       titleEn: 'Grocery Super Saver Days',
       titleBn: 'গ্রোসারি সুপার সেভার',
       ctaHref: `/${locale}/c/home-kitchen`,
@@ -73,7 +73,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
       ctaLabelBn: 'স্টক করুন',
     },
     {
-      imageUrl: placeholderSvg('Home Makeover', 'E0F2FE', '0C2B3D'),
+      imageUrl: placeholderSvg('', 'E0F2FE', '0C2B3D'),
       titleEn: 'Home Makeover from ৳499',
       titleBn: 'হোম মেকওভার ৪৯৯ টাকা থেকে',
       ctaHref: `/${locale}/c/home-kitchen`,
@@ -263,6 +263,13 @@ function defaultDealEnd(): string {
 }
 
 function placeholderSvg(label: string, bg: string, fg: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><rect width="800" height="400" fill="#${bg}"/><text x="400" y="200" font-family="Inter,sans-serif" font-size="36" font-weight="700" fill="#${fg}" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  const text = label
+    ? '<text x="400" y="200" font-family="Inter,sans-serif" font-size="36" font-weight="700" fill="#' + fg + '" text-anchor="middle" dominant-baseline="middle">' + label + '</text>'
+    : '';
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">' +
+    '<rect width="800" height="400" fill="#' + bg + '"/>' +
+    text +
+    '</svg>';
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }

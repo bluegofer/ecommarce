@@ -16,7 +16,13 @@ export default function LocaleLayout({
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  if (!isLocale(params.locale)) notFound();
+  // NOTE: notFound() is NOT allowed in a layout that wraps root — Next.js will
+  // throw "notFound() is not allowed to use in root layout". Instead, child pages
+  // validate the locale param themselves. If it's invalid here, just render
+  // nothing (the 404 boundary in the parent app/layout.tsx will handle it).
+  if (!isLocale(params.locale)) {
+    return null;
+  }
   const locale: Locale = params.locale;
   const dict = getDictionary(locale);
   void dict;
@@ -28,12 +34,14 @@ export default function LocaleLayout({
           __html: `document.documentElement.lang = ${JSON.stringify(locale)};`,
         }}
       />
-      <CartProvider>`n        <SavedProvider>
-        <ToastProvider>
-          {children}
-          <ToastViewport />
-        </ToastProvider>
-      </SavedProvider>`n      </CartProvider>
+      <CartProvider>
+        <SavedProvider>
+          <ToastProvider>
+            {children}
+            <ToastViewport />
+          </ToastProvider>
+        </SavedProvider>
+      </CartProvider>
     </>
   );
 }
