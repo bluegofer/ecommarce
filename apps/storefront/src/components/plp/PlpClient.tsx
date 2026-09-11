@@ -1,8 +1,9 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
-import type { SearchResponse } from '@/lib/api/types';
+import type { SearchResponse, ProductSummary } from '@/lib/api/types';
 import type { Dictionary } from '@/lib/i18n';
 import { FilterRail, type FilterState } from './FilterRail';
 import { FilterDrawer } from './FilterDrawer';
@@ -10,35 +11,43 @@ import { ActiveFilterChips } from './ActiveFilterChips';
 import { ResultsBar } from './ResultsBar';
 import { ProductGrid } from './ProductGrid';
 import { NoResults } from './NoResults';
-import type { ProductSummary } from '@/lib/api/types';
 import type { SortValue } from '@/components/ui/Sort';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import styles from './PlpClient.module.css';
 
 export interface PlpClientProps {
-  /** Server-fetched initial data. */
   initial: SearchResponse;
-  /** Optional heading to show above results (e.g. category name). */
   heading?: string;
-  /** Optional subtitle / breadcrumb source. */
-  breadcrumb?: { label: string; href?: string }[];
   recommended: ProductSummary[];
   locale: 'bn' | 'en';
   dict: Dictionary;
 }
 
-export function PlpClient({
-  initial,
-  heading,
-  recommended,
-  locale,
-  dict,
-}: PlpClientProps) {
+/** Suspense boundary — required because PlpInner uses useSearchParams(). */
+export function PlpClient(props: PlpClientProps) {
+  return (
+    <Suspense fallback={<PlpFallback />}>
+      <PlpInner {...props} />
+    </Suspense>
+  );
+}
+
+function PlpFallback() {
+  return (
+    <div className={styles.fallbackGrid}>
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <SkeletonCard key={i} />
+      ))}
+    </div>
+  );
+}
+
+function PlpInner({ initial, heading, recommended, locale, dict }: PlpClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Parse filters from URL
   const filterState = useMemo<FilterState>(() => {
     const brandParam = searchParams.get('brand');
     const minPrice = searchParams.get('minPrice');
@@ -57,7 +66,6 @@ export function PlpClient({
   }, [searchParams]);
 
   const sort = (searchParams.get('sort') as SortValue) || 'relevance';
-  const page = Number(searchParams.get('page') || '1');
 
   const updateUrl = useCallback(
     (params: Record<string, string | number | undefined | null>) => {
@@ -66,10 +74,15 @@ export function PlpClient({
         if (v === undefined || v === null || v === '') next.delete(k);
         else next.set(k, String(v));
       });
-      // Reset page when filters/sort change
-      if ('brand' in params || 'minPrice' in params || 'maxPrice' in params ||
-          'minRating' in params || 'freeDelivery' in params || 'discount' in params ||
-          'sort' in params) {
+      if (
+        'brand' in params ||
+        'minPrice' in params ||
+        'maxPrice' in params ||
+        'minRating' in params ||
+        'freeDelivery' in params ||
+        'discount' in params ||
+        'sort' in params
+      ) {
         next.delete('page');
       }
       router.push(`${pathname}?${next.toString()}`, { scroll: false });
@@ -117,7 +130,6 @@ export function PlpClient({
 
   return (
     <div className={styles.layout}>
-      {/* Desktop rail */}
       <div className={styles.railWrap}>
         <FilterRail
           facets={initial.facets}
@@ -150,7 +162,7 @@ export function PlpClient({
               const maxT = max ? `৳${Math.round(max / 100)}` : '';
               return min && max ? `${minT} – ${maxT}` : min ? `${minT}+` : `≤ ${maxT}`;
             },
-            rating: (n) => (locale === 'bn' ? `★ ${n}+` : `★ ${n}+`),
+            rating: (n) => `★ ${n}+`,
             freeDelivery: locale === 'bn' ? 'ফ্রি ডেলিভারি' : 'Free Delivery',
             discount: (n) => (locale === 'bn' ? `${n}% বা বেশি ছাড়` : `${n}% or more off`),
             clearAll: locale === 'bn' ? 'সব মুছুন' : 'Clear all',
