@@ -56,7 +56,10 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Setup database schema
+      - name: Generate Prisma Client
+        working-directory: apps/api
+        run: pnpm exec prisma generate
+      - name: Apply database schema
         working-directory: apps/api
         run: pnpm exec prisma migrate deploy
       - run: pnpm lint
