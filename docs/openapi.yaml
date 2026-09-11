@@ -1,8 +1,10 @@
 openapi: 3.1.0
 info:
   title: Ecommarce API
-  version: 1.0.0
-  description: Versioned REST API serving both storefront and admin. Skeleton at Step 1; filled per step.
+  version: 1.1.0
+  description: |
+    Versioned REST API serving both storefront and admin.
+    Step 1: skeleton. Step 2: auth/rbac/audit/outbox. Step 3: catalog/inventory/search.
 servers:
   - url: /api/v1
 tags:
@@ -30,9 +32,1006 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  timestamp: { type: string, format: date-time }
+                  db: { type: string, enum: [ok, error] }
+                  redis: { type: string, enum: [ok, error] }
+
+  # ---------------------------------------------------------------------------
+  # CATEGORIES
+  # ---------------------------------------------------------------------------
+  /categories:
+    get:
+      tags: [catalog]
+      summary: List all categories (flat)
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Category' }
+    post:
+      tags: [catalog]
+      summary: Create category
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCategoryDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+        '400': { description: Invalid input or slug collision }
+        '401': { description: Unauthorized }
+        '403': { description: Insufficient role }
+  /categories/tree:
+    get:
+      tags: [catalog]
+      summary: Category tree (for mega-menu)
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CategoryTreeNode' }
+  /categories/slug/{slug}:
+    get:
+      tags: [catalog]
+      summary: Category by slug
+      security: []
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Category'
+                  - { type: 'null' }
+  /categories/{id}:
+    get:
+      tags: [catalog]
+      summary: Category by id
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+    patch:
+      tags: [catalog]
+      summary: Update category
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCategoryDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+    delete:
+      tags: [catalog]
+      summary: Delete category (fails if it has children or products)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Deleted }
+        '400': { description: Category has children or products }
+        '404': { description: Not found }
+
+  # ---------------------------------------------------------------------------
+  # ATTRIBUTES
+  # ---------------------------------------------------------------------------
+  /attributes:
+    get:
+      tags: [catalog]
+      summary: List all attributes
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Attribute' }
+    post:
+      tags: [catalog]
+      summary: Create attribute
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAttributeDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attribute' }
+  /attributes/{id}:
+    get:
+      tags: [catalog]
+      summary: Attribute by id
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attribute' }
+    patch:
+      tags: [catalog]
+      summary: Update attribute
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAttributeDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attribute' }
+  /attributes/category/{categoryId}:
+    get:
+      tags: [catalog]
+      summary: List attributes attached to a category
+      security: []
+      parameters:
+        - { name: categoryId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CategoryAttribute' }
+    post:
+      tags: [catalog]
+      summary: Attach attribute to category
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: categoryId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AttachAttributeDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryAttribute' }
+  /attributes/category/{categoryId}/{attributeId}:
+    delete:
+      tags: [catalog]
+      summary: Detach attribute from category
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: categoryId, in: path, required: true, schema: { type: string } }
+        - { name: attributeId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Detached }
+
+  # ---------------------------------------------------------------------------
+  # PRODUCTS
+  # ---------------------------------------------------------------------------
+  /products:
+    get:
+      tags: [catalog]
+      summary: List products (paginated)
+      security: []
+      parameters:
+        - { name: categoryId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ProductStatus' } }
+        - { name: brand, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, minimum: 1, maximum: 96, default: 24 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedProducts' }
+    post:
+      tags: [catalog]
+      summary: Create product
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateProductDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+  /products/slug/{slug}:
+    get:
+      tags: [catalog]
+      summary: Product by slug (or 301 redirect hint if slug was renamed)
+      security: []
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: |
+            Either a Product (200) or a redirect hint
+            `{ redirectTo, statusCode: 301 }` when the slug was renamed.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Product'
+                  - $ref: '#/components/schemas/SlugRedirectHint'
+                  - { type: 'null' }
+  /products/redirects/list:
+    get:
+      tags: [catalog]
+      summary: List all slug redirects (admin)
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SlugRedirect' }
+  /products/{id}:
+    get:
+      tags: [catalog]
+      summary: Product by id
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+    patch:
+      tags: [catalog]
+      summary: Update product (slug rename creates a 301 record)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProductDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+    delete:
+      tags: [catalog]
+      summary: Delete product
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Deleted }
+
+  # ---------------------------------------------------------------------------
+  # VARIANTS
+  # ---------------------------------------------------------------------------
+  /variants/product/{productId}:
+    get:
+      tags: [catalog]
+      summary: List variants for a product
+      security: []
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Variant' }
+    post:
+      tags: [catalog]
+      summary: Create variant for a product
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateVariantDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Variant' }
+  /variants/matrix:
+    post:
+      tags: [catalog]
+      summary: Generate cartesian variant matrix (color x size etc.)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VariantMatrixRequest' }
+      responses:
+        '201':
+          description: Created variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Variant' }
+  /variants/{id}:
+    get:
+      tags: [catalog]
+      summary: Variant by id
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Variant' }
+    patch:
+      tags: [catalog]
+      summary: Update variant
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateVariantDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Variant' }
+    delete:
+      tags: [catalog]
+      summary: Delete variant
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Deleted }
+
+  # ---------------------------------------------------------------------------
+  # MEDIA (Step 3 stub, S3 in Step 12)
+  # ---------------------------------------------------------------------------
+  /uploads/{filename}:
+    get:
+      tags: [catalog]
+      summary: Serve an uploaded media file (local disk stub)
+      security: []
+      parameters:
+        - { name: filename, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: File bytes }
+        '404': { description: Not found }
+
+  # ---------------------------------------------------------------------------
+  # INVENTORY
+  # ---------------------------------------------------------------------------
+  /inventory/variants/{id}/stock:
+    get:
+      tags: [inventory]
+      summary: Get stock and available (stock minus live reservations) for a variant
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  variantId: { type: string }
+                  stock: { type: integer }
+                  available: { type: integer }
+  /inventory/low-stock:
+    get:
+      tags: [inventory]
+      summary: List variants at or below their low-stock threshold
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/LowStockItem' }
+  /inventory/adjust:
+    post:
+      tags: [inventory]
+      summary: Adjust stock with a mandatory reason code
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdjustStockDto' }
+      responses:
+        '201':
+          description: Adjusted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InventoryAdjustment' }
+        '400': { description: delta=0 or would push stock below zero }
+  /inventory/adjustments/{variantId}:
+    get:
+      tags: [inventory]
+      summary: Adjustment history for a variant
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: variantId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/InventoryAdjustment' }
+  /inventory/valuation.csv:
+    get:
+      tags: [inventory]
+      summary: Inventory valuation CSV (units * price)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: CSV
+          content:
+            text/csv:
+              schema: { type: string }
+  /inventory/reserve:
+    post:
+      tags: [inventory]
+      summary: |
+        Reserve stock for a variant. Redis-backed, atomic via Lua.
+        Two parallel requests for the last unit will result in exactly one 201
+        and one 409 (AC-53).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReserveStockDto' }
+      responses:
+        '201':
+          description: Reserved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Reservation' }
+        '409': { description: Insufficient available stock }
+  /inventory/release/{variantId}/{reservationId}:
+    post:
+      tags: [inventory]
+      summary: Release a reservation (frees reserved qty immediately)
+      security: []
+      parameters:
+        - { name: variantId, in: path, required: true, schema: { type: string } }
+        - { name: reservationId, in: path, required: true, schema: { type: string } }
+      responses:
+        '201': { description: Released }
+
+  # ---------------------------------------------------------------------------
+  # SEARCH
+  # ---------------------------------------------------------------------------
+  /search/products:
+    get:
+      tags: [search]
+      summary: Faceted product search (trigram + full-text)
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: Free-text query (typo tolerant) }
+        - { name: categoryId, in: query, schema: { type: string } }
+        - { name: categorySlug, in: query, schema: { type: string } }
+        - { name: brand, in: query, schema: { type: string }, description: Comma-separated list }
+        - { name: minPricePoisha, in: query, schema: { type: integer } }
+        - { name: maxPricePoisha, in: query, schema: { type: integer } }
+        - { name: minRating, in: query, schema: { type: number, format: float, minimum: 0, maximum: 5 } }
+        - { name: inStock, in: query, schema: { type: boolean } }
+        - { name: sort, in: query, schema: { $ref: '#/components/schemas/SortOrder' } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, minimum: 1, maximum: 96, default: 48 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResponse' }
+  /search/suggestions:
+    get:
+      tags: [search]
+      summary: Autocomplete suggestions (typo-tolerant) + trending terms
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuggestionsResponse' }
+
+  # ---------------------------------------------------------------------------
+  # CSV IMPORT / EXPORT (Step 3)
+  # ---------------------------------------------------------------------------
+  /catalog/import-export/import:
+    post:
+      tags: [catalog]
+      summary: Import products and variants from a CSV blob
+      description: |
+        Rows are processed independently; failures are reported line-by-line
+        in `errors[]` with the CSV row number. Valid rows still import (AC-56).
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [csv]
+              properties:
+                csv: { type: string }
+      responses:
+        '201':
+          description: Import result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CsvImportResult' }
+  /catalog/import-export/export:
+    get:
+      tags: [catalog]
+      summary: Export all active products+variants as CSV (round-trippable with import)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: CSV
+          content:
+            text/csv:
+              schema: { type: string }
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    ProductStatus:
+      type: string
+      enum: [DRAFT, SCHEDULED, PUBLISHED, ARCHIVED]
+    AttributeType:
+      type: string
+      enum: [TEXT, NUMBER, ENUM, BOOLEAN]
+    AdjustmentReason:
+      type: string
+      enum: [RESTOCK, DAMAGE, RETURN, CORRECTION, SALE, RESERVATION_RELEASE]
+    SortOrder:
+      type: string
+      enum: [relevance, price_asc, price_desc, newest, rating, best_sellers]
+
+    Category:
+      type: object
+      required: [id, nameEn, nameBn, slug]
+      properties:
+        id: { type: string }
+        parentId: { type: string, nullable: true }
+        nameEn: { type: string }
+        nameBn: { type: string }
+        slug: { type: string }
+        descriptionEn: { type: string, nullable: true }
+        descriptionBn: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true }
+        iconName: { type: string, nullable: true }
+        sortOrder: { type: integer }
+        isActive: { type: boolean }
+        metaTitle: { type: string, nullable: true }
+        metaDescription: { type: string, nullable: true }
+
+    CategoryTreeNode:
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          properties:
+            children:
+              type: array
+              items: { $ref: '#/components/schemas/CategoryTreeNode' }
+
+    CreateCategoryDto:
+      type: object
+      required: [nameEn, nameBn]
+      properties:
+        parentId: { type: string, nullable: true }
+        nameEn: { type: string }
+        nameBn: { type: string }
+        slug: { type: string }
+        descriptionEn: { type: string }
+        descriptionBn: { type: string }
+        imageUrl: { type: string }
+        iconName: { type: string }
+        sortOrder: { type: integer }
+        isActive: { type: boolean }
+        metaTitle: { type: string }
+        metaDescription: { type: string }
+
+    UpdateCategoryDto: { $ref: '#/components/schemas/CreateCategoryDto' }
+
+    Attribute:
+      type: object
+      properties:
+        id: { type: string }
+        nameEn: { type: string }
+        nameBn: { type: string }
+        slug: { type: string }
+        type: { $ref: '#/components/schemas/AttributeType' }
+        unit: { type: string, nullable: true }
+        options:
+          type: array
+          nullable: true
+          items: { type: string }
+        isVariant: { type: boolean }
+        isFilterable: { type: boolean }
+        sortOrder: { type: integer }
+
+    CreateAttributeDto:
+      type: object
+      required: [nameEn, nameBn, type]
+      properties:
+        nameEn: { type: string }
+        nameBn: { type: string }
+        slug: { type: string }
+        type: { $ref: '#/components/schemas/AttributeType' }
+        unit: { type: string }
+        options:
+          type: array
+          items: { type: string }
+        isVariant: { type: boolean }
+        isFilterable: { type: boolean }
+        sortOrder: { type: integer }
+
+    UpdateAttributeDto: { $ref: '#/components/schemas/CreateAttributeDto' }
+
+    CategoryAttribute:
+      type: object
+      properties:
+        id: { type: string }
+        categoryId: { type: string }
+        attributeId: { type: string }
+        isRequired: { type: boolean }
+        sortOrder: { type: integer }
+        attribute: { $ref: '#/components/schemas/Attribute' }
+
+    AttachAttributeDto:
+      type: object
+      required: [attributeId]
+      properties:
+        attributeId: { type: string }
+        isRequired: { type: boolean }
+        sortOrder: { type: integer }
+
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        categoryId: { type: string }
+        slug: { type: string }
+        titleEn: { type: string }
+        titleBn: { type: string }
+        descriptionEn: { type: string, nullable: true }
+        descriptionBn: { type: string, nullable: true }
+        brand: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/ProductStatus' }
+        publishedAt: { type: string, format: date-time, nullable: true }
+        metaTitle: { type: string, nullable: true }
+        metaDescription: { type: string, nullable: true }
+        bulletFeatures:
+          type: array
+          nullable: true
+          items: { type: string }
+        specsJson:
+          type: object
+          nullable: true
+          additionalProperties: { type: string }
+        avgRating: { type: number, format: float }
+        ratingCount: { type: integer }
+        soldCount: { type: integer }
+        isFeatured: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateProductDto:
+      type: object
+      required: [categoryId, titleEn, titleBn]
+      properties:
+        categoryId: { type: string }
+        slug: { type: string }
+        titleEn: { type: string }
+        titleBn: { type: string }
+        descriptionEn: { type: string }
+        descriptionBn: { type: string }
+        brand: { type: string }
+        status: { $ref: '#/components/schemas/ProductStatus' }
+        publishedAt: { type: string, format: date-time }
+        metaTitle: { type: string }
+        metaDescription: { type: string }
+        bulletFeatures:
+          type: array
+          items: { type: string }
+        specsJson:
+          type: object
+          additionalProperties: { type: string }
+        isFeatured: { type: boolean }
+
+    UpdateProductDto: { $ref: '#/components/schemas/CreateProductDto' }
+
+    PaginatedProducts:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    Variant:
+      type: object
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        warehouseId: { type: string, nullable: true }
+        sku: { type: string }
+        barcode: { type: string, nullable: true }
+        pricePoisha: { type: integer }
+        compareAtPoisha: { type: integer, nullable: true }
+        stock: { type: integer }
+        lowStockThreshold: { type: integer }
+        attributeValues:
+          type: object
+          additionalProperties: { type: string }
+        isActive: { type: boolean }
+
+    CreateVariantDto:
+      type: object
+      required: [sku, pricePoisha, attributeValues]
+      properties:
+        sku: { type: string }
+        barcode: { type: string }
+        pricePoisha: { type: integer }
+        compareAtPoisha: { type: integer }
+        stock: { type: integer }
+        lowStockThreshold: { type: integer }
+        attributeValues:
+          type: object
+          additionalProperties: { type: string }
+        isActive: { type: boolean }
+        warehouseId: { type: string }
+
+    UpdateVariantDto: { $ref: '#/components/schemas/CreateVariantDto' }
+
+    VariantMatrixRequest:
+      type: object
+      required: [productId, axes, basePricePoisha]
+      properties:
+        productId: { type: string }
+        axes:
+          type: array
+          items:
+            type: object
+            required: [attributeSlug, values]
+            properties:
+              attributeSlug: { type: string }
+              values:
+                type: array
+                items: { type: string }
+        basePricePoisha: { type: integer }
+        baseCompareAtPoisha: { type: integer }
+        skuPrefix: { type: string }
+        defaultStock: { type: integer }
+
+    SlugRedirect:
+      type: object
+      properties:
+        id: { type: string }
+        fromSlug: { type: string }
+        toSlug: { type: string }
+        entityType: { type: string }
+        statusCode: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    SlugRedirectHint:
+      type: object
+      properties:
+        redirectTo: { type: string }
+        statusCode: { type: integer, enum: [301] }
+
+    LowStockItem:
+      type: object
+      properties:
+        variantId: { type: string }
+        productId: { type: string }
+        sku: { type: string }
+        stock: { type: integer }
+        lowStockThreshold: { type: integer }
+        titleEn: { type: string }
+        titleBn: { type: string }
+
+    AdjustStockDto:
+      type: object
+      required: [variantId, delta, reason]
+      properties:
+        variantId: { type: string }
+        delta: { type: integer }
+        reason: { $ref: '#/components/schemas/AdjustmentReason' }
+        reasonNote: { type: string }
+        referenceId: { type: string }
+        warehouseId: { type: string }
+
+    InventoryAdjustment:
+      type: object
+      properties:
+        id: { type: string }
+        variantId: { type: string }
+        warehouseId: { type: string, nullable: true }
+        delta: { type: integer }
+        reason: { $ref: '#/components/schemas/AdjustmentReason' }
+        reasonNote: { type: string, nullable: true }
+        stockBefore: { type: integer }
+        stockAfter: { type: integer }
+        actorUserId: { type: string, nullable: true }
+        referenceId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    ReserveStockDto:
+      type: object
+      required: [variantId, quantity]
+      properties:
+        variantId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        ttlSeconds: { type: integer, minimum: 1, default: 600 }
+
+    Reservation:
+      type: object
+      properties:
+        reservationId: { type: string }
+        variantId: { type: string }
+        quantity: { type: integer }
+        expiresAt: { type: string, format: date-time }
+
+    SearchResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+        facets: { $ref: '#/components/schemas/SearchFacets' }
+
+    SearchFacets:
+      type: object
+      properties:
+        brands:
+          type: array
+          items: { $ref: '#/components/schemas/FacetBucket' }
+        categories:
+          type: array
+          items: { $ref: '#/components/schemas/FacetBucket' }
+        ratings:
+          type: array
+          items: { $ref: '#/components/schemas/FacetBucket' }
+        priceRanges:
+          type: array
+          items:
+            type: object
+            properties:
+              minPoisha: { type: integer }
+              maxPoisha: { type: integer }
+              count: { type: integer }
+        attributes:
+          type: object
+          additionalProperties:
+            type: array
+            items: { $ref: '#/components/schemas/FacetBucket' }
+
+    FacetBucket:
+      type: object
+      properties:
+        value: { type: string }
+        count: { type: integer }
+        labelEn: { type: string }
+        labelBn: { type: string }
+
+    SuggestionsResponse:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            type: object
+            properties:
+              text: { type: string }
+              type: { type: string, enum: [product, category, brand, query] }
+              slug: { type: string }
+              score: { type: number, format: float }
+        trending:
+          type: array
+          items: { type: string }
+
+    CsvImportResult:
+      type: object
+      properties:
+        totalRows: { type: integer }
+        importedProducts: { type: integer }
+        importedVariants: { type: integer }
+        failedRows: { type: integer }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row: { type: integer }
+              field: { type: string }
+              message: { type: string }

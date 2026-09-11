@@ -4,9 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import type { SuggestionDto, SuggestionsResponseDto } from '@ecommarce/types';
 
-const TRENDING_KEY = 'search:trending';
-const TRENDING_MAX = 10;
-
 @Injectable()
 export class SuggestionsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -15,10 +12,13 @@ export class SuggestionsService {
     const query = q.trim();
     if (query.length < 2) return { suggestions: [], trending: await this.trending() };
 
+    // Lower trigram threshold for typo tolerance
+    await this.prisma.$executeRawUnsafe(`SET pg_trgm.similarity_threshold = 0.15`);
+
     const rows = await this.prisma.$queryRawUnsafe<
       Array<{ text: string; type: string; slug: string | null; score: number }>
     >(
-      `SELECT text, type, slug, score FROM (
+      `SELECT text, type, slug, MAX(score) AS score FROM (
          SELECT p."titleEn" AS text, 'product' AS type, p.slug AS slug,
                 similarity(p."titleEn", $1) AS score
          FROM products p
@@ -34,7 +34,8 @@ export class SuggestionsService {
          FROM categories c
          WHERE c."isActive" = true AND c."nameEn" % $1
        ) s
-       GROUP BY text, type, slug, score
+       WHERE text IS NOT NULL
+       GROUP BY text, type, slug
        ORDER BY score DESC, text ASC
        LIMIT $2`,
       query,
@@ -51,27 +52,31 @@ export class SuggestionsService {
     return { suggestions, trending: await this.trending() };
   }
 
+  /**
+   * Trending is a Step 6 feature (needs the search_terms table).
+   * Until then, check for the table's existence once and cache the result.
+   */
+  private trendingTableExists: boolean | null = null;
+
   async trending(): Promise<string[]> {
+    // Fast path: we already know the table is missing.
+    if (this.trendingTableExists === false) return [];
+
     try {
-      const raw = await this.prisma.$queryRawUnsafe<Array<{ term: string }>>(
+      const rows = await this.prisma.$queryRawUnsafe<Array<{ term: string }>>(
         `SELECT term FROM search_terms
          WHERE "createdAt" > NOW() - INTERVAL '7 days'
-         GROUP BY term ORDER BY COUNT(*) DESC LIMIT $1`,
-        TRENDING_MAX,
+         GROUP BY term ORDER BY COUNT(*) DESC LIMIT 10`,
       );
-      return raw.map((r) => r.term);
+      this.trendingTableExists = true;
+      return rows.map((r) => r.term);
     } catch {
-      // search_terms table doesn't exist yet (arrives in Step 6)
+      this.trendingTableExists = false;
       return [];
     }
   }
 
-  // Stub used from later steps
   async recordTerm(_term: string): Promise<void> {
     // no-op until Step 6
-  }
-
-  get trendingKey(): string {
-    return TRENDING_KEY;
   }
 }

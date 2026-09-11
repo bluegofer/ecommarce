@@ -137,6 +137,10 @@ export class SearchService {
         break;
     }
 
+    // Lower trigram similarity threshold for typo tolerance.
+    // Default is 0.3 which is too strict for single-word typos.
+    await this.prisma.$executeRawUnsafe(`SET pg_trgm.similarity_threshold = 0.15`);
+
     // --- main query + count in one round trip ---
     const items = await this.prisma.$queryRawUnsafe<ProductRow[]>(
       `SELECT p.* FROM products p JOIN categories c ON c.id = p."categoryId"

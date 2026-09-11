@@ -40,7 +40,21 @@ export async function cleanDatabase(
     }
   }
 
+  // Order matters: children before parents (Step 2 + Step 3 tables).
   const deletions: Array<[string, () => Promise<unknown>]> = [
+    // Step 3 catalog/inventory children
+    ['inventoryAdjustment', () => prisma.inventoryAdjustment.deleteMany()],
+    ['productAttributeValue', () => prisma.productAttributeValue.deleteMany()],
+    ['productMedia', () => prisma.productMedia.deleteMany()],
+    ['variant', () => prisma.variant.deleteMany()],
+    ['product', () => prisma.product.deleteMany()],
+    ['categoryAttribute', () => prisma.categoryAttribute.deleteMany()],
+    ['attribute', () => prisma.attribute.deleteMany()],
+    ['category', () => prisma.category.deleteMany()],
+    ['warehouse', () => prisma.warehouse.deleteMany()],
+    ['slugRedirect', () => prisma.slugRedirect.deleteMany()],
+
+    // Step 2 auth/rbac/audit/outbox
     ['idempotencyKey', () => prisma.idempotencyKey.deleteMany()],
     ['outbox', () => prisma.outbox.deleteMany()],
     ['auditLog', () => prisma.auditLog.deleteMany()],
@@ -68,12 +82,16 @@ export async function cleanDatabase(
 /**
  * Generate a valid BD phone in +8801[3-9]XXXXXXXX format.
  * RegisterDto regex: /^\+8801[3-9]\d{8}$/
- *  - "+8801" prefix
- *  - second digit after 1 : 3-9  (operator code)
- *  - then 8 more digits
  */
 export function randomPhone(): string {
   const operator = 3 + Math.floor(Math.random() * 7); // 3..9
   const rest = Math.floor(10000000 + Math.random() * 90000000); // 8 digits
   return `+8801${operator}${rest.toString().slice(0, 8)}`;
+}
+
+/**
+ * Generate a unique slug suffix so tests don't collide.
+ */
+export function uniqueSuffix(): string {
+  return `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
 }

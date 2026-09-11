@@ -10,6 +10,8 @@ import { VariantsService } from './variants/variants.service';
 import { VariantsController } from './variants/variants.controller';
 import { SlugRedirectsService } from './slug-redirects/slug-redirects.service';
 import { MediaController } from './media/media.controller';
+import { ImportExportService } from './import-export/import-export.service';
+import { ImportExportController } from './import-export/import-export.controller';
 
 @Module({
   controllers: [
@@ -18,6 +20,7 @@ import { MediaController } from './media/media.controller';
     ProductsController,
     VariantsController,
     MediaController,
+    ImportExportController,
   ],
   providers: [
     CategoriesService,
@@ -25,6 +28,7 @@ import { MediaController } from './media/media.controller';
     ProductsService,
     VariantsService,
     SlugRedirectsService,
+    ImportExportService,
   ],
   exports: [
     CategoriesService,
@@ -32,6 +36,7 @@ import { MediaController } from './media/media.controller';
     ProductsService,
     VariantsService,
     SlugRedirectsService,
+    ImportExportService,
   ],
 })
 export class CatalogModule {}
