@@ -14,6 +14,8 @@ import { JobsModule } from './modules/jobs/jobs.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { SearchModule } from './modules/search/search.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { CmsModule } from './modules/cms/cms.module';
 
 @Module({
   imports: [
@@ -28,17 +30,14 @@ import { SearchModule } from './modules/search/search.module';
     CatalogModule,
     InventoryModule,
     SearchModule,
+    PromotionsModule,
+    CmsModule,
   ],
   controllers: [HealthController],
   providers: [
-    // Global guards
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-
-    // Global interceptors (order matters: audit → idempotency)
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
-
-    // Global filters
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })

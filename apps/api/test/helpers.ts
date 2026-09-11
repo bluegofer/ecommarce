@@ -36,13 +36,28 @@ export async function cleanDatabase(
     try {
       await redis.client.flushdb();
     } catch {
-      // ignore
+      /* ignore */
     }
   }
 
-  // Order matters: children before parents (Step 2 + Step 3 tables).
   const deletions: Array<[string, () => Promise<unknown>]> = [
-    // Step 3 catalog/inventory children
+    // Step 4 promotions + CMS children first
+    ['couponRedemption', () => prisma.couponRedemption.deleteMany()],
+    ['coupon', () => prisma.coupon.deleteMany()],
+    ['flashSaleItem', () => prisma.flashSaleItem.deleteMany()],
+    ['flashSale', () => prisma.flashSale.deleteMany()],
+    ['automaticDiscount', () => prisma.automaticDiscount.deleteMany()],
+    ['cmsPageRevision', () => prisma.cmsPageRevision.deleteMany()],
+    ['cmsPage', () => prisma.cmsPage.deleteMany()],
+    ['cmsMenuItem', () => prisma.cmsMenuItem.deleteMany()],
+    ['cmsMenu', () => prisma.cmsMenu.deleteMany()],
+    ['cmsSection', () => prisma.cmsSection.deleteMany()],
+    ['announcement', () => prisma.announcement.deleteMany()],
+    ['popup', () => prisma.popup.deleteMany()],
+    ['mediaLibraryItem', () => prisma.mediaLibraryItem.deleteMany()],
+    ['contactMessage', () => prisma.contactMessage.deleteMany()],
+
+    // Step 3 catalog/inventory
     ['inventoryAdjustment', () => prisma.inventoryAdjustment.deleteMany()],
     ['productAttributeValue', () => prisma.productAttributeValue.deleteMany()],
     ['productMedia', () => prisma.productMedia.deleteMany()],
@@ -79,19 +94,12 @@ export async function cleanDatabase(
   }
 }
 
-/**
- * Generate a valid BD phone in +8801[3-9]XXXXXXXX format.
- * RegisterDto regex: /^\+8801[3-9]\d{8}$/
- */
 export function randomPhone(): string {
-  const operator = 3 + Math.floor(Math.random() * 7); // 3..9
-  const rest = Math.floor(10000000 + Math.random() * 90000000); // 8 digits
+  const operator = 3 + Math.floor(Math.random() * 7);
+  const rest = Math.floor(10000000 + Math.random() * 90000000);
   return `+8801${operator}${rest.toString().slice(0, 8)}`;
 }
 
-/**
- * Generate a unique slug suffix so tests don't collide.
- */
 export function uniqueSuffix(): string {
   return `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
 }
