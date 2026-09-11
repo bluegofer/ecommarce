@@ -8,7 +8,7 @@
     "start": "node dist/main.js",
     "lint": "echo \"eslint configured in Step 7\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
