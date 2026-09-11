@@ -1,40 +1,98 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getDictionary, isLocale, interpolate } from '@/lib/i18n';
-import { Header, Footer, Breadcrumbs } from '@/components/layout';
-import { ProductCard } from '@/components/product';
-import { Badge, PriceBlock, RatingStars, SkeletonCard, EmptyState, Pagination } from '@/components/ui';
-import { AnnouncementBar } from '@/components/layout';
-import { InteractiveDemo } from './_gallery/InteractiveDemo';
+import { getDictionary, isLocale } from '@/lib/i18n';
+import { catalogApi, cmsApi, promotionsApi } from '@/lib/api';
+import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
+import {
+  HeroCarousel,
+  CategoryTiles,
+  DealStrip,
+  ProductCarousel,
+  PromoBanners,
+  SeoTextBlock,
+  type HeroSlide,
+} from '@/components/home';
+import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 
-/**
- * Step 7 component gallery — renders every global component once.
- * Serves as the axe-core audit target (AC-101) and visual-check surface (AC-100).
- * Real home page (C1) is built in Step 8.
- */
-export default function LocaleHomePage({ params }: { params: { locale: string } }) {
+export const revalidate = 60; // ISR — refresh every 60s
+
+export default async function HomePage({ params }: { params: { locale: string } }) {
   if (!isLocale(params.locale)) notFound();
-  const locale = params.locale;
+  const locale = params.locale as 'bn' | 'en';
   const t = getDictionary(locale);
 
+  // Parallel fetch — home-feed, category tree, best-sellers, new arrivals
+  const [feed, categories, bestSellers, newArrivals] = await Promise.all([
+    cmsApi.getHomeFeed().catch(() => ({ announcements: [], sections: [], activeFlashSales: [], activePopups: [] })),
+    catalogApi.getCategoryTree().catch(() => [] as CategoryNode[]),
+    catalogApi.listProducts({ status: 'PUBLISHED', sort: 'best_sellers', limit: 10 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 })),
+    catalogApi.listProducts({ status: 'PUBLISHED', sort: 'newest', limit: 10 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 })),
+  ]);
+
+  // ── Extract sections from CMS feed ──
+  const heroSection = feed.sections.find((s) => s.sectionType === 'HERO_CAROUSEL');
+  const dealStripSection = feed.sections.find((s) => s.sectionType === 'DEAL_STRIP');
+  const heroSlides: HeroSlide[] = extractHeroSlides(heroSection?.config);
+  const dealEndsAt = extractDealEndsAt(dealStripSection?.config) ?? defaultDealEnd();
+
+  // ── Announcement ──
+  const activeAnnouncement = feed.announcements[0];
+
+  // ── Header labels ──
   const navLinks = [
     { label: t['nav.deals'], href: `/${locale}/deals` },
-    { label: t['nav.best'], href: `/${locale}/s?k=best` },
-    { label: t['nav.new'], href: `/${locale}/s?k=new` },
+    { label: t['nav.best'], href: `/${locale}/c/electronics` },
+    { label: t['nav.new'], href: `/${locale}/c/electronics` },
     { label: 'Electronics', href: `/${locale}/c/electronics` },
     { label: 'Fashion', href: `/${locale}/c/fashion` },
-    { label: 'Home & Kitchen', href: `/${locale}/c/home` },
+    { label: 'Home & Kitchen', href: `/${locale}/c/home-kitchen` },
+  ];
+
+  const promoBanners = [
+    {
+      imageUrl: placeholderSvg('Smartphones under', 'EFF7FB', '25729A'),
+      titleEn: 'Smartphones under ৳20,000',
+      titleBn: '২০,০০০ টাকার নিচে স্মার্টফোন',
+      ctaHref: `/${locale}/c/smartphones`,
+      ctaLabelEn: 'Shop the range',
+      ctaLabelBn: 'কিনুন',
+    },
+    {
+      imageUrl: placeholderSvg('Fashion Fest', 'FEF5E7', 'B45309'),
+      titleEn: 'Fashion Fest — Min 50% off',
+      titleBn: 'ফ্যাশন ফেস্ট — ন্যূনতম ৫০% ছাড়',
+      ctaHref: `/${locale}/c/fashion`,
+      ctaLabelEn: 'Explore styles',
+      ctaLabelBn: 'দেখুন',
+    },
+    {
+      imageUrl: placeholderSvg('Grocery Days', 'EAF7EF', '16A34A'),
+      titleEn: 'Grocery Super Saver Days',
+      titleBn: 'গ্রোসারি সুপার সেভার',
+      ctaHref: `/${locale}/c/home-kitchen`,
+      ctaLabelEn: 'Stock up now',
+      ctaLabelBn: 'স্টক করুন',
+    },
+    {
+      imageUrl: placeholderSvg('Home Makeover', 'E0F2FE', '0C2B3D'),
+      titleEn: 'Home Makeover from ৳499',
+      titleBn: 'হোম মেকওভার ৪৯৯ টাকা থেকে',
+      ctaHref: `/${locale}/c/home-kitchen`,
+      ctaLabelEn: 'Discover deals',
+      ctaLabelBn: 'আবিষ্কার করুন',
+    },
   ];
 
   return (
     <>
       <a href="#main" className="skipLink">Skip to content</a>
-      <AnnouncementBar
-        message={locale === 'bn' ? '\u09E7,\u09EB\u09E6\u09E6 \u099F\u09BE\u0995\u09BE\u09B0 \u0989\u09AA\u09B0\u09C7 \u09AB\u09CD\u09B0\u09BF \u09A1\u09C7\u09B2\u09BF\u09AD\u09BE\u09B0\u09BF' : 'Free delivery over \u09F31,500'}
-        ctaLabel={locale === 'bn' ? '\u0985\u09AB\u09BE\u09B0 \u09A6\u09C7\u0996\u09C1\u09A8' : 'See deals'}
-        ctaHref={'/' + locale + '/deals'}
-        locale={locale}
-      />
+      {activeAnnouncement ? (
+        <AnnouncementBar
+          message={locale === 'bn' ? activeAnnouncement.textBn : activeAnnouncement.textEn}
+          ctaHref={activeAnnouncement.linkUrl ?? undefined}
+          ctaLabel={activeAnnouncement.linkUrl ? (locale === 'bn' ? 'অফার দেখুন' : 'See deals') : undefined}
+          locale={locale}
+        />
+      ) : null}
       <Header
         locale={locale}
         labels={{
@@ -66,179 +124,73 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
           },
         }}
         navLinks={navLinks}
-        categories={[
-          { id: '1', label: 'Electronics', href: `/${locale}/c/electronics`, children: [
-            { id: '1a', label: 'Headphones', href: `/${locale}/c/headphones` },
-            { id: '1b', label: 'Smartphones', href: `/${locale}/c/smartphones` },
-          ]},
-          { id: '2', label: 'Fashion', href: `/${locale}/c/fashion` },
-          { id: '3', label: 'Home & Kitchen', href: `/${locale}/c/home` },
-        ]}
+        categories={categories.map((c) => ({
+          id: c.id,
+          label: locale === 'bn' ? c.nameBn : c.nameEn,
+          href: `/${locale}/c/${c.slug}`,
+          children: c.children.map((ch) => ({
+            id: ch.id,
+            label: locale === 'bn' ? ch.nameBn : ch.nameEn,
+            href: `/${locale}/c/${ch.slug}`,
+          })),
+        }))}
         alternateLocaleHref={`/${locale === 'bn' ? 'en' : 'bn'}`}
       />
 
       <main id="main" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px 48px' }}>
-        <Breadcrumbs
-          items={[
-            { label: 'Home', href: `/${locale}` },
-            { label: 'Component gallery' },
-          ]}
+        <Breadcrumbs items={[{ label: 'Home' }]} locale={locale} />
+
+        {heroSlides.length > 0 ? <HeroCarousel slides={heroSlides} locale={locale} autoplayMs={6000} /> : null}
+        <CategoryTiles categories={categories} locale={locale} limit={4} />
+
+        <DealStrip
+          endsAtIso={dealEndsAt}
+          label={locale === 'bn' ? "আজকের অফার শেষ হচ্ছে" : "Today's Deals end in"}
+          ctaLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all deals →'}
+          ctaHref={`/${locale}/deals`}
           locale={locale}
         />
 
-        <h1 style={{ marginTop: 16, fontFamily: 'var(--sk-font-en)' }}>SkyMart · Step 7 gallery</h1>
-        <p style={{ color: 'var(--sk-muted)', fontFamily: 'var(--sk-font-en)' }}>
-          Locale = <strong>{locale}</strong> · All global components rendered once for visual + axe audit.
-        </p>
-
-        {/* Badges */}
-        <Section title="Badges (B10)">
-          <div style={row}>
-            <Badge kind="discount" percent={45} />
-            <Badge kind="best-seller">Best Seller</Badge>
-            <Badge kind="new">New</Badge>
-            <Badge kind="low-stock">Only 3 left</Badge>
-            <Badge kind="out-of-stock">Out of Stock</Badge>
-            <Badge kind="free-delivery">Free Delivery</Badge>
-            <Badge kind="deal-timer" timer="07:42:18" />
-            <Badge kind="in-stock">In Stock</Badge>
-          </div>
-        </Section>
-
-        {/* Price blocks */}
-        <Section title="Price block (B10)">
-          <div style={row}>
-            <PriceBlock pricePoisha={219900} listPricePoisha={399900} size="card" locale={locale} />
-            <PriceBlock pricePoisha={219900} listPricePoisha={399900} size="pdp" locale={locale} />
-            <PriceBlock pricePoisha={129900} size="card" locale={locale} />
-          </div>
-        </Section>
-
-        {/* Rating stars */}
-        <Section title="Rating stars (B9)">
-          <div style={row}>
-            <RatingStars average={4.4} count={4321} size={16} locale={locale} />
-            <RatingStars average={3.5} count={248} size={20} locale={locale} />
-            <RatingStars average={0} count={0} size={16} locale={locale} />
-          </div>
-        </Section>
-
-        {/* Product cards */}
-        <Section title="Product cards (C2)">
-          <div style={grid}>
-            <ProductCard
-              variantId="v1"
-              slug="demo-headphones"
-              title="Wireless Over-Ear Headphones with Active Noise Cancellation, 35h Playback"
-              thumbnailUrl={null}
-              pricePoisha={219900}
-              listPricePoisha={399900}
-              ratingAverage={4.4}
-              ratingCount={4321}
-              inStock
-              freeDelivery
-              bestSeller
-              locale={locale}
-              t={{
-                addToCart: t['card.add_to_cart'],
-                outOfStock: t['product.out_of_stock'],
-                inStock: t['product.in_stock'],
-                lowStock: t['product.low_stock'],
-                freeDelivery: t['product.free_delivery'],
-                deliveryBy: t['product.eta'],
-                wishlistAdd: t['card.wishlist_add'],
-                wishlistRemove: t['card.wishlist_remove'],
-                addedToCart: t['cart.added'],
-              }}
-            />
-            <ProductCard
-              variantId="v2"
-              slug="demo-watch"
-              title="Smart Watch Series X with Heart Rate Monitor & GPS, 7-day battery"
-              thumbnailUrl={null}
-              pricePoisha={349900}
-              listPricePoisha={560000}
-              ratingAverage={5}
-              ratingCount={2110}
-              inStock
-              lowStock
-              lowStockQty={3}
-              isNew
-              locale={locale}
-              t={{
-                addToCart: t['card.add_to_cart'],
-                outOfStock: t['product.out_of_stock'],
-                inStock: t['product.in_stock'],
-                lowStock: t['product.low_stock'],
-                freeDelivery: t['product.free_delivery'],
-                deliveryBy: t['product.eta'],
-                wishlistAdd: t['card.wishlist_add'],
-                wishlistRemove: t['card.wishlist_remove'],
-                addedToCart: t['cart.added'],
-              }}
-            />
-            <ProductCard
-              variantId="v3"
-              slug="demo-oos"
-              title="Non-Stick Cookware Set 7-piece Induction Safe"
-              thumbnailUrl={null}
-              pricePoisha={189900}
-              listPricePoisha={399900}
-              ratingAverage={4.3}
-              ratingCount={890}
-              inStock={false}
-              locale={locale}
-              t={{
-                addToCart: t['card.add_to_cart'],
-                outOfStock: t['product.out_of_stock'],
-                inStock: t['product.in_stock'],
-                lowStock: t['product.low_stock'],
-                freeDelivery: t['product.free_delivery'],
-                deliveryBy: t['product.eta'],
-                wishlistAdd: t['card.wishlist_add'],
-                wishlistRemove: t['card.wishlist_remove'],
-                addedToCart: t['cart.added'],
-              }}
-            />
-            <SkeletonCard />
-          </div>
-        </Section>
-
-        {/* Pagination */}
-        <Section title="Pagination (B7)">
-          <Pagination page={2} totalPages={12} />
-        </Section>
-
-        {/* Empty state */}
-        <Section title="Empty state (B8)">
-          <EmptyState
-            title={t['cart.empty']}
-            body={interpolate('Locale = {loc}', { loc: locale })}
-          />
-        </Section>
-      <Section title="Interactive (B5, B6)">
-          <InteractiveDemo
+        {bestSellers.items.length > 0 ? (
+          <ProductCarousel
+            title={locale === 'bn' ? 'বেস্ট সেলার' : 'Best Sellers'}
+            seeAllHref={`/${locale}/deals`}
+            seeAllLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all →'}
+            products={bestSellers.items}
             locale={locale}
-            labels={{
-              openModal: 'Open Modal',
-              openDrawer: 'Open Drawer',
-              showToast: 'Show success toast',
-              showErrorToast: 'Show error toast',
-              showInfoToast: 'Show info toast',
-              modalTitle: 'Example modal',
-              modalBody: 'This is a demo modal. Focus is trapped, Esc closes, focus returns to the trigger.',
-              drawerTitle: 'Example drawer',
-              drawerBody: 'Demo drawer sliding from the right. Same a11y contract as the modal.',
-              toastTitle: 'Added to cart',
-              toastDesc: 'Wireless Headphones',
-              cart: 'Cart',
-              subtotal: 'Subtotal ({n} items)',
-              viewCart: 'View cart',
-              checkout: 'Checkout',
-              empty: 'Your cart is empty',
-            }}
+            dict={t}
           />
-        </Section>
+        ) : null}
+
+        <PromoBanners banners={promoBanners} locale={locale} />
+
+        {newArrivals.items.length > 0 ? (
+          <ProductCarousel
+            title={locale === 'bn' ? 'নতুন পণ্য' : 'New Arrivals'}
+            seeAllHref={`/${locale}/deals`}
+            seeAllLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all →'}
+            products={newArrivals.items}
+            locale={locale}
+            dict={t}
+          />
+        ) : null}
+
+        <SeoTextBlock
+          title={locale === 'bn' ? 'স্কাইমার্টে অনলাইনে কিনুন' : 'Shop online at SkyMart'}
+          paragraphs={
+            locale === 'bn'
+              ? [
+                  'স্কাইমার্ট বাংলাদেশের একটি দ্রুত বর্ধনশীল অনলাইন মার্কেটপ্লেস। ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন, বিউটি সহ সব ধরনের পণ্য এক জায়গায়।',
+                  'বিকাশ, নগদ, কার্ড বা ক্যাশ অন ডেলিভারিতে নিরাপদ পেমেন্ট। ১,৫০০ টাকার উপরে অর্ডারে ফ্রি ডেলিভারি। ৭ দিনের সহজ রিটার্ন।',
+                ]
+              : [
+                  "SkyMart is Bangladesh's rapidly growing online marketplace offering products across Electronics, Fashion, Home & Kitchen, Beauty and more.",
+                  'Pay safely with bKash, Nagad, Card, or Cash on Delivery. Free delivery on eligible orders over ৳1,500. Easy 7-day returns.',
+                ]
+          }
+          seeMoreLabel={locale === 'bn' ? 'আরো দেখুন' : 'See more'}
+          seeLessLabel={locale === 'bn' ? 'কম দেখুন' : 'See less'}
+        />
       </main>
 
       <Footer
@@ -280,18 +232,32 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section style={{ marginTop: 32 }}>
-      <h2 style={{ fontFamily: 'var(--sk-font-en)', fontSize: 18, marginBottom: 12 }}>{title}</h2>
-      {children}
-    </section>
-  );
+// ── Helpers ──────────────────────────────────────
+
+function extractHeroSlides(config: Record<string, unknown> | null | undefined): HeroSlide[] {
+  if (!config || !('slides' in config) || !Array.isArray(config.slides)) return [];
+  return (config.slides as Array<Record<string, unknown>>)
+    .filter((s) => s && typeof s.imageUrl === 'string' && typeof s.ctaHref === 'string')
+    .map((s) => ({
+      imageUrl: String(s.imageUrl),
+      titleEn: String(s.titleEn ?? ''),
+      titleBn: String(s.titleBn ?? ''),
+      ctaHref: String(s.ctaHref),
+      ctaLabelEn: String(s.ctaLabelEn ?? 'Shop'),
+      ctaLabelBn: String(s.ctaLabelBn ?? 'কিনুন'),
+    }));
 }
 
-const row: React.CSSProperties = { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' };
-const grid: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-  gap: 16,
-};
+function extractDealEndsAt(config: Record<string, unknown> | null | undefined): string | null {
+  if (!config || typeof config.endsAt !== 'string') return null;
+  return config.endsAt;
+}
+
+function defaultDealEnd(): string {
+  return new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString();
+}
+
+function placeholderSvg(label: string, bg: string, fg: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><rect width="800" height="400" fill="#${bg}"/><text x="400" y="200" font-family="Inter,sans-serif" font-size="36" font-weight="700" fill="#${fg}" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
