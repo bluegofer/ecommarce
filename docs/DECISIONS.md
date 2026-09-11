@@ -42,3 +42,25 @@ Status: LOCKED at Step 1 (2026-09-11). Any change after Step 1 requires a new en
 - D-05: Demo sets only for Step 14 seed fixtures.
 - D-12: Config update, not code.
 - OPEN items: Each has explicit owner + due-point. No blocker for Step 1.
+
+## Step 8 Update — Cart Storage Strategy (Temporary)
+
+**Date:** 2026-09-12 (during Step 8 build)
+**Status:** TEMPORARY — will change in Step 8.7
+
+### Decision
+For Step 8 (C4 Cart page), the guest cart will be persisted **only in localStorage** (via the existing `CartProvider` in `apps/storefront/src/lib/cart/context.tsx`). No server-side cart API calls will be made from the storefront during Step 8.
+
+### Why this is acceptable per TDD
+- TDD §7.2: *"a guest-cart that persists in local storage and merges on login"* — localStorage is the TDD-sanctioned storage for guest carts.
+- UI Spec C4 AC-1: *"guest: localStorage; user: API"* — both storages are required; guest uses localStorage.
+- TDD §11.5: PostgreSQL is the single consistency boundary for **orders/payments/stock/coupons** — not for guest cart items.
+
+### What is deferred and to when
+- **Step 8.7 (C6-C7 Auth):** after login succeeds, call `POST /api/v1/carts/guest` (or equivalent) to materialize a server cart, then `POST /carts/{id}/items` for each local item → **merge**. Local cart is then cleared.
+- **Step 8.7+:** signed-in users read/write via `GET /carts/{id}`, `POST /carts/{id}/items`, `PATCH /carts/{id}/items/{itemId}`, `DELETE /carts/{id}/items/{itemId}`, `POST /carts/{id}/coupon`.
+- **Step 14 (UAT):** verify guest→user merge on login works end-to-end with a real auth session.
+
+### Enforcement
+- A `useMergeGuestCart()` hook will be stubbed in Step 8.5 (returns no-op) and activated in Step 8.7.
+- Server cart endpoints (Step 5) remain unchanged; only the storefront wiring is deferred.
