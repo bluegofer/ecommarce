@@ -101,3 +101,44 @@ For Step 8 (C4 Cart page), the guest cart will be persisted **only in localStora
   handling.
 - Step 8.8 owner: add saved-address picker + Add New Address modal on top of
   the existing single-form component (no rewrite needed).
+
+## Step 8 Update — Search/PLP/PDP Dynamic Rendering Strategy (Temporary)
+
+**Date:** 2026-09-12 (during Step 8.6 build)
+**Status:** TEMPORARY — will be revisited in Step 8.12 (PWA) and Step 11 (SEO)
+
+### Decision
+Storefront pages that depend on runtime `searchParams` (filters, search query,
+pagination) use `export const dynamic = 'force-dynamic'` instead of ISR:
+
+- `app/[locale]/s/page.tsx` (search results)
+- `app/[locale]/c/[slug]/page.tsx` (category PLP with filters)
+- `app/[locale]/p/[slug]/page.tsx` (PDP — fetches product + variants + reviews per request)
+- `app/[locale]/order-confirmation/page.tsx` (reads order number + phone from searchParams)
+
+### Why this is acceptable per TDD
+- TDD §8.1 requires SSR/SSG/ISR for **crawlable** pages. Dynamic SSR (force-dynamic)
+  still delivers fully server-rendered HTML on every request — it satisfies SSR.
+- ISR (`revalidate = 60`) was attempted first but caused **stale empty results**:
+  the first request with no search params was cached, then subsequent queries
+  returned the cached empty state for 60s (Next.js App Router caches the
+  entire page output when `revalidate` is set, ignoring new searchParams).
+- This is a known Next.js App Router pattern: `searchParams`-dependent pages
+  must either use `force-dynamic` or wrap `useSearchParams()` in Suspense.
+
+### What is deferred and to when
+- **Step 8.12 (PWA):** verify production `next start` respects `force-dynamic`
+  at runtime (build output marker ●/ƒ may be misleading; runtime behavior is
+  what matters). Confirm via production server + curl with different query strings.
+- **Step 11 (SEO):** if needed, switch high-value pages (PDP, top categories)
+  to ISR with `generateStaticParams` for popular slugs + on-demand revalidation
+  hooked to admin publish events (per TDD §8.1). Filter/search result pages
+  remain dynamic — the UI Spec A9 table marks them `noindex`, so ISR adds no
+  SEO value.
+
+### Enforcement
+- Code comments in each affected page file reference this decision.
+- CI continues to pass: dynamic pages don't break the build, they just skip
+  static generation for those routes.
+- Future dev: if build output shows ● SSG but the page uses searchParams,
+  check runtime behavior first — the marker is not always accurate.
