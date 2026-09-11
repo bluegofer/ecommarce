@@ -12,6 +12,7 @@
     "noEmit": true,
     "allowJs": true,
     "baseUrl": ".",
+    "exactOptionalPropertyTypes": false,
     "plugins": [
       {
         "name": "next"
