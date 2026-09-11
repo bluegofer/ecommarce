@@ -140,6 +140,11 @@ export default async function HomePage({ params }: { params: { locale: string } 
       <main id="main" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px 48px' }}>
         <Breadcrumbs items={[{ label: 'Home' }]} locale={locale} />
 
+        {/* Visually hidden h1 for a11y + SEO — page has no visible h1 by design (UI Spec C1) */}
+        <h1 className="visually-hidden">
+          {locale === 'bn' ? 'স্কাইমার্ট — অনলাইনে কেনাকাটা' : 'SkyMart — Shop Online in Bangladesh'}
+        </h1>
+
         {heroSlides.length > 0 ? <HeroCarousel slides={heroSlides} locale={locale} autoplayMs={6000} /> : null}
         <CategoryTiles categories={categories} locale={locale} limit={4} />
 
