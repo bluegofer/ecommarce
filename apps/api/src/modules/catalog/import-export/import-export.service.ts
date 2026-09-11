@@ -44,8 +44,9 @@ export class ImportExportService {
    */
   parseCsv(text: string): { headers: string[]; rows: string[][] } {
     const lines = text.replace(/\r\n/g, '\n').split('\n').filter((l) => l.length > 0);
-    if (lines.length === 0) throw new BadRequestException('empty csv');
-    const headers = this.splitCsvLine(lines[0]).map((h) => h.trim());
+    const headerLine = lines[0];
+    if (headerLine === undefined) throw new BadRequestException('empty csv');
+    const headers = this.splitCsvLine(headerLine).map((h) => h.trim());
     const rows = lines.slice(1).map((l) => this.splitCsvLine(l));
     return { headers, rows };
   }
@@ -99,7 +100,7 @@ export class ImportExportService {
 
     for (let i = 0; i < rows.length; i += 1) {
       const rowNum = i + 2; // 1-based, +1 for header
-      const cells = rows[i];
+      const cells = rows[i] ?? [];
       const get = (name: string): string => (cells[idx(name)] ?? '').trim();
 
       const row: ParsedRow = {
