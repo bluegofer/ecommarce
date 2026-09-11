@@ -1,10 +1,13 @@
+'use client';
+
 import type { CSSProperties } from 'react';
 import styles from './Pagination.module.css';
 
 export interface PaginationProps {
   page: number;
   totalPages: number;
-  onPageChange: (page: number) => void;
+  /** Optional — when omitted, clicks are no-ops (useful for SSR demos). */
+  onPageChange?: (page: number) => void;
   labelPageOf?: (page: number, total: number) => string;
   className?: string;
   style?: CSSProperties;
@@ -24,20 +27,23 @@ function pageWindow(current: number, total: number): (number | 'gap')[] {
 
 export function Pagination({ page, totalPages, onPageChange, labelPageOf, className, style }: PaginationProps) {
   if (totalPages <= 1) return null;
+
+  const handleChange = onPageChange ?? (() => {});
   const cls = [styles.wrap, className].filter(Boolean).join(' ');
   const pages = pageWindow(page, totalPages);
   const caption = labelPageOf ? labelPageOf(page, totalPages) : `Page ${page} of ${totalPages}`;
+
   return (
     <nav className={cls} style={style} aria-label="Pagination">
-      <button type="button" className={styles.pill} onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} aria-label="Previous page">‹</button>
+      <button type="button" className={styles.pill} onClick={() => handleChange(Math.max(1, page - 1))} disabled={page === 1} aria-label="Previous page">‹</button>
       {pages.map((p, idx) =>
         p === 'gap' ? (
           <span key={`gap-${idx}`} className={styles.gap} aria-hidden="true">…</span>
         ) : (
-          <button key={p} type="button" className={[styles.pill, p === page ? styles.current : ''].filter(Boolean).join(' ')} onClick={() => onPageChange(p)} aria-current={p === page ? 'page' : undefined}>{p}</button>
+          <button key={p} type="button" className={[styles.pill, p === page ? styles.current : ''].filter(Boolean).join(' ')} onClick={() => handleChange(p)} aria-current={p === page ? 'page' : undefined}>{p}</button>
         ),
       )}
-      <button type="button" className={styles.pill} onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} aria-label="Next page">›</button>
+      <button type="button" className={styles.pill} onClick={() => handleChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} aria-label="Next page">›</button>
       <span className={styles.caption}>{caption}</span>
     </nav>
   );

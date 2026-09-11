@@ -24,3 +24,19 @@ input, select, textarea {
   font-family: inherit;
   font-size: inherit;
 }
+/* Skip-to-content (A8 accessibility) */
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--sk-brand-300);
+  color: var(--sk-brand-950);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 var(--sk-radius-md) 0;
+}
+.skipLink:focus {
+  left: 0;
+}

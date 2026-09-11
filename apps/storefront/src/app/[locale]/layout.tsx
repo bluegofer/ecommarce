@@ -1,4 +1,7 @@
 import { notFound } from 'next/navigation';
+import { CartProvider } from '@/lib/cart/context';
+import { ToastProvider } from '@/lib/ui/toast-context';
+import { ToastViewport } from '@/components/ui';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export function generateStaticParams() {
@@ -12,24 +15,24 @@ export default function LocaleLayout({
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  if (!isLocale(params.locale)) {
-    notFound();
-  }
+  if (!isLocale(params.locale)) notFound();
   const locale: Locale = params.locale;
   const dict = getDictionary(locale);
-  void dict; // dictionary is consumed by child pages/components
+  void dict;
 
   return (
     <>
-      {/* Sync <html lang> + <html dir> with the actual locale.
-          Root layout hardcodes "bn"; this script corrects it after hydration
-          and also on full page reloads (runs before paint). */}
       <script
         dangerouslySetInnerHTML={{
           __html: `document.documentElement.lang = ${JSON.stringify(locale)};`,
         }}
       />
-      {children}
+      <CartProvider>
+        <ToastProvider>
+          {children}
+          <ToastViewport />
+        </ToastProvider>
+      </CartProvider>
     </>
   );
 }
