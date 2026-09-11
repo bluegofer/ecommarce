@@ -63,6 +63,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItemsState] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const hydratedRef = useRef(false);
+  // Tracks whether we've ever had a non-empty cart in this session. Used to
+  // prevent StrictMode's double-effect from clobbering localStorage during
+  // the initial mount.
+  const hasHadItemsRef = useRef(false);
 
   // Hydrate from localStorage after mount (SSR-safe)
   useEffect(() => {
@@ -71,9 +75,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     hydratedRef.current = true;
   }, []);
 
-  // Persist on change (skip the very first hydration render)
+  // Persist on change. Guard: don't write an empty cart during the initial
+  // StrictMode double-mount (which would clobber localStorage before readCart
+  // has a chance to populate). Only persist once items are non-empty, OR once
+  // we've had a real non-empty cart and user removed everything.
   useEffect(() => {
     if (!hydratedRef.current) return;
+    // Allow writing empty cart only if we've previously had items
+    if (items.length === 0 && !hasHadItemsRef.current) return;
+    if (items.length > 0) hasHadItemsRef.current = true;
     writeCart(items);
   }, [items]);
 
