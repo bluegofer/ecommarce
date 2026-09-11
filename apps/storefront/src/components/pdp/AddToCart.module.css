@@ -51,11 +51,11 @@
 .addBtn:hover:not(:disabled) { background: var(--sk-cta-primary-hover); }
 
 .buyBtn {
-  background: var(--sk-cta-money);
+  background: #C2410C; /* WCAG AA on white text: 5.56:1 */
   color: #FFFFFF;
   border: none;
 }
-.buyBtn:hover:not(:disabled) { background: var(--sk-cta-money-hover); }
+.buyBtn:hover:not(:disabled) { background: #A0360B; }
 
 .notifyBtn {
   background: var(--sk-surface);

@@ -141,7 +141,7 @@
 .specTable th {
   width: 30%;
   font-weight: 600;
-  color: var(--sk-muted);
+  color: var(--sk-muted-strong);
   font-size: 13px;
 }
 

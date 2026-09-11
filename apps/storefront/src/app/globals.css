@@ -5,10 +5,20 @@
 /* display=swap prevents FOIT; tabular-nums enabled via class where needed */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 
-/* App-level base — inherits from tokens.css reset */
+/* App-level base — inherits from tokens.css reset.
+   NOTE: We deliberately DO NOT set `a { color: ... }` globally — component
+   CSS modules set their own link colors, and a global rule was overriding
+   dark-background Header/Footer links in dynamic pages (PDP, PLP) due to
+   Next.js CSS extraction order. Only text-decoration is normalized here. */
 a {
-  color: inherit;
   text-decoration: none;
+  color: inherit;
+}
+
+a:not([class]) {
+  /* Bare <a> in prose (CMS content) gets a default link color */
+  color: var(--sk-info);
+  text-decoration: underline;
 }
 
 a:hover {

@@ -36,6 +36,7 @@
   --sk-ink: #0F172A;
   --sk-body: #1F2937;
   --sk-muted: #64748B;
+  --sk-muted-strong: #4B5563; /* WCAG AA on #EFF7FB: 7.14:1 */
   --sk-disabled: #94A3B8;
   --sk-border: #D9E5EE;
   --sk-divider: #E6EEF4;

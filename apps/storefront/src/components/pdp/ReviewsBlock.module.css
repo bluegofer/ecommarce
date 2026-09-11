@@ -37,7 +37,7 @@
 
 .countText {
   font-size: 13px;
-  color: var(--sk-muted);
+  color: var(--sk-muted-strong);
 }
 
 .summaryRight {
@@ -70,7 +70,7 @@
   border-radius: 4px;
 }
 
-.histPct { color: var(--sk-muted); text-align: right; font-variant-numeric: tabular-nums; }
+.histPct { color: var(--sk-muted-strong); text-align: right; font-variant-numeric: tabular-nums; }
 
 .writeBtn {
   height: 40px;
