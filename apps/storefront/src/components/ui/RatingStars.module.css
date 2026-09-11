@@ -1,0 +1,10 @@
+.wrap { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sk-font-en); }
+
+.stars { display: inline-flex; line-height: 0; }
+
+.avg { font-size: 13px; color: var(--sk-body); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.count { font-size: 13px; color: var(--sk-info); text-decoration: none; font-variant-numeric: tabular-nums; }
+.count:hover { text-decoration: underline; }
+
+.empty { font-size: 13px; color: var(--sk-muted); }
