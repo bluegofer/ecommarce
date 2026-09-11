@@ -306,7 +306,7 @@ function SearchBox({
   };
 
   return (
-    <div className={styles.search} ref={wrapRef}>
+    <div className={styles.search} ref={wrapRef} suppressHydrationWarning>
       <div className={styles.searchBar}>
         <button type="button" className={styles.searchCat} aria-label="Search in category">
           {searchAll} <ChevronDown />
