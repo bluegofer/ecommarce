@@ -11,6 +11,9 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { JobsModule } from './modules/jobs/jobs.module';
     DatabaseModule,
     AuthModule,
     JobsModule,
+    CatalogModule,
+    InventoryModule,
+    SearchModule,
   ],
   controllers: [HealthController],
   providers: [

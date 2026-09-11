@@ -1,10 +1,3 @@
-export type Poisha = number;
-
-export interface Money {
-  amount: Poisha;
-  currency: 'BDT';
-}
-
-export type Locale = 'bn' | 'en';
-
+// packages/types/src/index.ts
 export * from './auth';
+export * from './catalog';

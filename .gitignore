@@ -9,3 +9,7 @@ coverage/
 .env.*.local
 .DS_Store
 *.log
+
+# Step 3: local media uploads (dev only, Step 12 swaps to S3)
+uploads/
+
