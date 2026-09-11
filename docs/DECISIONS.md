@@ -64,3 +64,40 @@ For Step 8 (C4 Cart page), the guest cart will be persisted **only in localStora
 ### Enforcement
 - A `useMergeGuestCart()` hook will be stubbed in Step 8.5 (returns no-op) and activated in Step 8.7.
 - Server cart endpoints (Step 5) remain unchanged; only the storefront wiring is deferred.
+
+## Step 8 Update — Checkout Payment Methods & Address Book (Temporary)
+
+**Date:** 2026-09-12 (during Step 8.6 build)
+**Status:** TEMPORARY — will change in Step 10 and Step 8.8
+
+### Decision 1 — Payment methods on Checkout (C5)
+- The UI will render **all four payment options** per UI Spec C5: bKash, Nagad,
+  SSLCommerz (Card/Net Banking), Cash on Delivery.
+- **Only Cash on Delivery (COD)** will actually place an order end-to-end in Step 8.6.
+- Selecting bKash / Nagad / SSLCommerz and clicking "Place Order" will show a
+  toast: *"Payment integration arrives in Step 10"* and **not** submit the order.
+- Rationale: TDD §6.8 specifies gateway-hosted flows with signed webhooks — Step 5
+  left these as stubs; Step 10 wires the real adapters (bKash tokenized checkout,
+  Nagad, SSLCommerz, plus signature verification and idempotent webhooks).
+
+### Decision 2 — Address book on Checkout
+- Step 8.6 will use a **single inline address form** on the Address step
+  (name, phone, area, full address, validated).
+- The **saved-addresses picker** (UI Spec C5 step 1: "saved address cards +
+  Add New Address") will be wired in **Step 8.8** (Account area) after auth
+  is available, because it requires:
+  - `POST /api/v1/auth/login` (Step 8.7) to obtain a customer session
+  - A storefront-facing endpoint exposing the CRM `addresses` table for the
+    authenticated customer (to be added/exposed in Step 8.8 or Step 9)
+- For guests, single-form entry remains the only path — acceptable per UI Spec
+  C5 which explicitly supports guest checkout.
+
+### Enforcement
+- A code comment will be added in `CheckoutClient.tsx` where non-COD methods
+  short-circuit, referencing this decision.
+- A code comment will be added in the Address step where the "saved addresses"
+  UI is intentionally omitted, referencing this decision.
+- Step 10 owner: replace stub with real payment adapters and idempotent webhook
+  handling.
+- Step 8.8 owner: add saved-address picker + Add New Address modal on top of
+  the existing single-form component (no rewrite needed).
