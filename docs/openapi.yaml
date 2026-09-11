@@ -2,7 +2,37 @@ openapi: 3.1.0
 info:
   title: Ecommarce API
   version: 1.0.0
-  description: Skeleton - filled in Step 1 across all 13 TDD section 6 modules.
+  description: Versioned REST API serving both storefront and admin. Skeleton at Step 1; filled per step.
 servers:
   - url: /api/v1
-paths: {}
+tags:
+  - name: health
+  - name: auth
+  - name: catalog
+  - name: inventory
+  - name: search
+  - name: promotions
+  - name: cms
+  - name: crm
+  - name: orders
+  - name: payments
+  - name: courier
+  - name: rma
+  - name: reviews
+  - name: notifications
+  - name: analytics
+  - name: admin
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness check
+      responses:
+        '200':
+          description: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
