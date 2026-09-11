@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { CartProvider } from '@/lib/cart/context';
+import { SavedProvider } from '@/lib/cart/saved-context';
 import { ToastProvider } from '@/lib/ui/toast-context';
 import { ToastViewport } from '@/components/ui';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
@@ -27,12 +28,12 @@ export default function LocaleLayout({
           __html: `document.documentElement.lang = ${JSON.stringify(locale)};`,
         }}
       />
-      <CartProvider>
+      <CartProvider>`n        <SavedProvider>
         <ToastProvider>
           {children}
           <ToastViewport />
         </ToastProvider>
-      </CartProvider>
+      </SavedProvider>`n      </CartProvider>
     </>
   );
 }
