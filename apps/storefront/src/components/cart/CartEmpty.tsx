@@ -17,6 +17,7 @@ export function CartEmpty({ locale, labels }: CartEmptyProps) {
       <EmptyState
         title={labels.title}
         body={labels.body}
+        headingLevel={2}
         illustration={<CartIllustration />}
         action={
           <Link href={`/${locale}/deals`} className={styles.cta}>

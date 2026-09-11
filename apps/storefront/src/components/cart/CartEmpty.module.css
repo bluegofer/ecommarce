@@ -8,11 +8,11 @@
   align-items: center;
   height: 44px;
   padding: 0 24px;
-  background: var(--sk-cta-money);
+  background: #C2410C; /* WCAG AA on white text: 5.56:1 */
   color: #FFFFFF;
   border-radius: var(--sk-radius-md);
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
 }
-.cta:hover { background: var(--sk-cta-money-hover); text-decoration: none; }
+.cta:hover { background: #A0360B; text-decoration: none; }
