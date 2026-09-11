@@ -4,6 +4,8 @@ import { getDictionary, isLocale, interpolate } from '@/lib/i18n';
 import { Header, Footer, Breadcrumbs } from '@/components/layout';
 import { ProductCard } from '@/components/product';
 import { Badge, PriceBlock, RatingStars, SkeletonCard, EmptyState, Pagination } from '@/components/ui';
+import { AnnouncementBar } from '@/components/layout';
+import { InteractiveDemo } from './_gallery/InteractiveDemo';
 
 /**
  * Step 7 component gallery — renders every global component once.
@@ -27,6 +29,12 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
   return (
     <>
       <a href="#main" className="skipLink">Skip to content</a>
+      <AnnouncementBar
+        message={locale === 'bn' ? '\u09E7,\u09EB\u09E6\u09E6 \u099F\u09BE\u0995\u09BE\u09B0 \u0989\u09AA\u09B0\u09C7 \u09AB\u09CD\u09B0\u09BF \u09A1\u09C7\u09B2\u09BF\u09AD\u09BE\u09B0\u09BF' : 'Free delivery over \u09F31,500'}
+        ctaLabel={locale === 'bn' ? '\u0985\u09AB\u09BE\u09B0 \u09A6\u09C7\u0996\u09C1\u09A8' : 'See deals'}
+        ctaHref={'/' + locale + '/deals'}
+        locale={locale}
+      />
       <Header
         locale={locale}
         labels={{
@@ -206,6 +214,29 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
           <EmptyState
             title={t['cart.empty']}
             body={interpolate('Locale = {loc}', { loc: locale })}
+          />
+        </Section>
+      <Section title="Interactive (B5, B6)">
+          <InteractiveDemo
+            locale={locale}
+            labels={{
+              openModal: 'Open Modal',
+              openDrawer: 'Open Drawer',
+              showToast: 'Show success toast',
+              showErrorToast: 'Show error toast',
+              showInfoToast: 'Show info toast',
+              modalTitle: 'Example modal',
+              modalBody: 'This is a demo modal. Focus is trapped, Esc closes, focus returns to the trigger.',
+              drawerTitle: 'Example drawer',
+              drawerBody: 'Demo drawer sliding from the right. Same a11y contract as the modal.',
+              toastTitle: 'Added to cart',
+              toastDesc: 'Wireless Headphones',
+              cart: 'Cart',
+              subtotal: 'Subtotal ({n} items)',
+              viewCart: 'View cart',
+              checkout: 'Checkout',
+              empty: 'Your cart is empty',
+            }}
           />
         </Section>
       </main>
