@@ -16,7 +16,9 @@
 
   /* ── Semantic (text / fg) ────────────────── */
   --sk-success: #16A34A;
+  --sk-success-text: #15803D; /* WCAG AA on white: 4.52:1 */
   --sk-error: #D62828;
+  --sk-error-text: #A11C1C; /* WCAG AA on #FDECEC: 5.47:1 */
   --sk-warning: #B45309;
   --sk-info: #25729A;
   --sk-price: #C2410C;

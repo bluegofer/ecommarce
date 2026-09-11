@@ -9,7 +9,6 @@ import styles from './Header.module.css';
 export interface HeaderNavLink {
   label: string;
   href: string;
-  /** If true, clicking opens the mega-menu instead of navigating. */
   opensMegaMenu?: boolean;
 }
 
@@ -18,7 +17,7 @@ export interface HeaderLabels {
   deliverPlaceholder: string;
   searchPlaceholder: string;
   searchAll: string;
-  searchIn: string; // "SEARCH FOR {q} IN {category}"
+  searchIn: string;
   helloSignIn: string;
   accountLists: string;
   returns: string;
@@ -32,18 +31,12 @@ export interface HeaderLabels {
 export interface HeaderProps {
   locale: 'bn' | 'en';
   labels: HeaderLabels;
-  /** Nav chips — usually 5 visible on desktop. */
   navLinks: HeaderNavLink[];
-  /** Mega-menu category tree (may be empty). */
   categories: MegaMenuCategory[];
-  /** Where the language toggle sends the user. */
   alternateLocaleHref: string;
-  /** Delivery area label (from modal later; static for now). */
   deliverToLabel?: string;
-  /** Signed-in flag; when false shows "Hello, Sign in". */
   signedIn?: boolean;
   userName?: string;
-  /** Cart badge count from server (guest cart merges with this in Step 8). */
   serverCartCount?: number;
 }
 
@@ -68,7 +61,6 @@ export function Header({
 
   const accountRef = useRef<HTMLDivElement>(null);
 
-  // Sticky collapse on scroll (UI Spec B1)
   useEffect(() => {
     const onScroll = () => {
       setCollapsed(window.scrollY > 160);
@@ -78,7 +70,6 @@ export function Header({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close account dropdown on outside click
   useEffect(() => {
     if (!accountOpen) return;
     const onDocClick = (e: MouseEvent) => {
@@ -93,10 +84,8 @@ export function Header({
   return (
     <>
       <header className={[styles.header, collapsed ? styles.collapsed : ''].filter(Boolean).join(' ')}>
-        {/* Row 1 */}
         <div className={styles.row1}>
           <div className={styles.row1Inner}>
-            {/* Mobile hamburger (visible only on mobile) */}
             <button
               type="button"
               className={styles.mobileMenuBtn}
@@ -106,13 +95,11 @@ export function Header({
               <HamburgerIcon />
             </button>
 
-            {/* Logo */}
             <Link href={`/${locale}`} className={styles.logo} aria-label="SkyMart home">
               <PinIcon />
               <span className={styles.logoText}>SkyMart</span>
             </Link>
 
-            {/* Deliver to (desktop only) */}
             <button type="button" className={styles.deliver} aria-label={labels.deliverTo}>
               <LocationIcon />
               <span className={styles.deliverText}>
@@ -123,7 +110,6 @@ export function Header({
               </span>
             </button>
 
-            {/* Search (desktop only in row1; on mobile shows icon only) */}
             <SearchBox
               locale={locale}
               placeholder={labels.searchPlaceholder}
@@ -131,14 +117,12 @@ export function Header({
               searchInTemplate={labels.searchIn}
             />
 
-            {/* Language toggle */}
             <Link href={alternateLocaleHref} className={styles.lang}>
               <span className={locale === 'bn' ? styles.langActive : ''}>{labels.languageEn}</span>
               <span className={styles.langSep}>/</span>
               <span className={locale === 'en' ? styles.langActive : ''}>{labels.languageBn}</span>
             </Link>
 
-            {/* Account */}
             <div className={styles.accountWrap} ref={accountRef}>
               <button
                 type="button"
@@ -178,13 +162,11 @@ export function Header({
               ) : null}
             </div>
 
-            {/* Orders (desktop only) */}
             <Link href={`/${locale}/account/orders`} className={styles.orders}>
               <span className={styles.ordersTop}>{labels.returns}</span>
               <span className={styles.ordersBottom}>{labels.orders}</span>
             </Link>
 
-            {/* Cart */}
             <Link href={`/${locale}/cart`} className={styles.cart} aria-label={labels.cart}>
               <span className={styles.cartIconWrap}>
                 <CartIcon />
@@ -197,7 +179,6 @@ export function Header({
           </div>
         </div>
 
-        {/* Row 2 (desktop nav) */}
         <div className={styles.row2}>
           <div className={styles.row2Inner}>
             <button
@@ -230,7 +211,6 @@ export function Header({
           </div>
         </div>
 
-        {/* Mobile chip nav */}
         <div className={styles.chips}>
           <div className={styles.chipsInner}>
             <button
@@ -262,7 +242,6 @@ export function Header({
   );
 }
 
-/* ── Search box with suggestions (B1 sub-component) ── */
 function SearchBox({
   locale,
   placeholder,
@@ -280,13 +259,11 @@ function SearchBox({
   const [activeIdx, setActiveIdx] = useState(-1);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // 250ms debounce per UI Spec B1
   useEffect(() => {
     const t = setTimeout(() => setDebounced(value.trim()), 250);
     return () => clearTimeout(t);
   }, [value]);
 
-  // Outside click closes suggestions
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
@@ -297,7 +274,6 @@ function SearchBox({
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  // Placeholder suggestions — Step 8 will hit /search/suggestions
   const suggestions = debounced.length >= 2
     ? [
         { text: `${debounced} headphones`, href: `/${locale}/s?k=${encodeURIComponent(debounced + ' headphones')}` },
@@ -344,6 +320,8 @@ function SearchBox({
           onFocus={() => value.length >= 2 && setOpen(true)}
           onKeyDown={onKeyDown}
           aria-autocomplete="list"
+          role="combobox"
+          aria-controls="search-suggestions"
           aria-expanded={open}
         />
         <button type="button" className={styles.searchSubmit} onClick={() => submit(value.trim())} aria-label="Search">
@@ -352,7 +330,7 @@ function SearchBox({
       </div>
 
       {open && suggestions.length > 0 ? (
-        <div className={styles.suggestions} role="listbox">
+        <div className={styles.suggestions} role="listbox" id="search-suggestions">
           {suggestions.map((s, i) => (
             <Link
               key={s.href}
@@ -377,7 +355,6 @@ function SearchBox({
   );
 }
 
-/* ── Icons ── */
 function PinIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">

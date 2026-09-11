@@ -13,11 +13,11 @@
 
 .discount { background: var(--sk-error); color: #FFFFFF; }
 .best_seller { background: var(--sk-cta-primary); color: var(--sk-brand-950); text-transform: uppercase; }
-.new { background: var(--sk-brand-600); color: #FFFFFF; }
+.new { background: var(--sk-brand-700); color: #FFFFFF; }
 .low_stock { background: var(--sk-warning-bg); color: var(--sk-warning); font-weight: 600; font-size: 12px; }
 .out_of_stock { background: var(--sk-neutral-bg); color: var(--sk-muted); font-weight: 600; font-size: 12px; }
-.free_delivery { background: transparent; color: var(--sk-success); padding: 0; font-weight: 500; font-size: 12px; }
-.deal_timer { background: var(--sk-error-bg); color: var(--sk-error); }
-.in_stock { background: var(--sk-success-bg); color: var(--sk-success); font-weight: 600; font-size: 12px; }
+.free_delivery { background: transparent; color: var(--sk-success-text); padding: 0; font-weight: 500; font-size: 12px; }
+.deal_timer { background: var(--sk-error-bg); color: var(--sk-error-text); }
+.in_stock { background: var(--sk-success-bg); color: var(--sk-success-text); font-weight: 600; font-size: 12px; }
 
 .timerInner { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }

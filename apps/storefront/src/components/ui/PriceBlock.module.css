@@ -16,7 +16,7 @@
 }
 
 .savings {
-  color: var(--sk-success);
+  color: var(--sk-success-text);
   font-size: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;

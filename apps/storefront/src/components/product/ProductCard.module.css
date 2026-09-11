@@ -96,7 +96,7 @@
 .priceRow { min-height: 30px; }
 
 .deliveryRow { min-height: 16px; font-size: 12px; }
-.freeDelivery { color: var(--sk-success); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.freeDelivery { color: var(--sk-success-text); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
 .deliveryEta { color: var(--sk-muted); }
 
 .addBtn {
