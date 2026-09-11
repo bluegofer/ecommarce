@@ -198,3 +198,248 @@ model NotificationPreference {
 
   @@map("notification_preferences")
 }
+
+// ============================================================
+// STEP 3 — CATALOG + INVENTORY + SEARCH
+// ============================================================
+
+enum AttributeType {
+  TEXT
+  NUMBER
+  ENUM
+  BOOLEAN
+}
+
+enum ProductStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum AdjustmentReason {
+  RESTOCK
+  DAMAGE
+  RETURN
+  CORRECTION
+  SALE
+  RESERVATION_RELEASE
+}
+
+model Warehouse {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  address   String?
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variants    Variant[]
+  adjustments InventoryAdjustment[]
+
+  @@map("warehouses")
+}
+
+model Category {
+  id              String   @id @default(cuid())
+  parentId        String?
+  nameEn          String
+  nameBn          String
+  slug            String   @unique
+  descriptionEn   String?  @db.Text
+  descriptionBn   String?  @db.Text
+  imageUrl        String?
+  iconName        String?
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  parent             Category?            @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children           Category[]           @relation("CategoryTree")
+  products           Product[]
+  categoryAttributes CategoryAttribute[]
+
+  @@index([parentId])
+  @@index([slug])
+  @@index([isActive, sortOrder])
+  @@map("categories")
+}
+
+model Attribute {
+  id           String        @id @default(cuid())
+  nameEn       String
+  nameBn       String
+  slug         String        @unique
+  type         AttributeType
+  unit         String?
+  options      Json?
+  isVariant    Boolean       @default(false)
+  isFilterable Boolean       @default(true)
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  categoryAttributes CategoryAttribute[]
+  productValues      ProductAttributeValue[]
+
+  @@index([slug])
+  @@map("attributes")
+}
+
+model CategoryAttribute {
+  id          String   @id @default(cuid())
+  categoryId  String
+  attributeId String
+  isRequired  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, attributeId])
+  @@index([categoryId])
+  @@map("category_attributes")
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  categoryId      String
+  slug            String        @unique
+  titleEn         String
+  titleBn         String
+  descriptionEn   String?       @db.Text
+  descriptionBn   String?       @db.Text
+  brand           String?
+  status          ProductStatus @default(DRAFT)
+  publishedAt     DateTime?
+  metaTitle       String?
+  metaDescription String?
+  bulletFeatures  Json?
+  specsJson       Json?
+  avgRating       Decimal       @default(0) @db.Decimal(3, 2)
+  ratingCount     Int           @default(0)
+  soldCount       Int           @default(0)
+  isFeatured      Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  category        Category                @relation(fields: [categoryId], references: [id])
+  variants        Variant[]
+  media           ProductMedia[]
+  attributeValues ProductAttributeValue[]
+
+  @@index([categoryId, status])
+  @@index([status, publishedAt])
+  @@index([brand])
+  @@index([slug])
+  @@map("products")
+}
+
+model ProductAttributeValue {
+  id          String   @id @default(cuid())
+  productId   String
+  attributeId String
+  valueText   String?
+  valueNumber Decimal? @db.Decimal(14, 2)
+  valueBool   Boolean?
+  valueJson   Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, attributeId])
+  @@index([attributeId])
+  @@map("product_attribute_values")
+}
+
+model Variant {
+  id                String   @id @default(cuid())
+  productId         String
+  warehouseId       String?
+  sku               String   @unique
+  barcode           String?
+  pricePoisha       Int
+  compareAtPoisha   Int?
+  stock             Int      @default(0)
+  lowStockThreshold Int      @default(5)
+  attributeValues   Json
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  product     Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse   Warehouse?            @relation(fields: [warehouseId], references: [id])
+  media       ProductMedia[]
+  adjustments InventoryAdjustment[]
+
+  @@index([productId])
+  @@index([sku])
+  @@index([stock])
+  @@map("variants")
+}
+
+model ProductMedia {
+  id        String    @id @default(cuid())
+  productId String?
+  variantId String?
+  type      MediaType @default(IMAGE)
+  url       String
+  altText   String?
+  sortOrder Int       @default(0)
+  width     Int?
+  height    Int?
+  createdAt DateTime  @default(now())
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant Variant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@index([variantId])
+  @@map("product_media")
+}
+
+model SlugRedirect {
+  id         String   @id @default(cuid())
+  fromSlug   String   @unique
+  toSlug     String
+  entityType String
+  statusCode Int      @default(301)
+  createdAt  DateTime @default(now())
+
+  @@index([fromSlug])
+  @@map("slug_redirects")
+}
+
+model InventoryAdjustment {
+  id          String           @id @default(cuid())
+  variantId   String
+  warehouseId String?
+  delta       Int
+  reason      AdjustmentReason
+  reasonNote  String?
+  stockBefore Int
+  stockAfter  Int
+  actorUserId String?
+  referenceId String?
+  createdAt   DateTime         @default(now())
+
+  variant   Variant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  @@index([variantId, createdAt])
+  @@index([reason])
+  @@map("inventory_adjustments")
+}
