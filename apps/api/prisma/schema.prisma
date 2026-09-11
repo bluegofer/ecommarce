@@ -742,3 +742,364 @@ model ContactMessage {
   @@index([status, createdAt])
   @@map("contact_messages")
 }
+
+// ============================================================
+// STEP 5 — CRM + OMS + NOTIFICATIONS
+// ============================================================
+
+enum CustomerStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum CartState {
+  ACTIVE
+  MERGED
+  ABANDONED
+  CONVERTED
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURN_REQUESTED
+  RETURNED
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  SSLCOMMERZ
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum ShipmentStatus {
+  PENDING
+  DISPATCHED
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+}
+
+enum NotificationChannel {
+  SMS
+  EMAIL
+  PUSH
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+  SUPPRESSED
+}
+
+model Customer {
+  id              String         @id @default(cuid())
+  userId          String?        @unique
+  phone           String         @unique
+  email           String?
+  fullName        String
+  isGuest         Boolean        @default(true)
+  status          CustomerStatus @default(ACTIVE)
+  totalOrders     Int            @default(0)
+  totalSpentPoisha Int           @default(0)
+  firstOrderAt    DateTime?
+  lastOrderAt     DateTime?
+  notes           String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  addresses            Address[]
+  customerNotes        CustomerNote[]
+  carts                Cart[]
+  orders               Order[]
+  notificationLogs     NotificationLog[]
+  backInStockSubs      BackInStockSubscription[]
+
+  @@index([phone])
+  @@index([userId])
+  @@index([email])
+  @@map("customers")
+}
+
+model Address {
+  id            String   @id @default(cuid())
+  customerId    String
+  label         String?
+  recipientName String
+  phone         String
+  area          String
+  city          String
+  postcode      String?
+  line1         String
+  line2         String?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("addresses")
+}
+
+model CustomerNote {
+  id          String   @id @default(cuid())
+  customerId  String
+  body        String   @db.Text
+  actorUserId String?
+  createdAt   DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
+  @@map("customer_notes")
+}
+
+model Segment {
+  id             String    @id @default(cuid())
+  name           String    @unique
+  description    String?
+  filterJson     Json
+  isActive       Boolean   @default(true)
+  estimatedCount Int       @default(0)
+  refreshedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("segments")
+}
+
+model Cart {
+  id            String    @id @default(cuid())
+  customerId    String?
+  guestToken    String?   @unique
+  state         CartState @default(ACTIVE)
+  couponCode    String?
+  lastActivityAt DateTime @default(now())
+  abandonedAt   DateTime?
+  reminderSentAt DateTime?
+  reminderCount Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  customer Customer?   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items    CartItem[]
+
+  @@index([customerId, state])
+  @@index([guestToken])
+  @@index([state, lastActivityAt])
+  @@map("carts")
+}
+
+model CartItem {
+  id             String   @id @default(cuid())
+  cartId         String
+  variantId      String
+  quantity       Int      @default(1)
+  savedForLater  Boolean  @default(false)
+  addedAt        DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+model Order {
+  id                    String      @id @default(cuid())
+  orderNumber           String      @unique
+  customerId            String
+  status                OrderStatus @default(PLACED)
+
+  subtotalPoisha        Int
+  discountPoisha        Int         @default(0)
+  deliveryChargePoisha  Int         @default(0)
+  totalPoisha           Int
+
+  couponId              String?
+  couponCode            String?
+
+  shippingAddressJson   Json
+  contactPhone          String
+  contactEmail          String?
+
+  customerNote          String?     @db.Text
+  cancelReason          String?
+
+  placedAt              DateTime    @default(now())
+  confirmedAt           DateTime?
+  processingAt          DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  cancelledAt           DateTime?
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  customer      Customer             @relation(fields: [customerId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  notes         OrderNote[]
+  payments      Payment[]
+  shipments     Shipment[]
+
+  @@index([customerId, status])
+  @@index([status, createdAt])
+  @@index([orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String @id @default(cuid())
+  orderId         String
+  variantId       String
+  productTitleEn  String
+  productTitleBn  String
+  variantSnapshot Json
+  quantity        Int
+  unitPricePoisha Int
+  lineTotalPoisha Int
+  createdAt       DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id          String      @id @default(cuid())
+  orderId     String
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  actorUserId String?
+  note        String?
+  createdAt   DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+model OrderNote {
+  id                 String   @id @default(cuid())
+  orderId            String
+  body               String   @db.Text
+  isCustomerVisible  Boolean  @default(false)
+  actorUserId        String?
+  createdAt          DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("order_notes")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amountPoisha  Int
+  gatewayRef    String?
+  gatewayMeta   Json?
+  paidAt        DateTime?
+  refundedPoisha Int          @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Shipment {
+  id             String         @id @default(cuid())
+  orderId        String
+  courier        String
+  trackingNumber String?
+  status         ShipmentStatus @default(PENDING)
+  dispatchedAt   DateTime?
+  deliveredAt    DateTime?
+  meta           Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("shipments")
+}
+
+model NotificationTemplate {
+  id         String              @id @default(cuid())
+  key        String
+  channel    NotificationChannel
+  subjectEn  String?
+  subjectBn  String?
+  bodyEn     String              @db.Text
+  bodyBn     String              @db.Text
+  isActive   Boolean             @default(true)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([key, channel])
+  @@index([key])
+  @@map("notification_templates")
+}
+
+model NotificationLog {
+  id               String              @id @default(cuid())
+  customerId       String?
+  orderId          String?
+  templateKey      String
+  channel          NotificationChannel
+  recipient        String
+  renderedSubject  String?
+  renderedBody     String              @db.Text
+  status           NotificationStatus  @default(QUEUED)
+  errorMessage     String?
+  sentAt           DateTime?
+  createdAt        DateTime            @default(now())
+
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([customerId, createdAt])
+  @@index([orderId])
+  @@index([status])
+  @@map("notification_log")
+}
+
+model BackInStockSubscription {
+  id          String    @id @default(cuid())
+  customerId  String?
+  variantId   String
+  email       String?
+  phone       String?
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([variantId, notifiedAt])
+  @@map("back_in_stock_subscriptions")
+}

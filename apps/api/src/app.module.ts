@@ -16,6 +16,10 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { SearchModule } from './modules/search/search.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { CmsModule } from './modules/cms/cms.module';
+import { CartsModule } from './modules/carts/carts.module';
+import { CrmModule } from './modules/crm/crm.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -32,6 +36,10 @@ import { CmsModule } from './modules/cms/cms.module';
     SearchModule,
     PromotionsModule,
     CmsModule,
+    NotificationsModule,
+    CrmModule,
+    CartsModule,
+    OrdersModule,
   ],
   controllers: [HealthController],
   providers: [

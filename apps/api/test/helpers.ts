@@ -41,7 +41,24 @@ export async function cleanDatabase(
   }
 
   const deletions: Array<[string, () => Promise<unknown>]> = [
-    // Step 4 promotions + CMS children first
+    // Step 5 (children first)
+    ['notificationLog', () => prisma.notificationLog.deleteMany()],
+    ['notificationTemplate', () => prisma.notificationTemplate.deleteMany()],
+    ['backInStockSubscription', () => prisma.backInStockSubscription.deleteMany()],
+    ['orderStatusHistory', () => prisma.orderStatusHistory.deleteMany()],
+    ['orderNote', () => prisma.orderNote.deleteMany()],
+    ['payment', () => prisma.payment.deleteMany()],
+    ['shipment', () => prisma.shipment.deleteMany()],
+    ['orderItem', () => prisma.orderItem.deleteMany()],
+    ['order', () => prisma.order.deleteMany()],
+    ['cartItem', () => prisma.cartItem.deleteMany()],
+    ['cart', () => prisma.cart.deleteMany()],
+    ['customerNote', () => prisma.customerNote.deleteMany()],
+    ['address', () => prisma.address.deleteMany()],
+    ['customer', () => prisma.customer.deleteMany()],
+    ['segment', () => prisma.segment.deleteMany()],
+
+    // Step 4
     ['couponRedemption', () => prisma.couponRedemption.deleteMany()],
     ['coupon', () => prisma.coupon.deleteMany()],
     ['flashSaleItem', () => prisma.flashSaleItem.deleteMany()],
@@ -57,7 +74,7 @@ export async function cleanDatabase(
     ['mediaLibraryItem', () => prisma.mediaLibraryItem.deleteMany()],
     ['contactMessage', () => prisma.contactMessage.deleteMany()],
 
-    // Step 3 catalog/inventory
+    // Step 3
     ['inventoryAdjustment', () => prisma.inventoryAdjustment.deleteMany()],
     ['productAttributeValue', () => prisma.productAttributeValue.deleteMany()],
     ['productMedia', () => prisma.productMedia.deleteMany()],
@@ -69,7 +86,7 @@ export async function cleanDatabase(
     ['warehouse', () => prisma.warehouse.deleteMany()],
     ['slugRedirect', () => prisma.slugRedirect.deleteMany()],
 
-    // Step 2 auth/rbac/audit/outbox
+    // Step 2
     ['idempotencyKey', () => prisma.idempotencyKey.deleteMany()],
     ['outbox', () => prisma.outbox.deleteMany()],
     ['auditLog', () => prisma.auditLog.deleteMany()],
