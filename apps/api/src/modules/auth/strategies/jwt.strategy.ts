@@ -11,8 +11,15 @@ interface JwtPayload {
   phone: string;
 }
 
+interface UserWithRoles {
+  id: string;
+  phone: string;
+  status: string;
+  userRoles: Array<{ role: { code: string } }>;
+}
+
 /**
- * JwtStrategy — validates the access token and loads the user's roles.
+ * JwtStrategy - validates the access token and loads the user's roles.
  * The roles come from the database, not the token, so revocation is instant.
  */
 @Injectable()
@@ -30,10 +37,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload): Promise<AuthUser> {
-    const user = await this.prisma.user.findUnique({
+    const user = (await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: { userRoles: { include: { role: true } } },
-    });
+    })) as UserWithRoles | null;
 
     if (!user || user.status !== 'ACTIVE') {
       throw new UnauthorizedException('User not found or inactive');
