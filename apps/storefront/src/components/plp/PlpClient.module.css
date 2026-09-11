@@ -1,0 +1,22 @@
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.main { min-width: 0; }
+
+.heading {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  margin: 0 0 16px;
+}
+
+@media (max-width: 1023px) {
+  .layout { grid-template-columns: 1fr; }
+  .railWrap { display: none; }
+}
+
+html[lang="bn"] .heading { font-family: var(--sk-font-bn); }
