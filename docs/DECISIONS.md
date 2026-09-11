@@ -142,3 +142,51 @@ pagination) use `export const dynamic = 'force-dynamic'` instead of ISR:
   static generation for those routes.
 - Future dev: if build output shows ● SSG but the page uses searchParams,
   check runtime behavior first — the marker is not always accurate.
+
+## Step 8 Update — Storefront Auth Token Storage (Temporary)
+
+**Date:** 2026-09-12 (during Step 8.7 build)
+**Status:** TEMPORARY — will be revisited in Step 8.12 (PWA) and Step 13 (Security)
+
+### Decision
+The storefront's authentication uses:
+
+- **Access token (short-lived JWT):** in-memory React state only (via `AuthProvider`).
+  Never written to `localStorage` or `sessionStorage`.
+- **Refresh token (rotating):** HttpOnly SameSite cookie set by the API (Step 2).
+  Browser manages it; JS cannot read it.
+- **Session restore:** on app mount, `AuthProvider` calls `POST /api/v1/auth/refresh`
+  once. If the cookie is valid, the API returns a new access token (rotation).
+  If not, user is anonymous.
+
+### Why this is TDD-compliant
+- TDD §10.1: *"short-lived JWT access tokens with rotating refresh tokens;
+  cookies use SameSite and HttpOnly flags"* — this decision follows that
+  guidance exactly.
+- TDD §10.1: XSS prevention relies on tokens not being accessible to JS.
+  In-memory access token + HttpOnly refresh cookie is the standard
+  browser-side pattern for that.
+- TDD §4.2: one versioned REST API; the API already returns tokens and
+  handles cookie rotation, no changes needed.
+
+### Known trade-off
+- On hard page reload, the access token is lost briefly. `AuthProvider`
+  triggers a silent refresh on mount; user sees a ~100ms anonymous flash
+  before session is restored. This is acceptable for Step 8 and typical of
+  this pattern.
+
+### What is deferred and to when
+- **Step 8.12 (PWA):** confirm service worker does not intercept or cache
+  `/auth/refresh` responses (must pass through). Add explicit bypass rule.
+- **Step 13 (Security hardening):** verify cookie flags in production (Secure,
+  SameSite=Strict, HttpOnly); verify CSP allows no inline script that could
+  exfiltrate tokens; add sentry-style alert on repeated refresh failures.
+- **Guest cart merge (Step 8.7):** when refresh succeeds on mount, if a guest
+  cart exists in localStorage, trigger the merge hook from `useMergeGuestCart()`
+  (currently stubbed in `lib/cart/merge-hook.ts`).
+
+### Enforcement
+- `AuthProvider` is the only place that stores the access token.
+- `lib/auth/storage.ts` is a NO-OP for access tokens; it only manages
+  non-sensitive session hints (e.g., "was I signed in before?" flag).
+- CI continues to pass; no package changes required.
