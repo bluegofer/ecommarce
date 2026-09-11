@@ -1,8 +1,6 @@
-export default function HomePage() {
-  return (
-    <main>
-      <h1>SkyMart</h1>
-      <p>Storefront bootstrap - Step 0. Real pages arrive in Step 8.</p>
-    </main>
-  );
+import { redirect } from 'next/navigation';
+import { DEFAULT_LOCALE } from '@/lib/i18n';
+
+export default function RootPage() {
+  redirect(`/${DEFAULT_LOCALE}`);
 }

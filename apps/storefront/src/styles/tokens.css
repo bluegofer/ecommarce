@@ -1,1 +1,142 @@
-// placeholder - implemented in later step 
+/* SkyMart Design Tokens — verbatim from UI Spec Appendix A + A2 */
+:root {
+  /* ── Brand (Sky) ─────────────────────────── */
+  --sk-brand-300: #87CEEB;
+  --sk-brand-400: #5FBEE4;
+  --sk-brand-600: #2E8CBC;
+  --sk-brand-700: #25729A;
+  --sk-brand-900: #164561;
+  --sk-brand-950: #0C2B3D;
+
+  /* ── CTA ─────────────────────────────────── */
+  --sk-cta-primary: #FFC533;
+  --sk-cta-primary-hover: #F5B50A;
+  --sk-cta-money: #FF8A1E;
+  --sk-cta-money-hover: #E67400;
+
+  /* ── Semantic (text / fg) ────────────────── */
+  --sk-success: #16A34A;
+  --sk-error: #D62828;
+  --sk-warning: #B45309;
+  --sk-info: #25729A;
+  --sk-price: #C2410C;
+  --sk-star: #F5A623;
+  --sk-heart: #E11D48;
+
+  /* ── Semantic (background) ───────────────── */
+  --sk-success-bg: #EAF7EF;
+  --sk-error-bg: #FDECEC;
+  --sk-warning-bg: #FEF5E7;
+  --sk-info-bg: #EAF4FA;
+  --sk-neutral-bg: #F1F5F9;
+
+  /* ── Neutrals ────────────────────────────── */
+  --sk-ink: #0F172A;
+  --sk-body: #1F2937;
+  --sk-muted: #64748B;
+  --sk-disabled: #94A3B8;
+  --sk-border: #D9E5EE;
+  --sk-divider: #E6EEF4;
+  --sk-bg: #F6FAFD;
+  --sk-surface: #FFFFFF;
+  --sk-surface-alt: #EFF7FB;
+  --sk-hover-row: #F0F7FC;
+  --sk-selected: #E0F2FE;
+  --sk-scrim: rgba(12, 43, 61, 0.55);
+
+  /* ── Radius ──────────────────────────────── */
+  --sk-radius-sm: 4px;
+  --sk-radius-md: 8px;
+  --sk-radius-lg: 12px;
+  --sk-radius-pill: 999px;
+
+  /* ── Spacing (8pt scale; 4 allowed for micro) */
+  --sk-space-1: 4px;
+  --sk-space-2: 8px;
+  --sk-space-3: 12px;
+  --sk-space-4: 16px;
+  --sk-space-5: 24px;
+  --sk-space-6: 32px;
+  --sk-space-7: 48px;
+  --sk-space-8: 64px;
+  --sk-space-9: 96px;
+
+  /* ── Shadows ─────────────────────────────── */
+  --sk-shadow-1: 0 1px 2px rgba(12, 43, 61, 0.08);
+  --sk-shadow-2: 0 4px 12px rgba(12, 43, 61, 0.10);
+  --sk-shadow-3: 0 12px 32px rgba(12, 43, 61, 0.14);
+
+  /* ── Fonts ───────────────────────────────── */
+  --sk-font-en: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --sk-font-bn: 'Noto Sans Bengali', 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif;
+
+  /* ── Layout ──────────────────────────────── */
+  --sk-container-max: 1280px;
+  --sk-container-wide: 1440px;
+  --sk-gutter: 24px;
+  --sk-gutter-mobile: 16px;
+
+  /* ── Interaction ─────────────────────────── */
+  --sk-touch-target: 44px;
+  --sk-focus-ring-color: #5FBEE4;
+  --sk-focus-ring: 2px solid var(--sk-focus-ring-color);
+  --sk-focus-ring-offset: 2px;
+
+  /* ── Motion ──────────────────────────────── */
+  --sk-motion-fast: 150ms;
+  --sk-motion-base: 250ms;
+  --sk-motion-slow: 400ms;
+  --sk-ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+/* Breakpoints (documentation only — media queries cannot read var()) */
+/* --sk-bp-tablet: 640px   */
+/* --sk-bp-desktop: 1024px */
+/* --sk-bp-wide: 1440px    */
+
+/* ── Base reset ──────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--sk-bg);
+  color: var(--sk-body);
+  font-family: var(--sk-font-en);
+  font-size: 14px;
+  line-height: 22px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Bangla locale: +20% line-height, never uppercase / letter-space */
+html[lang="bn"] body {
+  font-family: var(--sk-font-bn);
+  line-height: 26px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--sk-ink);
+  font-weight: 700;
+}
+
+/* Prices and any tabular data */
+.sk-tabular { font-variant-numeric: tabular-nums; }
+
+/* Focus ring — spec: 2px solid #5FBEE4, offset 2px, keyboard only */
+:focus { outline: none; }
+:focus-visible {
+  outline: var(--sk-focus-ring);
+  outline-offset: var(--sk-focus-ring-offset);
+}
+
+/* Respect reduced-motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

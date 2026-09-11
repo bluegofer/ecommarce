@@ -11,6 +11,7 @@
     ],
     "noEmit": true,
     "allowJs": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
