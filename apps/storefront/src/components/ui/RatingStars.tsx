@@ -7,7 +7,7 @@ export interface RatingStarsProps {
   /** Total number of ratings. */
   count?: number;
   /** Size in px — UI Spec B9: 16 (card) or 20 (PDP). */
-  size?: 16 | 20;
+  size?: 14 | 16 | 20;
   /** When provided, the count is rendered as a link to this anchor (e.g. "#reviews"). */
   countHref?: string;
   /** Locale for the "no ratings" label. */
