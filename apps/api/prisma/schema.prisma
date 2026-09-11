@@ -1103,3 +1103,212 @@ model BackInStockSubscription {
   @@index([variantId, notifiedAt])
   @@map("back_in_stock_subscriptions")
 }
+
+// ============================================================
+// STEP 6 — REVIEWS + RMA + ANALYTICS
+// ============================================================
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PICKED_UP
+  RECEIVED
+  RESOLVED
+}
+
+enum ReturnReason {
+  DAMAGED
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  SIZE_ISSUE
+  QUALITY_ISSUE
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  RESOLVED
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  SEARCH
+  PRODUCT_VIEW
+  ADD_TO_CART
+  CHECKOUT_START
+  CHECKOUT_STEP
+  PURCHASE
+}
+
+model Review {
+  id           String       @id @default(cuid())
+  productId    String
+  customerId   String
+  orderId      String?
+  variantId    String?
+  rating       Int
+  title        String?
+  body         String       @db.Text
+  photoUrls    Json?
+  status       ReviewStatus @default(PENDING)
+  hiddenReason String?
+  helpfulCount Int          @default(0)
+  isVerified   Boolean      @default(true)
+  adminReply   String?      @db.Text
+  adminRepliedAt DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  votes ReviewVote[]
+
+  @@unique([productId, customerId])
+  @@index([productId, status])
+  @@index([status, createdAt])
+  @@map("reviews")
+}
+
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  customerId String
+  helpful   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, customerId])
+  @@index([reviewId])
+  @@map("review_votes")
+}
+
+model ReturnRequest {
+  id              String       @id @default(cuid())
+  orderId         String
+  customerId      String
+  status          ReturnStatus @default(REQUESTED)
+  reason          ReturnReason
+  reasonNote      String?      @db.Text
+  photoUrls       Json?
+  itemIds         Json
+  refundAmountPoisha Int       @default(0)
+  refundedAt      DateTime?
+  restockedAt     DateTime?
+  rejectReason    String?
+  trackingNumber  String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  history ReturnStatusHistory[]
+
+  @@index([orderId])
+  @@index([customerId, status])
+  @@index([status, createdAt])
+  @@map("return_requests")
+}
+
+model ReturnStatusHistory {
+  id               String       @id @default(cuid())
+  returnRequestId  String
+  fromStatus       ReturnStatus?
+  toStatus         ReturnStatus
+  actorUserId      String?
+  note             String?
+  createdAt        DateTime     @default(now())
+
+  returnRequest ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+
+  @@index([returnRequestId, createdAt])
+  @@map("return_status_history")
+}
+
+model SupportTicket {
+  id              String       @id @default(cuid())
+  ticketNumber    String       @unique
+  customerId      String?
+  orderId         String?
+  subject         String
+  status          TicketStatus @default(OPEN)
+  priority        Int          @default(0)
+  lastMessageAt   DateTime     @default(now())
+  resolvedAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  messages TicketMessage[]
+
+  @@index([status, lastMessageAt])
+  @@index([customerId])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  fromStaff   Boolean  @default(false)
+  actorUserId String?
+  body        String   @db.Text
+  createdAt   DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_messages")
+}
+
+model AnalyticsEvent {
+  id         String              @id @default(cuid())
+  eventType  AnalyticsEventType
+  sessionId  String?
+  customerId String?
+  productId  String?
+  variantId  String?
+  orderId    String?
+  path       String?
+  query      String?
+  meta       Json?
+  createdAt  DateTime            @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([sessionId])
+  @@index([customerId, createdAt])
+  @@index([productId, createdAt])
+  @@map("analytics_events")
+}
+
+model DailySalesSummary {
+  id                String   @id @default(cuid())
+  date              DateTime @unique @db.Date
+  ordersCount       Int      @default(0)
+  paidOrdersCount   Int      @default(0)
+  revenuePoisha     Int      @default(0)
+  refundedPoisha    Int      @default(0)
+  aovPoisha         Int      @default(0)
+  uniqueCustomers   Int      @default(0)
+  repeatCustomers   Int      @default(0)
+  returnedOrders    Int      @default(0)
+  newCustomers      Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([date])
+  @@map("daily_sales_summary")
+}
+
+model SearchTerm {
+  id         String   @id @default(cuid())
+  term       String
+  hits       Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([term, createdAt])
+  @@map("search_terms")
+}

@@ -41,7 +41,18 @@ export async function cleanDatabase(
   }
 
   const deletions: Array<[string, () => Promise<unknown>]> = [
-    // Step 5 (children first)
+    // Step 6 (children first)
+    ['reviewVote', () => prisma.reviewVote.deleteMany()],
+    ['review', () => prisma.review.deleteMany()],
+    ['returnStatusHistory', () => prisma.returnStatusHistory.deleteMany()],
+    ['returnRequest', () => prisma.returnRequest.deleteMany()],
+    ['ticketMessage', () => prisma.ticketMessage.deleteMany()],
+    ['supportTicket', () => prisma.supportTicket.deleteMany()],
+    ['analyticsEvent', () => prisma.analyticsEvent.deleteMany()],
+    ['dailySalesSummary', () => prisma.dailySalesSummary.deleteMany()],
+    ['searchTerm', () => prisma.searchTerm.deleteMany()],
+
+    // Step 5
     ['notificationLog', () => prisma.notificationLog.deleteMany()],
     ['notificationTemplate', () => prisma.notificationTemplate.deleteMany()],
     ['backInStockSubscription', () => prisma.backInStockSubscription.deleteMany()],

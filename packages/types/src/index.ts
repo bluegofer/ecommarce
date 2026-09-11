@@ -6,3 +6,6 @@ export * from './cms';
 export * from './orders';
 export * from './crm';
 export * from './notifications';
+export * from './reviews';
+export * from './rma';
+export * from './analytics';

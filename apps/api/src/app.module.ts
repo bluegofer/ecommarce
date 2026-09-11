@@ -20,6 +20,9 @@ import { CartsModule } from './modules/carts/carts.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { RmaModule } from './modules/rma/rma.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { OrdersModule } from './modules/orders/orders.module';
     CrmModule,
     CartsModule,
     OrdersModule,
+    ReviewsModule,
+    RmaModule,
+    AnalyticsModule,
   ],
   controllers: [HealthController],
   providers: [
