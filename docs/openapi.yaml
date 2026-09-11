@@ -1,0 +1,8 @@
+openapi: 3.1.0
+info:
+  title: Ecommarce API
+  version: 1.0.0
+  description: Skeleton - filled in Step 1 across all 13 TDD section 6 modules.
+servers:
+  - url: /api/v1
+paths: {}

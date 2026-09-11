@@ -1,0 +1,9 @@
+﻿// Schema grows step by step. Step 2 = auth/RBAC/audit/outbox.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
