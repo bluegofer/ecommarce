@@ -5,7 +5,11 @@ import styles from './PhoneInput.module.css';
 export interface PhoneInputProps {
   id: string;
   label: string;
-  /** Full phone including +880 prefix, or just national digits (11 chars starting with 1). */
+  /**
+   * Full phone stored as E.164-style "+8801XXXXXXXXX" (13 chars incl +),
+   * OR the raw 10-digit national part (e.g. "1715141764").
+   * The component normalizes to "+8801XXXXXXXXX" via onChange.
+   */
   value: string;
   onChange: (v: string) => void;
   error?: string;
@@ -13,22 +17,27 @@ export interface PhoneInputProps {
   autoComplete?: 'tel';
   required?: boolean;
   disabled?: boolean;
-  /** Locale-aware help text under the input. */
-  prefix?: string; // default '+88'
 }
 
-/** Extract the national part (e.g. "01715141764" → "1715141764"). */
-function toNational(full: string): string {
+/** Extract the 10-digit national part (drop +880 / 880 / 0 / +88). */
+function toNational10(full: string): string {
   const digits = full.replace(/\D/g, '');
-  if (digits.startsWith('880')) return digits.slice(3);
-  if (digits.startsWith('88')) return digits.slice(2);
-  if (digits.startsWith('0')) return digits.slice(1);
-  return digits;
+  let s = digits;
+  if (s.startsWith('880')) s = s.slice(3);
+  else if (s.startsWith('88')) s = s.slice(2);
+  if (s.startsWith('0')) s = s.slice(1);
+  return s.slice(0, 10);
 }
 
-/** BD mobile: 11 digits, starts with 1, second digit 3-9. */
+/** Format for API/storage: +880 + 10-digit national. */
+export function toE164(national10: string): string {
+  const n = national10.replace(/\D/g, '').slice(0, 10);
+  return n ? `+880${n}` : '';
+}
+
+/** BD mobile: 10-digit national, starts with 1, second digit 3-9. */
 export function isValidBdPhone(full: string): boolean {
-  const nat = toNational(full);
+  const nat = toNational10(full);
   return /^1[3-9]\d{8}$/.test(nat);
 }
 
@@ -42,23 +51,16 @@ export function PhoneInput({
   autoComplete = 'tel',
   required = false,
   disabled = false,
-  prefix = '+88',
 }: PhoneInputProps) {
-  const national = toNational(value);
+  const national = toNational10(value);
   const errId = error ? `${id}-error` : undefined;
   const hintId = hint ? `${id}-hint` : undefined;
   const describedBy = [errId, hintId].filter(Boolean).join(' ') || undefined;
 
   const handle = (raw: string) => {
-    // Keep only digits, prefix 0 if user typed a 10-digit starting with 1-9
-    const digits = raw.replace(/\D/g, '').slice(0, 11);
-    if (digits.length === 0) {
-      onChange('');
-      return;
-    }
-    // Auto-normalize to 0XXXXXXXXXX form
-    const withLeadingZero = digits.startsWith('0') ? digits : `0${digits}`.slice(0, 11);
-    onChange(withLeadingZero);
+    // Strip everything except digits, take max 10 national digits
+    const digits = raw.replace(/\D/g, '').slice(0, 10);
+    onChange(toE164(digits));
   };
 
   return (
@@ -68,7 +70,7 @@ export function PhoneInput({
         {required ? <span aria-hidden="true"> *</span> : null}
       </label>
       <div className={[styles.wrap, error ? styles.wrapError : ''].filter(Boolean).join(' ')}>
-        <span className={styles.prefix} aria-hidden="true">{prefix}</span>
+        <span className={styles.prefix} aria-hidden="true">+880</span>
         <input
           id={id}
           type="tel"
@@ -79,7 +81,7 @@ export function PhoneInput({
           autoComplete={autoComplete}
           required={required}
           disabled={disabled}
-          maxLength={11}
+          maxLength={10}
           placeholder="1XXXXXXXXX"
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}

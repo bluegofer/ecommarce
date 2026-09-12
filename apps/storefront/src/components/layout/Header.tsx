@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart/context';
+import { useAuth } from '@/lib/auth/context';
 import { MegaMenu, type MegaMenuCategory, type MegaMenuLabels } from './MegaMenu';
 import styles from './Header.module.css';
 
@@ -53,6 +54,13 @@ export function Header({
 }: HeaderProps) {
   const { unitCount, hydrated } = useCart();
   const totalCartCount = (hydrated ? unitCount : 0) + serverCartCount;
+
+  // Signed-in state comes from AuthProvider (client-side). Props are fallback
+  // for SSR so the header can render an accurate shell before hydration.
+  const auth = useAuth();
+  const isSignedIn = auth.signedIn || signedIn;
+  const displayName =
+    auth.user?.fullName || auth.user?.phone || userName;
 
   const [megaOpen, setMegaOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -132,7 +140,7 @@ export function Header({
                 onClick={() => setAccountOpen((v) => !v)}
               >
                 <span className={styles.accountTop}>
-                  {signedIn && userName ? `Hello, ${userName}` : labels.helloSignIn}
+                  {isSignedIn && displayName ? `Hello, ${displayName}` : labels.helloSignIn}
                 </span>
                 <span className={styles.accountBottom}>
                   {labels.accountLists} <ChevronDown />
@@ -141,10 +149,10 @@ export function Header({
               {accountOpen ? (
                 <div className={styles.accountMenu} role="menu">
                   <Link href={`/${locale}/signin`} role="menuitem">
-                    {signedIn ? 'Sign out' : 'Sign In'}
+                    {isSignedIn ? 'Sign out' : 'Sign In'}
                   </Link>
                   <Link href={`/${locale}/register`} role="menuitem">
-                    {signedIn ? 'Switch account' : 'Register'}
+                    {isSignedIn ? 'Switch account' : 'Register'}
                   </Link>
                   <Link href={`/${locale}/account`} role="menuitem">
                     {labels.accountLists}
@@ -235,8 +243,8 @@ export function Header({
         locale={locale}
         categories={categories}
         labels={labels.megaMenu}
-        signedIn={signedIn}
-        userName={userName}
+        signedIn={isSignedIn}
+        userName={displayName}
       />
     </>
   );
