@@ -12,6 +12,7 @@ import { PromotionsModule } from '../promotions/promotions.module';
 import { CrmModule } from '../crm/crm.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CartsModule } from '../carts/carts.module';
+import { LedgerService } from '../accounting/services/ledger.service';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { CartsModule } from '../carts/carts.module';
     CartsModule,
   ],
   controllers: [OrdersController, CheckoutController, MeOrdersController],
-  providers: [OrdersService, CheckoutService, InvoiceService, MeOrdersService],
+  providers: [OrdersService, CheckoutService, InvoiceService, MeOrdersService, LedgerService],
   exports: [OrdersService, CheckoutService, InvoiceService, MeOrdersService],
 })
 export class OrdersModule {}

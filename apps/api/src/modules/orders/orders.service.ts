@@ -3,6 +3,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../database/prisma.service';
 import { assertTransition } from './order-state-machine';
 import { DispatchService } from '../notifications/dispatch.service';
+import { LedgerService } from '../accounting/services/ledger.service';
 import type {
   AddOrderNoteDto,
   CancelOrderDto,
@@ -30,6 +31,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: DispatchService,
+    private readonly ledger: LedgerService,
   ) {}
 
   // -------------------------------------------------------------------------
@@ -168,6 +170,11 @@ export class OrdersService {
             WHERE id = ${item.variantId}
           `;
         }
+      }
+
+      // 2.5 A.5 chain: post revenue on DELIVERED (Website Orders -> Accounting)
+      if (to === 'DELIVERED') {
+        await this.postRevenueOnDelivery(tx, order);
       }
 
       // 3. Status history row
@@ -395,5 +402,49 @@ export class OrdersService {
         createdAt: s.createdAt.toISOString(),
       })),
     };
+  }
+  // -------------------------------------------------------------------------
+  // A.5 chain: Website Orders -> Accounting (revenue posting on delivery)
+  // -------------------------------------------------------------------------
+  private async postRevenueOnDelivery(
+    tx: Prisma.TransactionClient,
+    order: { id: string; orderNumber: string; totalPoisha: number; payments: Array<{ status: string; method: string }> },
+  ): Promise<void> {
+    // Idempotency: one ORDER-sourced journal per order
+    const existing = await tx.journalEntry.findFirst({
+      where: { sourceType: 'ORDER', sourceId: order.id },
+    });
+    if (existing) return;
+
+    const paidPayment = order.payments.find((p) => p.status === 'PAID');
+    if (!paidPayment) return;
+
+    const method = paidPayment.method;
+    const debitCode =
+      method === 'COD'
+        ? '1000-CASH'
+        : method === 'BKASH' || method === 'NAGAD'
+          ? '1020-MFS'
+          : '1010-BANK';
+
+    const debit = await tx.ledgerAccount.findUnique({ where: { code: debitCode } });
+    const sales = await tx.ledgerAccount.findUnique({ where: { code: '4000-SALES' } });
+    if (!debit || !sales) {
+      throw new BadRequestException('Ledger accounts missing for revenue posting');
+    }
+
+    await this.ledger.postEntry(
+      {
+        entryDate: new Date().toISOString(),
+        description: 'Order ' + order.orderNumber + ' delivered - revenue',
+        sourceType: 'ORDER',
+        sourceId: order.id,
+        lines: [
+          { ledgerAccountId: debit.id, debit: order.totalPoisha, credit: 0, description: 'Payment in' },
+          { ledgerAccountId: sales.id, debit: 0, credit: order.totalPoisha, description: 'Sales revenue' },
+        ],
+      },
+      { tx, status: 'POSTED' },
+    );
   }
 }
