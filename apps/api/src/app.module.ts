@@ -23,6 +23,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { RmaModule } from './modules/rma/rma.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     ReviewsModule,
     RmaModule,
     AnalyticsModule,
+    AccountingModule,
   ],
   controllers: [HealthController],
   providers: [
