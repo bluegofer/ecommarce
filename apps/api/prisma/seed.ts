@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { seedDefaultCoa } from '../src/modules/accounting/seeds/default-coa.seed';
 
 const prisma = new PrismaClient();
 
@@ -132,12 +133,60 @@ async function seedDemoAdmin() {
   console.log(`Demo admin created: ${phone} / ChangeMe!2026`);
 }
 
+async function seedDefaultBranch() {
+  const existing = await prisma.branch.findUnique({ where: { code: 'MAIN' } });
+  if (existing) {
+    console.log('Default branch already exists');
+    return;
+  }
+  await prisma.branch.create({
+    data: {
+      code: 'MAIN',
+      name: 'Main Branch',
+      nameBn: 'প্রধান শাখা',
+      isDefault: true,
+      status: 'ACTIVE',
+    },
+  });
+  console.log('Default branch created');
+}
+
+async function seedDemoSupplier() {
+  const existing = await prisma.supplier.findUnique({ where: { code: 'DEMO-SUP-01' } });
+  if (existing) {
+    console.log('Demo supplier already exists');
+    return;
+  }
+  await prisma.supplier.create({
+    data: {
+      code: 'DEMO-SUP-01',
+      name: 'Demo Supplier Ltd.',
+      contactPerson: 'Demo Contact',
+      phone: '+8801700000001',
+      email: 'supplier@bluegofer.local',
+      paymentTerms: 'Net 15',
+      openingBalance: 0,
+      currentDue: 0,
+      status: 'ACTIVE',
+    },
+  });
+  console.log('Demo supplier created');
+}
+
+async function seedChartOfAccounts() {
+  const result = await seedDefaultCoa(prisma);
+  console.log(`COA seed: created=${result.created}, skipped=${result.skipped}`);
+}
+
 async function main() {
   console.log('Seed starting...');
   await seedRoles();
   await seedPermissions();
   await assignPermissionsToRoles();
   await seedDemoAdmin();
+  await seedChartOfAccounts();
+  await seedDefaultBranch();
+  await seedDemoSupplier();
   console.log('Seed complete');
 }
 
