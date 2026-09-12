@@ -5,6 +5,8 @@ import { OrdersController } from './orders.controller';
 import { CheckoutService } from './checkout.service';
 import { CheckoutController } from './checkout.controller';
 import { InvoiceService } from './invoice.service';
+import { MeOrdersService } from './me-orders.service';
+import { MeOrdersController } from './me-orders.controller';
 import { InventoryModule } from '../inventory/inventory.module';
 import { PromotionsModule } from '../promotions/promotions.module';
 import { CrmModule } from '../crm/crm.module';
@@ -19,8 +21,8 @@ import { CartsModule } from '../carts/carts.module';
     NotificationsModule,
     CartsModule,
   ],
-  controllers: [OrdersController, CheckoutController],
-  providers: [OrdersService, CheckoutService, InvoiceService],
-  exports: [OrdersService, CheckoutService, InvoiceService],
+  controllers: [OrdersController, CheckoutController, MeOrdersController],
+  providers: [OrdersService, CheckoutService, InvoiceService, MeOrdersService],
+  exports: [OrdersService, CheckoutService, InvoiceService, MeOrdersService],
 })
 export class OrdersModule {}
