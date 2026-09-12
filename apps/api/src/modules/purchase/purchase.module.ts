@@ -4,10 +4,12 @@ import { RequisitionsService } from './requisitions.service';
 import { PurchaseOrdersService } from './purchase-orders.service';
 import { PurchaseInvoicesService } from './purchase-invoices.service';
 import { GRNService } from './grn.service';
+import { PurchaseController } from './purchase.controller';
 import { PrismaService } from '../../database/prisma.service';
 import { LedgerService } from '../accounting/services/ledger.service';
 
 @Module({
+  controllers: [PurchaseController],
   providers: [
     PrismaService,
     LedgerService,

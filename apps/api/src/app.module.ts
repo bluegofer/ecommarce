@@ -24,6 +24,8 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { RmaModule } from './modules/rma/rma.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { PurchaseModule } from './modules/purchase/purchase.module';
 
 @Module({
   imports: [
@@ -48,6 +50,8 @@ import { AccountingModule } from './modules/accounting/accounting.module';
     RmaModule,
     AnalyticsModule,
     AccountingModule,
+    SuppliersModule,
+    PurchaseModule,
   ],
   controllers: [HealthController],
   providers: [
