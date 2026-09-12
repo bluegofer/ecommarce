@@ -26,6 +26,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { PurchaseModule } from './modules/purchase/purchase.module';
+import { HrModule } from './modules/hr/hr.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { PurchaseModule } from './modules/purchase/purchase.module';
     AccountingModule,
     SuppliersModule,
     PurchaseModule,
+    HrModule,
   ],
   controllers: [HealthController],
   providers: [

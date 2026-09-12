@@ -12,3 +12,4 @@ export * from './analytics';
 export * from './purchase';
 export * from './suppliers';
 export * from './accounting';
+export * from './hr';
