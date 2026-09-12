@@ -14,6 +14,19 @@ function unwrap<T>(response: unknown): T {
   return response as T;
 }
 
+export interface SubmitContactInput {
+  name: string;
+  email: string;
+  orderNumber?: string;
+  subject: string;
+  message: string;
+}
+
+export interface SubmitContactResponse {
+  ok: boolean;
+  ticketId?: string;
+}
+
 export const cmsApi = {
   async getHomeFeed(): Promise<HomeFeed> {
     return api.get<HomeFeed>('/cms/home-feed');
@@ -36,5 +49,9 @@ export const cmsApi = {
   async getMenu(location: 'HEADER' | 'FOOTER' | 'MOBILE'): Promise<CmsMenu> {
     const res = await api.get<unknown>(`/cms/menus/${location}`);
     return unwrap<CmsMenu>(res);
+  },
+
+  async submitContact(input: SubmitContactInput): Promise<SubmitContactResponse> {
+    return api.post<SubmitContactResponse>('/cms/contact', input);
   },
 };
