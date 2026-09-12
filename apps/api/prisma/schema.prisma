@@ -1391,6 +1391,7 @@ model Branch {
   purchaseRequisitions PurchaseRequisition[]
   purchaseOrders       PurchaseOrder[]
   grns                 GRN[]
+  branchStock          BranchStock[]
 
   @@index([status])
   @@map("branches")
@@ -1619,4 +1620,250 @@ model SupplierDue {
   @@index([status])
   @@index([dueDate])
   @@map("supplier_dues")
+}
+
+// =====================================================================
+// STEP 9 - ERP FOUNDATION I (Schema Part 5b)
+// Accounting (COA + Ledger + Journal + AR/AP) + Income/Expense + BranchStock
+// Appended 2026-09-12 - workflow v2.0 Step 9
+// =====================================================================
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum JournalEntryStatus {
+  DRAFT
+  POSTED
+  VOID
+}
+
+enum JournalSourceType {
+  ORDER
+  GRN
+  SUPPLIER_PAYMENT
+  CUSTOMER_PAYMENT
+  INCOME
+  EXPENSE
+  PAYROLL
+  POS_SALE
+  MANUAL
+  REVERSAL
+}
+
+enum PaymentAccountKind {
+  CASH
+  BANK
+  MFS
+}
+
+enum IncomeExpenseType {
+  INCOME
+  EXPENSE
+}
+
+// ---------------------------------------------------------------------
+// Chart of Accounts - hierarchical tree (ASSET / LIABILITY / EQUITY /
+// REVENUE / EXPENSE). Leaf nodes link to LedgerAccount where journal
+// lines are posted.
+// ---------------------------------------------------------------------
+
+model ChartOfAccounts {
+  id            String            @id @default(cuid())
+  code          String            @unique
+  name          String
+  nameBn        String?
+  type          AccountType
+  normalBalance NormalBalance
+  parentId      String?
+  parent        ChartOfAccounts?  @relation("CoaTree", fields: [parentId], references: [id])
+  children      ChartOfAccounts[] @relation("CoaTree")
+  isLeaf        Boolean           @default(true)
+  description   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  ledgerAccounts LedgerAccount[]
+
+  @@index([type])
+  @@index([parentId])
+  @@map("chart_of_accounts")
+}
+
+// ---------------------------------------------------------------------
+// LedgerAccount - postable account with running balance (Cash / Bank /
+// MFS / AR / AP / Revenue / Expense / etc.). Journal lines always post
+// to a LedgerAccount.
+// ---------------------------------------------------------------------
+
+model LedgerAccount {
+  id             String              @id @default(cuid())
+  code           String              @unique
+  name           String
+  nameBn         String?
+  accountId      String
+  chartOfAccount ChartOfAccounts     @relation(fields: [accountId], references: [id])
+  kind           PaymentAccountKind?
+  currency       String              @default("BDT")
+  openingBalance Int                 @default(0) // poisha
+  currentBalance Int                 @default(0) // poisha (updated per journal posting)
+  isActive       Boolean             @default(true)
+  notes          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  journalLines JournalLine[]
+
+  @@index([accountId])
+  @@index([kind])
+  @@map("ledger_accounts")
+}
+
+// ---------------------------------------------------------------------
+// JournalEntry - double-entry header. Every entry has >=2 lines and
+// MUST balance (Σdebit = Σcredit). DB-level constraint trigger is
+// installed in a follow-up raw migration (Step 9.3).
+// ---------------------------------------------------------------------
+
+model JournalEntry {
+  id           String             @id @default(cuid())
+  entryNumber  String             @unique
+  entryDate    DateTime
+  description  String
+  status       JournalEntryStatus @default(DRAFT)
+  sourceType   JournalSourceType  @default(MANUAL)
+  sourceId     String?
+  branchId     String?
+  reversalOfId String?
+  reversalOf   JournalEntry?      @relation("JournalReversal", fields: [reversalOfId], references: [id])
+  reversals    JournalEntry[]     @relation("JournalReversal")
+  postedAt     DateTime?
+  postedById   String?
+  totalDebit   Int                @default(0) // poisha, denormalized for fast reads
+  totalCredit  Int                @default(0) // poisha
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  lines JournalLine[]
+
+  @@index([status])
+  @@index([entryDate])
+  @@index([sourceType, sourceId])
+  @@index([branchId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id              String        @id @default(cuid())
+  journalEntryId  String
+  journalEntry    JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  ledgerAccountId String
+  ledgerAccount   LedgerAccount @relation(fields: [ledgerAccountId], references: [id])
+  debit           Int           @default(0) // poisha (>=0, one side only)
+  credit          Int           @default(0) // poisha (>=0, one side only)
+  description     String?
+  createdAt       DateTime      @default(now())
+
+  @@index([journalEntryId])
+  @@index([ledgerAccountId])
+  @@map("journal_lines")
+}
+
+// ---------------------------------------------------------------------
+// Income / Expense records (simple bookkeeping outside of GRN/Orders)
+// ---------------------------------------------------------------------
+
+model IncomeExpenseCategory {
+  id          String            @id @default(cuid())
+  name        String
+  nameBn      String?
+  type        IncomeExpenseType
+  coaCode     String?
+  description String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  records IncomeExpenseRecord[]
+
+  @@index([type])
+  @@map("income_expense_categories")
+}
+
+model IncomeExpenseRecord {
+  id              String                @id @default(cuid())
+  recordNumber    String                @unique
+  type            IncomeExpenseType
+  categoryId      String
+  category        IncomeExpenseCategory @relation(fields: [categoryId], references: [id])
+  amount          Int // poisha
+  ledgerAccountId String
+  journalEntryId  String?
+  branchId        String?
+  occurredAt      DateTime
+  reference       String?
+  description     String?
+  attachmentUrl   String?
+  createdById     String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([type])
+  @@index([categoryId])
+  @@index([occurredAt])
+  @@map("income_expense_records")
+}
+
+// ---------------------------------------------------------------------
+// Customer Due (AR) - denormalized summary; source of truth is journal
+// ---------------------------------------------------------------------
+
+model CustomerDue {
+  id         String    @id @default(cuid())
+  customerId String
+  orderId    String?
+  amount     Int // poisha (original)
+  paidAmount Int       @default(0)
+  balance    Int // poisha
+  dueDate    DateTime?
+  status     DueStatus @default(OPEN)
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([orderId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("customer_dues")
+}
+
+// ---------------------------------------------------------------------
+// BranchStock - per-branch stock levels. At Step 9, only the default
+// branch exists and its quantity mirrors the global Variant.stock.
+// Full multi-branch logic arrives with POS in Step 11.
+// ---------------------------------------------------------------------
+
+model BranchStock {
+  id        String   @id @default(cuid())
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  variantId String
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([branchId, variantId])
+  @@index([branchId])
+  @@index([variantId])
+  @@map("branch_stock")
 }
