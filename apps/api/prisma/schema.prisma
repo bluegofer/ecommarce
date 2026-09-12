@@ -82,9 +82,9 @@ model RolePermission {
 }
 
 model UserRole {
-  userId     String    @map("user_id") @db.Uuid
-  roleId     String    @map("role_id") @db.Uuid
-  assignedAt DateTime  @default(now()) @map("assigned_at")
+  userId     String   @map("user_id") @db.Uuid
+  roleId     String   @map("role_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -94,15 +94,15 @@ model UserRole {
 }
 
 model RefreshToken {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
-  tokenHash  String    @unique @map("token_hash") @db.VarChar(120)
-  familyId   String    @map("family_id") @db.Uuid
-  expiresAt  DateTime  @map("expires_at")
-  revokedAt  DateTime? @map("revoked_at")
-  userAgent  String?   @map("user_agent") @db.VarChar(255)
-  ipAddress  String?   @map("ip_address") @db.VarChar(45)
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.VarChar(120)
+  familyId  String    @map("family_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  userAgent String?   @map("user_agent") @db.VarChar(255)
+  ipAddress String?   @map("ip_address") @db.VarChar(45)
+  createdAt DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -112,11 +112,11 @@ model RefreshToken {
 }
 
 model TotpSecret {
-  userId       String    @id @map("user_id") @db.Uuid
-  secret       String    @db.VarChar(120)
-  enrolledAt   DateTime? @map("enrolled_at")
-  lastUsedAt   DateTime? @map("last_used_at")
-  recoveryCodes String[] @map("recovery_codes")
+  userId        String    @id @map("user_id") @db.Uuid
+  secret        String    @db.VarChar(120)
+  enrolledAt    DateTime? @map("enrolled_at")
+  lastUsedAt    DateTime? @map("last_used_at")
+  recoveryCodes String[]  @map("recovery_codes")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -128,17 +128,17 @@ model TotpSecret {
 // ============================================================
 
 model AuditLog {
-  id            String   @id @default(uuid()) @db.Uuid
-  userId        String?  @map("user_id") @db.Uuid
-  actorRole     String?  @map("actor_role") @db.VarChar(50)
-  action        String   @db.VarChar(80)
-  entityType    String   @map("entity_type") @db.VarChar(50)
-  entityId      String?  @map("entity_id") @db.VarChar(80)
-  before        Json?
-  after         Json?
-  ipAddress     String?  @map("ip_address") @db.VarChar(45)
-  userAgent     String?  @map("user_agent") @db.VarChar(255)
-  createdAt     DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  actorRole  String?  @map("actor_role") @db.VarChar(50)
+  action     String   @db.VarChar(80)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String?  @map("entity_id") @db.VarChar(80)
+  before     Json?
+  after      Json?
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -149,32 +149,32 @@ model AuditLog {
 }
 
 model Outbox {
-  id             String    @id @default(uuid()) @db.Uuid
-  eventType      String    @map("event_type") @db.VarChar(80)
-  aggregateType  String    @map("aggregate_type") @db.VarChar(50)
-  aggregateId    String    @map("aggregate_id") @db.VarChar(80)
-  payload        Json
-  status         String    @default("PENDING") @db.VarChar(20)
-  attempts       Int       @default(0)
-  lastError      String?   @map("last_error")
-  publishedAt    DateTime? @map("published_at")
-  availableAt    DateTime  @default(now()) @map("available_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
+  id            String    @id @default(uuid()) @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(80)
+  aggregateType String    @map("aggregate_type") @db.VarChar(50)
+  aggregateId   String    @map("aggregate_id") @db.VarChar(80)
+  payload       Json
+  status        String    @default("PENDING") @db.VarChar(20)
+  attempts      Int       @default(0)
+  lastError     String?   @map("last_error")
+  publishedAt   DateTime? @map("published_at")
+  availableAt   DateTime  @default(now()) @map("available_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
 
   @@index([status, availableAt])
   @@map("outbox")
 }
 
 model IdempotencyKey {
-  id            String    @id @default(uuid()) @db.Uuid
-  key           String    @unique @db.VarChar(120)
-  userId        String?   @map("user_id") @db.Uuid
-  endpoint      String    @db.VarChar(255)
-  requestHash   String    @map("request_hash") @db.VarChar(120)
-  responseBody  Json?     @map("response_body")
-  statusCode    Int?      @map("status_code")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  expiresAt     DateTime  @map("expires_at")
+  id           String   @id @default(uuid()) @db.Uuid
+  key          String   @unique @db.VarChar(120)
+  userId       String?  @map("user_id") @db.Uuid
+  endpoint     String   @db.VarChar(255)
+  requestHash  String   @map("request_hash") @db.VarChar(120)
+  responseBody Json?    @map("response_body")
+  statusCode   Int?     @map("status_code")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
 
   @@index([expiresAt])
   @@map("idempotency_keys")
@@ -185,14 +185,14 @@ model IdempotencyKey {
 // ============================================================
 
 model NotificationPreference {
-  userId              String   @id @map("user_id") @db.Uuid
-  smsEnabled          Boolean  @default(true) @map("sms_enabled")
-  emailEnabled        Boolean  @default(true) @map("email_enabled")
-  pushEnabled         Boolean  @default(false) @map("push_enabled")
-  marketingOptIn      Boolean  @default(false) @map("marketing_opt_in")
-  quietHoursStart     Int?     @map("quiet_hours_start")
-  quietHoursEnd       Int?     @map("quiet_hours_end")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  userId          String   @id @map("user_id") @db.Uuid
+  smsEnabled      Boolean  @default(true) @map("sms_enabled")
+  emailEnabled    Boolean  @default(true) @map("email_enabled")
+  pushEnabled     Boolean  @default(false) @map("push_enabled")
+  marketingOptIn  Boolean  @default(false) @map("marketing_opt_in")
+  quietHoursStart Int?     @map("quiet_hours_start")
+  quietHoursEnd   Int?     @map("quiet_hours_end")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -264,8 +264,8 @@ model Category {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  parent             Category?            @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children           Category[]           @relation("CategoryTree")
+  parent             Category?           @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children           Category[]          @relation("CategoryTree")
   products           Product[]
   categoryAttributes CategoryAttribute[]
 
@@ -481,26 +481,26 @@ enum ContactMessageStatus {
 }
 
 model Coupon {
-  id              String     @id @default(cuid())
-  code            String     @unique
-  type            CouponType
-  valuePercent    Int?
-  valuePoisha     Int?
-  minOrderPoisha  Int        @default(0)
+  id                String     @id @default(cuid())
+  code              String     @unique
+  type              CouponType
+  valuePercent      Int?
+  valuePoisha       Int?
+  minOrderPoisha    Int        @default(0)
   maxDiscountPoisha Int?
-  totalUsageLimit Int?
-  perCustomerLimit Int?
-  timesRedeemed   Int        @default(0)
-  validFrom       DateTime?
-  validUntil      DateTime?
-  firstOrderOnly  Boolean    @default(false)
-  combinable      Boolean    @default(false)
-  isActive        Boolean    @default(true)
-  descriptionEn   String?
-  descriptionBn   String?
-  rulesJson       Json?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  totalUsageLimit   Int?
+  perCustomerLimit  Int?
+  timesRedeemed     Int        @default(0)
+  validFrom         DateTime?
+  validUntil        DateTime?
+  firstOrderOnly    Boolean    @default(false)
+  combinable        Boolean    @default(false)
+  isActive          Boolean    @default(true)
+  descriptionEn     String?
+  descriptionBn     String?
+  rulesJson         Json?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
   redemptions CouponRedemption[]
 
@@ -526,35 +526,35 @@ model CouponRedemption {
 }
 
 model AutomaticDiscount {
-  id             String        @id @default(cuid())
-  name           String
-  type           CouponType
-  scope          DiscountScope @default(ORDER)
-  valuePercent   Int?
-  valuePoisha    Int?
-  minOrderPoisha Int           @default(0)
+  id                String        @id @default(cuid())
+  name              String
+  type              CouponType
+  scope             DiscountScope @default(ORDER)
+  valuePercent      Int?
+  valuePoisha       Int?
+  minOrderPoisha    Int           @default(0)
   maxDiscountPoisha Int?
-  scopeJson      Json?
-  priority       Int           @default(0)
-  validFrom      DateTime?
-  validUntil     DateTime?
-  isActive       Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  scopeJson         Json?
+  priority          Int           @default(0)
+  validFrom         DateTime?
+  validUntil        DateTime?
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@index([isActive, validFrom, validUntil])
   @@map("automatic_discounts")
 }
 
 model FlashSale {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
   startsAt    DateTime
   endsAt      DateTime
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   items FlashSaleItem[]
 
@@ -563,15 +563,15 @@ model FlashSale {
 }
 
 model FlashSaleItem {
-  id                String @id @default(cuid())
-  flashSaleId       String
-  variantId         String
-  dealPricePoisha   Int
-  capQuantity       Int?
-  soldQuantity      Int    @default(0)
-  maxPerCustomer    Int?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(cuid())
+  flashSaleId     String
+  variantId       String
+  dealPricePoisha Int
+  capQuantity     Int?
+  soldQuantity    Int      @default(0)
+  maxPerCustomer  Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   flashSale FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
 
@@ -604,15 +604,15 @@ model CmsPage {
 }
 
 model CmsPageRevision {
-  id             String   @id @default(cuid())
-  pageId         String
-  revisionNumber Int
-  titleEn        String
-  titleBn        String
-  bodyEn         String?  @db.Text
-  bodyBn         String?  @db.Text
+  id              String   @id @default(cuid())
+  pageId          String
+  revisionNumber  Int
+  titleEn         String
+  titleBn         String
+  bodyEn          String?  @db.Text
+  bodyBn          String?  @db.Text
   createdByUserId String?
-  createdAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
 
   page CmsPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
@@ -640,11 +640,11 @@ model CmsSection {
 }
 
 model CmsMenu {
-  id       String          @id @default(cuid())
-  location CmsMenuLocation
-  name     String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id        String          @id @default(cuid())
+  location  CmsMenuLocation
+  name      String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   items CmsMenuItem[]
 
@@ -653,17 +653,17 @@ model CmsMenu {
 }
 
 model CmsMenuItem {
-  id       String  @id @default(cuid())
-  menuId   String
-  parentId String?
-  labelEn  String
-  labelBn  String
-  url      String
-  sortOrder Int    @default(0)
-  isActive Boolean @default(true)
+  id        String  @id @default(cuid())
+  menuId    String
+  parentId  String?
+  labelEn   String
+  labelBn   String
+  url       String
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
 
-  menu     CmsMenu      @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  parent   CmsMenuItem? @relation("MenuItemTree", fields: [parentId], references: [id], onDelete: SetNull)
+  menu     CmsMenu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent   CmsMenuItem?  @relation("MenuItemTree", fields: [parentId], references: [id], onDelete: SetNull)
   children CmsMenuItem[] @relation("MenuItemTree")
 
   @@index([menuId, sortOrder])
@@ -689,37 +689,37 @@ model Announcement {
 }
 
 model Popup {
-  id           String   @id @default(cuid())
-  titleEn      String
-  titleBn      String
-  bodyEn       String?
-  bodyBn       String?
-  imageUrl     String?
-  ctaLabelEn   String?
-  ctaLabelBn   String?
-  ctaUrl       String?
-  dismissRule  Json?
-  startsAt     DateTime?
-  endsAt       DateTime?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String    @id @default(cuid())
+  titleEn     String
+  titleBn     String
+  bodyEn      String?
+  bodyBn      String?
+  imageUrl    String?
+  ctaLabelEn  String?
+  ctaLabelBn  String?
+  ctaUrl      String?
+  dismissRule Json?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([isActive, startsAt, endsAt])
   @@map("popups")
 }
 
 model MediaLibraryItem {
-  id              String   @id @default(cuid())
-  url             String
-  filename        String
-  mimeType        String
-  sizeBytes       Int
-  width           Int?
-  height          Int?
-  altText         String?
+  id               String   @id @default(cuid())
+  url              String
+  filename         String
+  mimeType         String
+  sizeBytes        Int
+  width            Int?
+  height           Int?
+  altText          String?
   uploadedByUserId String?
-  createdAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
 
   @@index([filename])
   @@map("media_library")
@@ -807,27 +807,27 @@ enum NotificationStatus {
 }
 
 model Customer {
-  id              String         @id @default(cuid())
-  userId          String?        @unique
-  phone           String         @unique
-  email           String?
-  fullName        String
-  isGuest         Boolean        @default(true)
-  status          CustomerStatus @default(ACTIVE)
-  totalOrders     Int            @default(0)
-  totalSpentPoisha Int           @default(0)
-  firstOrderAt    DateTime?
-  lastOrderAt     DateTime?
-  notes           String?        @db.Text
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id               String         @id @default(cuid())
+  userId           String?        @unique
+  phone            String         @unique
+  email            String?
+  fullName         String
+  isGuest          Boolean        @default(true)
+  status           CustomerStatus @default(ACTIVE)
+  totalOrders      Int            @default(0)
+  totalSpentPoisha Int            @default(0)
+  firstOrderAt     DateTime?
+  lastOrderAt      DateTime?
+  notes            String?        @db.Text
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  addresses            Address[]
-  customerNotes        CustomerNote[]
-  carts                Cart[]
-  orders               Order[]
-  notificationLogs     NotificationLog[]
-  backInStockSubs      BackInStockSubscription[]
+  addresses        Address[]
+  customerNotes    CustomerNote[]
+  carts            Cart[]
+  orders           Order[]
+  notificationLogs NotificationLog[]
+  backInStockSubs  BackInStockSubscription[]
 
   @@index([phone])
   @@index([userId])
@@ -884,19 +884,19 @@ model Segment {
 }
 
 model Cart {
-  id            String    @id @default(cuid())
-  customerId    String?
-  guestToken    String?   @unique
-  state         CartState @default(ACTIVE)
-  couponCode    String?
-  lastActivityAt DateTime @default(now())
-  abandonedAt   DateTime?
+  id             String    @id @default(cuid())
+  customerId     String?
+  guestToken     String?   @unique
+  state          CartState @default(ACTIVE)
+  couponCode     String?
+  lastActivityAt DateTime  @default(now())
+  abandonedAt    DateTime?
   reminderSentAt DateTime?
-  reminderCount Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  reminderCount  Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  customer Customer?   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   items    CartItem[]
 
   @@index([customerId, state])
@@ -906,13 +906,13 @@ model Cart {
 }
 
 model CartItem {
-  id             String   @id @default(cuid())
-  cartId         String
-  variantId      String
-  quantity       Int      @default(1)
-  savedForLater  Boolean  @default(false)
-  addedAt        DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(cuid())
+  cartId        String
+  variantId     String
+  quantity      Int      @default(1)
+  savedForLater Boolean  @default(false)
+  addedAt       DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
@@ -922,35 +922,35 @@ model CartItem {
 }
 
 model Order {
-  id                    String      @id @default(cuid())
-  orderNumber           String      @unique
-  customerId            String
-  status                OrderStatus @default(PLACED)
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  customerId  String
+  status      OrderStatus @default(PLACED)
 
-  subtotalPoisha        Int
-  discountPoisha        Int         @default(0)
-  deliveryChargePoisha  Int         @default(0)
-  totalPoisha           Int
+  subtotalPoisha       Int
+  discountPoisha       Int @default(0)
+  deliveryChargePoisha Int @default(0)
+  totalPoisha          Int
 
-  couponId              String?
-  couponCode            String?
+  couponId   String?
+  couponCode String?
 
-  shippingAddressJson   Json
-  contactPhone          String
-  contactEmail          String?
+  shippingAddressJson Json
+  contactPhone        String
+  contactEmail        String?
 
-  customerNote          String?     @db.Text
-  cancelReason          String?
+  customerNote String? @db.Text
+  cancelReason String?
 
-  placedAt              DateTime    @default(now())
-  confirmedAt           DateTime?
-  processingAt          DateTime?
-  shippedAt             DateTime?
-  deliveredAt           DateTime?
-  cancelledAt           DateTime?
+  placedAt     DateTime  @default(now())
+  confirmedAt  DateTime?
+  processingAt DateTime?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  cancelledAt  DateTime?
 
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   customer      Customer             @relation(fields: [customerId], references: [id])
   items         OrderItem[]
@@ -966,7 +966,7 @@ model Order {
 }
 
 model OrderItem {
-  id              String @id @default(cuid())
+  id              String   @id @default(cuid())
   orderId         String
   variantId       String
   productTitleEn  String
@@ -984,13 +984,13 @@ model OrderItem {
 }
 
 model OrderStatusHistory {
-  id          String      @id @default(cuid())
+  id          String       @id @default(cuid())
   orderId     String
   fromStatus  OrderStatus?
   toStatus    OrderStatus
   actorUserId String?
   note        String?
-  createdAt   DateTime    @default(now())
+  createdAt   DateTime     @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -999,12 +999,12 @@ model OrderStatusHistory {
 }
 
 model OrderNote {
-  id                 String   @id @default(cuid())
-  orderId            String
-  body               String   @db.Text
-  isCustomerVisible  Boolean  @default(false)
-  actorUserId        String?
-  createdAt          DateTime @default(now())
+  id                String   @id @default(cuid())
+  orderId           String
+  body              String   @db.Text
+  isCustomerVisible Boolean  @default(false)
+  actorUserId       String?
+  createdAt         DateTime @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -1013,17 +1013,17 @@ model OrderNote {
 }
 
 model Payment {
-  id            String        @id @default(cuid())
-  orderId       String
-  method        PaymentMethod
-  status        PaymentStatus @default(PENDING)
-  amountPoisha  Int
-  gatewayRef    String?
-  gatewayMeta   Json?
-  paidAt        DateTime?
-  refundedPoisha Int          @default(0)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  orderId        String
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  amountPoisha   Int
+  gatewayRef     String?
+  gatewayMeta    Json?
+  paidAt         DateTime?
+  refundedPoisha Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -1051,16 +1051,16 @@ model Shipment {
 }
 
 model NotificationTemplate {
-  id         String              @id @default(cuid())
-  key        String
-  channel    NotificationChannel
-  subjectEn  String?
-  subjectBn  String?
-  bodyEn     String              @db.Text
-  bodyBn     String              @db.Text
-  isActive   Boolean             @default(true)
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
+  id        String              @id @default(cuid())
+  key       String
+  channel   NotificationChannel
+  subjectEn String?
+  subjectBn String?
+  bodyEn    String              @db.Text
+  bodyBn    String              @db.Text
+  isActive  Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
   @@unique([key, channel])
   @@index([key])
@@ -1068,18 +1068,18 @@ model NotificationTemplate {
 }
 
 model NotificationLog {
-  id               String              @id @default(cuid())
-  customerId       String?
-  orderId          String?
-  templateKey      String
-  channel          NotificationChannel
-  recipient        String
-  renderedSubject  String?
-  renderedBody     String              @db.Text
-  status           NotificationStatus  @default(QUEUED)
-  errorMessage     String?
-  sentAt           DateTime?
-  createdAt        DateTime            @default(now())
+  id              String              @id @default(cuid())
+  customerId      String?
+  orderId         String?
+  templateKey     String
+  channel         NotificationChannel
+  recipient       String
+  renderedSubject String?
+  renderedBody    String              @db.Text
+  status          NotificationStatus  @default(QUEUED)
+  errorMessage    String?
+  sentAt          DateTime?
+  createdAt       DateTime            @default(now())
 
   customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
@@ -1090,13 +1090,13 @@ model NotificationLog {
 }
 
 model BackInStockSubscription {
-  id          String    @id @default(cuid())
-  customerId  String?
-  variantId   String
-  email       String?
-  phone       String?
-  notifiedAt  DateTime?
-  createdAt   DateTime  @default(now())
+  id         String    @id @default(cuid())
+  customerId String?
+  variantId  String
+  email      String?
+  phone      String?
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
 
   customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
@@ -1150,23 +1150,23 @@ enum AnalyticsEventType {
 }
 
 model Review {
-  id           String       @id @default(cuid())
-  productId    String
-  customerId   String
-  orderId      String?
-  variantId    String?
-  rating       Int
-  title        String?
-  body         String       @db.Text
-  photoUrls    Json?
-  status       ReviewStatus @default(PENDING)
-  hiddenReason String?
-  helpfulCount Int          @default(0)
-  isVerified   Boolean      @default(true)
-  adminReply   String?      @db.Text
+  id             String       @id @default(cuid())
+  productId      String
+  customerId     String
+  orderId        String?
+  variantId      String?
+  rating         Int
+  title          String?
+  body           String       @db.Text
+  photoUrls      Json?
+  status         ReviewStatus @default(PENDING)
+  hiddenReason   String?
+  helpfulCount   Int          @default(0)
+  isVerified     Boolean      @default(true)
+  adminReply     String?      @db.Text
   adminRepliedAt DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   votes ReviewVote[]
 
@@ -1177,11 +1177,11 @@ model Review {
 }
 
 model ReviewVote {
-  id        String   @id @default(cuid())
-  reviewId  String
+  id         String   @id @default(cuid())
+  reviewId   String
   customerId String
-  helpful   Boolean  @default(true)
-  createdAt DateTime @default(now())
+  helpful    Boolean  @default(true)
+  createdAt  DateTime @default(now())
 
   review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
@@ -1191,21 +1191,21 @@ model ReviewVote {
 }
 
 model ReturnRequest {
-  id              String       @id @default(cuid())
-  orderId         String
-  customerId      String
-  status          ReturnStatus @default(REQUESTED)
-  reason          ReturnReason
-  reasonNote      String?      @db.Text
-  photoUrls       Json?
-  itemIds         Json
-  refundAmountPoisha Int       @default(0)
-  refundedAt      DateTime?
-  restockedAt     DateTime?
-  rejectReason    String?
-  trackingNumber  String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id                 String       @id @default(cuid())
+  orderId            String
+  customerId         String
+  status             ReturnStatus @default(REQUESTED)
+  reason             ReturnReason
+  reasonNote         String?      @db.Text
+  photoUrls          Json?
+  itemIds            Json
+  refundAmountPoisha Int          @default(0)
+  refundedAt         DateTime?
+  restockedAt        DateTime?
+  rejectReason       String?
+  trackingNumber     String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
   history ReturnStatusHistory[]
 
@@ -1216,13 +1216,13 @@ model ReturnRequest {
 }
 
 model ReturnStatusHistory {
-  id               String       @id @default(cuid())
-  returnRequestId  String
-  fromStatus       ReturnStatus?
-  toStatus         ReturnStatus
-  actorUserId      String?
-  note             String?
-  createdAt        DateTime     @default(now())
+  id              String        @id @default(cuid())
+  returnRequestId String
+  fromStatus      ReturnStatus?
+  toStatus        ReturnStatus
+  actorUserId     String?
+  note            String?
+  createdAt       DateTime      @default(now())
 
   returnRequest ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
 
@@ -1231,17 +1231,17 @@ model ReturnStatusHistory {
 }
 
 model SupportTicket {
-  id              String       @id @default(cuid())
-  ticketNumber    String       @unique
-  customerId      String?
-  orderId         String?
-  subject         String
-  status          TicketStatus @default(OPEN)
-  priority        Int          @default(0)
-  lastMessageAt   DateTime     @default(now())
-  resolvedAt      DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id            String       @id @default(cuid())
+  ticketNumber  String       @unique
+  customerId    String?
+  orderId       String?
+  subject       String
+  status        TicketStatus @default(OPEN)
+  priority      Int          @default(0)
+  lastMessageAt DateTime     @default(now())
+  resolvedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   messages TicketMessage[]
 
@@ -1265,7 +1265,7 @@ model TicketMessage {
 }
 
 model AnalyticsEvent {
-  id         String              @id @default(cuid())
+  id         String             @id @default(cuid())
   eventType  AnalyticsEventType
   sessionId  String?
   customerId String?
@@ -1275,7 +1275,7 @@ model AnalyticsEvent {
   path       String?
   query      String?
   meta       Json?
-  createdAt  DateTime            @default(now())
+  createdAt  DateTime           @default(now())
 
   @@index([eventType, createdAt])
   @@index([sessionId])
@@ -1285,30 +1285,338 @@ model AnalyticsEvent {
 }
 
 model DailySalesSummary {
-  id                String   @id @default(cuid())
-  date              DateTime @unique @db.Date
-  ordersCount       Int      @default(0)
-  paidOrdersCount   Int      @default(0)
-  revenuePoisha     Int      @default(0)
-  refundedPoisha    Int      @default(0)
-  aovPoisha         Int      @default(0)
-  uniqueCustomers   Int      @default(0)
-  repeatCustomers   Int      @default(0)
-  returnedOrders    Int      @default(0)
-  newCustomers      Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(cuid())
+  date            DateTime @unique @db.Date
+  ordersCount     Int      @default(0)
+  paidOrdersCount Int      @default(0)
+  revenuePoisha   Int      @default(0)
+  refundedPoisha  Int      @default(0)
+  aovPoisha       Int      @default(0)
+  uniqueCustomers Int      @default(0)
+  repeatCustomers Int      @default(0)
+  returnedOrders  Int      @default(0)
+  newCustomers    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([date])
   @@map("daily_sales_summary")
 }
 
 model SearchTerm {
-  id         String   @id @default(cuid())
-  term       String
-  hits       Int      @default(0)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  term      String
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
 
   @@index([term, createdAt])
   @@map("search_terms")
+}
+
+// =====================================================================
+// STEP 9 - ERP FOUNDATION I (Schema Part 5a)
+// Branch + Supplier + Purchase + GRN + Supplier Payment + Supplier Due
+// Appended 2026-09-12 - workflow v2.0 Step 9
+// =====================================================================
+
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLISTED
+}
+
+enum PurchaseRequisitionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CONVERTED
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SENT
+  PARTIAL_RECEIVED
+  RECEIVED
+  CLOSED
+  CANCELLED
+}
+
+enum PurchaseInvoiceStatus {
+  DRAFT
+  POSTED
+  PARTIAL_PAID
+  PAID
+  VOID
+}
+
+enum GRNStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum SupplierPaymentMethod {
+  CASH
+  BANK
+  MFS
+}
+
+enum DueStatus {
+  OPEN
+  PARTIAL
+  PAID
+  OVERDUE
+  WRITTEN_OFF
+}
+
+model Branch {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  name      String
+  nameBn    String?
+  address   Json?
+  phone     String?
+  email     String?
+  isDefault Boolean      @default(false)
+  status    BranchStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  purchaseRequisitions PurchaseRequisition[]
+  purchaseOrders       PurchaseOrder[]
+  grns                 GRN[]
+
+  @@index([status])
+  @@map("branches")
+}
+
+model Supplier {
+  id             String         @id @default(cuid())
+  code           String         @unique
+  name           String
+  contactPerson  String?
+  phone          String?
+  email          String?
+  address        Json?
+  taxId          String?
+  paymentTerms   String?
+  notes          String?
+  openingBalance Int            @default(0)
+  currentDue     Int            @default(0)
+  status         SupplierStatus @default(ACTIVE)
+  createdById    String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  purchaseOrders   PurchaseOrder[]
+  purchaseInvoices PurchaseInvoice[]
+  payments         SupplierPayment[]
+  dues             SupplierDue[]
+
+  @@index([status])
+  @@index([name])
+  @@map("suppliers")
+}
+
+model PurchaseRequisition {
+  id            String                    @id @default(cuid())
+  reqNumber     String                    @unique
+  branchId      String
+  branch        Branch                    @relation(fields: [branchId], references: [id])
+  status        PurchaseRequisitionStatus @default(DRAFT)
+  notes         String?
+  requestedById String?
+  approvedById  String?
+  approvedAt    DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  items          PurchaseRequisitionItem[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([status])
+  @@index([branchId])
+  @@map("purchase_requisitions")
+}
+
+model PurchaseRequisitionItem {
+  id            String              @id @default(cuid())
+  requisitionId String
+  requisition   PurchaseRequisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  variantId     String
+  requestedQty  Int
+  notes         String?
+  createdAt     DateTime            @default(now())
+
+  @@index([requisitionId])
+  @@index([variantId])
+  @@map("purchase_requisition_items")
+}
+
+model PurchaseOrder {
+  id            String               @id @default(cuid())
+  poNumber      String               @unique
+  supplierId    String
+  supplier      Supplier             @relation(fields: [supplierId], references: [id])
+  branchId      String
+  branch        Branch               @relation(fields: [branchId], references: [id])
+  requisitionId String?
+  requisition   PurchaseRequisition? @relation(fields: [requisitionId], references: [id])
+  status        PurchaseOrderStatus  @default(DRAFT)
+  expectedDate  DateTime?
+  subtotal      Int                  @default(0)
+  discount      Int                  @default(0)
+  total         Int                  @default(0)
+  notes         String?
+  createdById   String?
+  sentAt        DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  items    PurchaseOrderItem[]
+  invoices PurchaseInvoice[]
+  grns     GRN[]
+
+  @@index([status])
+  @@index([supplierId])
+  @@index([branchId])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id            String        @id @default(cuid())
+  poId          String
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  variantId     String
+  orderedQty    Int
+  receivedQty   Int           @default(0)
+  unitCost      Int
+  lineTotal     Int
+  notes         String?
+  createdAt     DateTime      @default(now())
+
+  grnItems GRNItem[]
+
+  @@index([poId])
+  @@index([variantId])
+  @@map("purchase_order_items")
+}
+
+model PurchaseInvoice {
+  id              String                @id @default(cuid())
+  invoiceNumber   String
+  supplierId      String
+  supplier        Supplier              @relation(fields: [supplierId], references: [id])
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder?        @relation(fields: [purchaseOrderId], references: [id])
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  subtotal        Int                   @default(0)
+  discount        Int                   @default(0)
+  tax             Int                   @default(0)
+  total           Int                   @default(0)
+  paidAmount      Int                   @default(0)
+  status          PurchaseInvoiceStatus @default(DRAFT)
+  notes           String?
+  postedAt        DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  payments SupplierPayment[]
+  dues     SupplierDue[]
+
+  @@unique([supplierId, invoiceNumber])
+  @@index([status])
+  @@index([supplierId])
+  @@map("purchase_invoices")
+}
+
+model GRN {
+  id              String        @id @default(cuid())
+  grnNumber       String        @unique
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  branchId        String
+  branch          Branch        @relation(fields: [branchId], references: [id])
+  status          GRNStatus     @default(DRAFT)
+  receivedById    String?
+  receivedAt      DateTime?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items GRNItem[]
+
+  @@index([status])
+  @@index([purchaseOrderId])
+  @@map("grns")
+}
+
+model GRNItem {
+  id          String             @id @default(cuid())
+  grnId       String
+  grn         GRN                @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  poItemId    String?
+  poItem      PurchaseOrderItem? @relation(fields: [poItemId], references: [id])
+  variantId   String
+  receivedQty Int
+  unitCost    Int
+  lineTotal   Int
+  notes       String?
+  createdAt   DateTime           @default(now())
+
+  @@index([grnId])
+  @@index([variantId])
+  @@map("grn_items")
+}
+
+model SupplierPayment {
+  id                String                @id @default(cuid())
+  paymentNumber     String                @unique
+  supplierId        String
+  supplier          Supplier              @relation(fields: [supplierId], references: [id])
+  purchaseInvoiceId String?
+  purchaseInvoice   PurchaseInvoice?      @relation(fields: [purchaseInvoiceId], references: [id])
+  amount            Int
+  method            SupplierPaymentMethod
+  ledgerAccountId   String?
+  journalEntryId    String?
+  reference         String?
+  paidAt            DateTime
+  notes             String?
+  createdById       String?
+  createdAt         DateTime              @default(now())
+
+  @@index([supplierId])
+  @@index([purchaseInvoiceId])
+  @@index([paidAt])
+  @@map("supplier_payments")
+}
+
+model SupplierDue {
+  id                String           @id @default(cuid())
+  supplierId        String
+  supplier          Supplier         @relation(fields: [supplierId], references: [id])
+  purchaseInvoiceId String?
+  purchaseInvoice   PurchaseInvoice? @relation(fields: [purchaseInvoiceId], references: [id])
+  amount            Int
+  paidAmount        Int              @default(0)
+  balance           Int
+  dueDate           DateTime?
+  status            DueStatus        @default(OPEN)
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("supplier_dues")
 }
