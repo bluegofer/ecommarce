@@ -59,7 +59,6 @@ export default function MediaLibraryPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
             {data.map((m) => (
               <div key={m.id} className="group relative aspect-square rounded border border-border bg-slate-50 overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                   <p className="text-[11px] text-white font-mono truncate">{m.filename}</p>
