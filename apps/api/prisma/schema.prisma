@@ -41,6 +41,15 @@ model User {
   auditLogs         AuditLog[]
   notificationPrefs NotificationPreference?
 
+  posSessionsOpened           PosSession[]    @relation("PosSessionOpenedBy")
+  posSessionsClosed           PosSession[]    @relation("PosSessionClosedBy")
+  posSessionsVarianceApproved PosSession[]    @relation("PosSessionVarianceApprovedBy")
+  posCashEvents               PosCashEvent[]
+  posSales                    PosSale[]
+  stockTransfersCreated       StockTransfer[] @relation("StockTransferCreatedBy")
+  stockTransfersDispatched    StockTransfer[] @relation("StockTransferDispatchedBy")
+  stockTransfersReceived      StockTransfer[] @relation("StockTransferReceivedBy")
+
   @@map("users")
 }
 
@@ -380,10 +389,12 @@ model Variant {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  product     Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
-  warehouse   Warehouse?            @relation(fields: [warehouseId], references: [id])
-  media       ProductMedia[]
-  adjustments InventoryAdjustment[]
+  product            Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse          Warehouse?            @relation(fields: [warehouseId], references: [id])
+  media              ProductMedia[]
+  adjustments        InventoryAdjustment[]
+  posSaleItems       PosSaleItem[]
+  stockTransferItems StockTransferItem[]
 
   @@index([productId])
   @@index([sku])
@@ -828,6 +839,7 @@ model Customer {
   orders           Order[]
   notificationLogs NotificationLog[]
   backInStockSubs  BackInStockSubscription[]
+  posSales         PosSale[]
 
   @@index([phone])
   @@index([userId])
@@ -1392,6 +1404,10 @@ model Branch {
   purchaseOrders       PurchaseOrder[]
   grns                 GRN[]
   branchStock          BranchStock[]
+  registers            Register[]
+  posSales             PosSale[]
+  transfersFrom        StockTransfer[]       @relation("StockTransferFrom")
+  transfersTo          StockTransfer[]       @relation("StockTransferTo")
 
   @@index([status])
   @@map("branches")
@@ -2166,4 +2182,226 @@ model Payslip {
   @@unique([payrollRunId, employeeId])
   @@index([employeeId])
   @@map("payslips")
+}
+
+// =====================================================================
+// STEP 11 - POS + BRANCH-WISE INVENTORY (Schema Part 7)
+// Appended 2026-09-12 - workflow v2.0 Step 11 (Appendix A.2.1, A.3, A.5)
+// BranchStock already exists (line 1856); this adds: Register, PosSession,
+// PosCashEvent, PosSale, PosSaleItem, PosPayment, StockTransfer, StockTransferItem
+// =====================================================================
+
+// ---------- REGISTERS (POS terminals per branch) ----------
+
+model Register {
+  id        String   @id @default(cuid())
+  branchId  String
+  name      String
+  deviceId  String?  @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch   Branch       @relation(fields: [branchId], references: [id])
+  sessions PosSession[]
+  sales    PosSale[]
+
+  @@index([branchId, isActive])
+  @@map("registers")
+}
+
+// ---------- POS SESSIONS (cash drawer) ----------
+
+enum PosSessionStatus {
+  OPEN
+  CLOSED
+}
+
+model PosSession {
+  id             String           @id @default(cuid())
+  registerId     String
+  openedById     String           @db.Uuid
+  openedAt       DateTime         @default(now())
+  openingBalance Int
+  status         PosSessionStatus @default(OPEN)
+
+  closedById           String?   @db.Uuid
+  closedAt             DateTime?
+  countedBalance       Int?
+  expectedBalance      Int?
+  variance             Int?
+  varianceApprovedById String?   @db.Uuid
+  varianceNote         String?
+
+  register           Register @relation(fields: [registerId], references: [id])
+  openedBy           User     @relation("PosSessionOpenedBy", fields: [openedById], references: [id])
+  closedBy           User?    @relation("PosSessionClosedBy", fields: [closedById], references: [id])
+  varianceApprovedBy User?    @relation("PosSessionVarianceApprovedBy", fields: [varianceApprovedById], references: [id])
+
+  cashEvents PosCashEvent[]
+  sales      PosSale[]
+
+  @@index([registerId, status])
+  @@index([openedAt])
+  @@map("pos_sessions")
+}
+
+enum PosCashEventType {
+  CASH_IN
+  CASH_OUT
+}
+
+model PosCashEvent {
+  id        String           @id @default(cuid())
+  sessionId String
+  type      PosCashEventType
+  amount    Int
+  reason    String?
+  actorId   String           @db.Uuid
+  createdAt DateTime         @default(now())
+
+  session PosSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  actor   User       @relation(fields: [actorId], references: [id])
+
+  @@index([sessionId, createdAt])
+  @@map("pos_cash_events")
+}
+
+// ---------- POS SALES ----------
+
+enum PosSaleStatus {
+  COMPLETED
+  VOIDED
+  RETURNED
+  PARTIALLY_RETURNED
+}
+
+model PosSale {
+  id            String        @id @default(cuid())
+  branchId      String
+  registerId    String
+  sessionId     String
+  cashierId     String        @db.Uuid
+  customerId    String?
+  receiptNumber String
+  subtotal      Int
+  discount      Int           @default(0)
+  tax           Int           @default(0)
+  total         Int
+  paidAmount    Int
+  changeAmount  Int           @default(0)
+  status        PosSaleStatus @default(COMPLETED)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  branch   Branch     @relation(fields: [branchId], references: [id])
+  register Register   @relation(fields: [registerId], references: [id])
+  session  PosSession @relation(fields: [sessionId], references: [id])
+  cashier  User       @relation(fields: [cashierId], references: [id])
+  customer Customer?  @relation(fields: [customerId], references: [id])
+
+  items    PosSaleItem[]
+  payments PosPayment[]
+
+  @@unique([branchId, receiptNumber])
+  @@index([branchId, createdAt])
+  @@index([sessionId])
+  @@index([cashierId, createdAt])
+  @@map("pos_sales")
+}
+
+model PosSaleItem {
+  id          String @id @default(cuid())
+  saleId      String
+  variantId   String
+  quantity    Int
+  unitPrice   Int
+  discount    Int    @default(0)
+  lineTotal   Int
+  returnedQty Int    @default(0)
+
+  sale    PosSale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  variant Variant @relation(fields: [variantId], references: [id])
+
+  @@index([saleId])
+  @@index([variantId])
+  @@map("pos_sale_items")
+}
+
+enum PosPaymentMethod {
+  CASH
+  CARD
+  MFS_BKASH
+  MFS_NAGAD
+  MFS_ROCKET
+}
+
+model PosPayment {
+  id        String           @id @default(cuid())
+  saleId    String
+  method    PosPaymentMethod
+  amount    Int
+  reference String?
+  createdAt DateTime         @default(now())
+
+  sale PosSale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
+  @@index([method, createdAt])
+  @@map("pos_payments")
+}
+
+// ---------- INTER-BRANCH STOCK TRANSFERS ----------
+
+enum StockTransferStatus {
+  DRAFT
+  DISPATCHED
+  RECEIVED
+  CANCELLED
+}
+
+model StockTransfer {
+  id             String              @id @default(cuid())
+  transferNumber String              @unique
+  fromBranchId   String
+  toBranchId     String
+  status         StockTransferStatus @default(DRAFT)
+  notes          String?
+
+  createdById    String    @db.Uuid
+  dispatchedById String?   @db.Uuid
+  dispatchedAt   DateTime?
+  receivedById   String?   @db.Uuid
+  receivedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fromBranch   Branch @relation("StockTransferFrom", fields: [fromBranchId], references: [id])
+  toBranch     Branch @relation("StockTransferTo", fields: [toBranchId], references: [id])
+  createdBy    User   @relation("StockTransferCreatedBy", fields: [createdById], references: [id])
+  dispatchedBy User?  @relation("StockTransferDispatchedBy", fields: [dispatchedById], references: [id])
+  receivedBy   User?  @relation("StockTransferReceivedBy", fields: [receivedById], references: [id])
+
+  items StockTransferItem[]
+
+  @@index([fromBranchId, status])
+  @@index([toBranchId, status])
+  @@index([status, createdAt])
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id         String @id @default(cuid())
+  transferId String
+  variantId  String
+  quantity   Int
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  variant  Variant       @relation(fields: [variantId], references: [id])
+
+  @@unique([transferId, variantId])
+  @@index([variantId])
+  @@map("stock_transfer_items")
 }

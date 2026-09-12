@@ -116,6 +116,9 @@ async function seedDemoAdmin() {
 
   const passwordHash = await bcrypt.hash('ChangeMe!2026', 12);
   const superAdminRole = await prisma.role.findUnique({ where: { code: 'SUPER_ADMIN' } });
+
+  // Step 11: POS demo data (branches, registers, branch stock)
+  await seedPosDemo(prisma);
   if (!superAdminRole) throw new Error('SUPER_ADMIN role missing');
 
   const admin = await prisma.user.create({
@@ -283,3 +286,76 @@ async function main() {
 main()
   .catch((e) => { console.error(e); process.exit(1); })
   .finally(async () => { await prisma.$disconnect(); });
+// =====================================================================
+// STEP 11 — POS demo seed (branches, registers, branch stock)
+// Idempotent — safe to re-run.
+// =====================================================================
+async function seedPosDemo(prisma: PrismaClient) {
+  // Marker so we don't duplicate
+  const mainBranch = await prisma.branch.findUnique({ where: { code: 'MAIN' } });
+  if (!mainBranch) {
+    console.log('SKIP: MAIN branch not found; run base seed first');
+    return;
+  }
+
+  // Ensure 2nd branch exists (Chittagong)
+  let ctgBranch = await prisma.branch.findUnique({ where: { code: 'CTG' } });
+  if (!ctgBranch) {
+    ctgBranch = await prisma.branch.create({
+      data: {
+        code: 'CTG',
+        name: 'Chittagong Branch',
+        nameBn: 'চট্টগ্রাম শাখা',
+        isDefault: false,
+        status: 'ACTIVE',
+      },
+    });
+    console.log('Created branch CTG');
+  }
+
+  // Registers: one per branch
+  for (const branch of [mainBranch, ctgBranch]) {
+    const existing = await prisma.register.findFirst({
+      where: { branchId: branch.id },
+    });
+    if (!existing) {
+      await prisma.register.create({
+        data: {
+          branchId: branch.id,
+          name: `${branch.name} Counter 1`,
+          isActive: true,
+        },
+      });
+      console.log(`Created register for ${branch.code}`);
+    }
+  }
+
+  // Seed branch stock: give every variant 100 units in MAIN, 20 in CTG
+  const variants = await prisma.variant.findMany({ select: { id: true } });
+  let created = 0;
+  for (const v of variants) {
+    for (const branch of [mainBranch, ctgBranch]) {
+      const exists = await prisma.branchStock.findUnique({
+        where: {
+          branchId_variantId: { branchId: branch.id, variantId: v.id },
+        },
+      });
+      if (!exists) {
+        await prisma.branchStock.create({
+          data: {
+            branchId: branch.id,
+            variantId: v.id,
+            quantity: branch.code === 'MAIN' ? 100 : 20,
+          },
+        });
+        created++;
+      }
+    }
+  }
+  console.log(`POS demo seed: ${created} branch_stock rows created`);
+
+  // POS_DEMO_SEED_APPLIED
+}
+
+// Hook into main() — call after base seed
+// (add the call in your existing main() function)
