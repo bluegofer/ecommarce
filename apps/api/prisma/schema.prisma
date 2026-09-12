@@ -1867,3 +1867,303 @@ model BranchStock {
   @@index([variantId])
   @@map("branch_stock")
 }
+
+// =====================================================================
+// STEP 10 - ERP FOUNDATION II: HR + Attendance + Payroll (Schema Part 6)
+// Appended 2026-09-12 - workflow v2.0 Step 10
+// A.5 chain: HR -> Attendance -> Payroll -> Accounts (via LedgerService)
+// =====================================================================
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+  TERMINATED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+  HOLIDAY
+  WEEKEND
+}
+
+enum AttendanceSource {
+  MANUAL
+  DEVICE
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  ANNUAL
+  UNPAID
+  MATERNITY
+  OTHER
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PayrollRunStatus {
+  DRAFT
+  FINALIZED
+  POSTED
+  PAID
+  CANCELLED
+}
+
+// ---------------------------------------------------------------------
+// Department / Designation
+// ---------------------------------------------------------------------
+
+model Department {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  nameBn      String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees Employee[]
+
+  @@map("departments")
+}
+
+model Designation {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  nameBn      String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees Employee[]
+
+  @@map("designations")
+}
+
+// ---------------------------------------------------------------------
+// Employee - link to existing User (app-level FK, no relation)
+// ---------------------------------------------------------------------
+
+model Employee {
+  id               String           @id @default(cuid())
+  employeeCode     String           @unique
+  userId           String?          @unique @db.Uuid
+  fullName         String
+  fullNameBn       String?
+  phone            String
+  email            String?
+  nidNumber        String?
+  dateOfBirth      DateTime?
+  joiningDate      DateTime
+  resignationDate  DateTime?
+  departmentId     String?
+  department       Department?      @relation(fields: [departmentId], references: [id])
+  designationId    String?
+  designation      Designation?     @relation(fields: [designationId], references: [id])
+  status           EmploymentStatus @default(ACTIVE)
+  address          Json?
+  emergencyContact Json?
+  bankAccount      Json?
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  salaryStructure  SalaryStructure?
+  shiftAssignments EmployeeShiftAssignment[]
+  attendance       AttendanceRecord[]
+  leaveRequests    LeaveRequest[]
+  payslips         Payslip[]
+
+  @@index([status])
+  @@index([departmentId])
+  @@index([designationId])
+  @@map("employees")
+}
+
+// ---------------------------------------------------------------------
+// Salary Structure - one per employee
+// ---------------------------------------------------------------------
+
+model SalaryStructure {
+  id             String   @id @default(cuid())
+  employeeId     String   @unique
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  baseSalary     Int // poisha / month
+  houseAllowance Int      @default(0)
+  transportAllow Int      @default(0)
+  medicalAllow   Int      @default(0)
+  otherAllowance Int      @default(0)
+  providentFund  Int      @default(0) // employee contribution, deducted
+  taxDeduction   Int      @default(0)
+  otherDeduction Int      @default(0)
+  overtimeRate   Int      @default(0) // poisha per hour (0 = no OT pay)
+  effectiveFrom  DateTime @default(now())
+  isActive       Boolean  @default(true)
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("salary_structures")
+}
+
+// ---------------------------------------------------------------------
+// Shift
+// ---------------------------------------------------------------------
+
+model Shift {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  startTime String // "09:00"
+  endTime   String // "18:00"
+  breakMins Int      @default(60)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignments EmployeeShiftAssignment[]
+
+  @@map("shifts")
+}
+
+model EmployeeShiftAssignment {
+  id         String    @id @default(cuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shiftId    String
+  shift      Shift     @relation(fields: [shiftId], references: [id])
+  fromDate   DateTime
+  toDate     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([employeeId])
+  @@index([shiftId])
+  @@map("employee_shift_assignments")
+}
+
+// ---------------------------------------------------------------------
+// Attendance
+// ---------------------------------------------------------------------
+
+model AttendanceRecord {
+  id            String           @id @default(cuid())
+  employeeId    String
+  employee      Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  workDate      DateTime         @db.Date
+  status        AttendanceStatus
+  source        AttendanceSource @default(MANUAL)
+  checkInAt     DateTime?
+  checkOutAt    DateTime?
+  workedMinutes Int              @default(0)
+  overtimeMins  Int              @default(0)
+  notes         String?
+  recordedById  String? // app-level FK to User
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([employeeId, workDate])
+  @@index([workDate])
+  @@index([status])
+  @@map("attendance_records")
+}
+
+// ---------------------------------------------------------------------
+// Leave
+// ---------------------------------------------------------------------
+
+model LeaveRequest {
+  id           String             @id @default(cuid())
+  employeeId   String
+  employee     Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type         LeaveType
+  fromDate     DateTime
+  toDate       DateTime
+  days         Int
+  reason       String?
+  status       LeaveRequestStatus @default(PENDING)
+  approvedById String? // app-level FK to User
+  approvedAt   DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+// ---------------------------------------------------------------------
+// Payroll
+// ---------------------------------------------------------------------
+
+model PayrollRun {
+  id             String           @id @default(cuid())
+  runNumber      String           @unique
+  year           Int
+  month          Int // 1-12
+  status         PayrollRunStatus @default(DRAFT)
+  totalGross     Int              @default(0) // poisha
+  totalNet       Int              @default(0)
+  journalEntryId String? // app-level FK to JournalEntry (posted at PAID)
+  createdById    String?
+  finalizedAt    DateTime?
+  postedAt       DateTime?
+  paidAt         DateTime?
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  payslips Payslip[]
+
+  @@unique([year, month])
+  @@index([status])
+  @@map("payroll_runs")
+}
+
+model Payslip {
+  id              String     @id @default(cuid())
+  payslipNumber   String     @unique
+  payrollRunId    String
+  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId      String
+  employee        Employee   @relation(fields: [employeeId], references: [id])
+  // Attendance summary snapshot at time of run
+  totalDays       Int
+  presentDays     Int
+  absentDays      Int
+  lateDays        Int
+  leaveDays       Int
+  overtimeMinutes Int
+  // Money (poisha) - all integer
+  baseSalary      Int
+  allowances      Int        @default(0) // sum of house+transport+medical+other
+  overtimePay     Int        @default(0)
+  grossSalary     Int // base + allowances + overtimePay
+  leaveDeduction  Int        @default(0)
+  absentDeduction Int        @default(0)
+  lateDeduction   Int        @default(0)
+  providentFund   Int        @default(0)
+  taxDeduction    Int        @default(0)
+  otherDeduction  Int        @default(0)
+  totalDeductions Int
+  netSalary       Int // gross - deductions
+  notes           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([payrollRunId, employeeId])
+  @@index([employeeId])
+  @@map("payslips")
+}
