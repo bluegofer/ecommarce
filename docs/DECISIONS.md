@@ -190,3 +190,58 @@ The storefront's authentication uses:
 - `lib/auth/storage.ts` is a NO-OP for access tokens; it only manages
   non-sensitive session hints (e.g., "was I signed in before?" flag).
 - CI continues to pass; no package changes required.
+
+---
+
+## Step 8.11 Update — Order Confirmation Lookup Strategy
+
+**Date:** 2026-09-12
+**Decision:** Order confirmation page uses `GET /api/v1/orders/lookup?orderNumber=X&phone=Y`
+
+**Context:**
+- Guest checkout flow redirects to `/order-confirmation?order=BG-XXX&phone=01XXX`
+- Need full order summary (items, totals, payment, shipping) without requiring login
+- UI Spec C14 requires confirmation page reachable only with valid session/token
+
+**Chosen approach:**
+- Public endpoint (`@Public()` in `apps/api/src/modules/orders/orders.controller.ts`) — already exists from Step 5
+- Security: `orderNumber` + `phone` must BOTH match; otherwise `{ ok: false }` returned
+- Phone acts as the "password" — order number alone is not enough (prevents enumeration)
+- Same endpoint reused by:
+  - Guest checkout success page (Step 8.6)
+  - Any future "track my order without login" flow
+  - Customer support lookup (already used by `/crm/customers/lookup`)
+
+**Rejected alternatives:**
+- Signed JWT token per order in URL — heavier, requires extra signing infrastructure, and URL-lifetime concerns (link sharing, browser history)
+- Login required for confirmation — breaks guest checkout (major UX loss for BD e-commerce where guest checkout is the norm)
+- Server-side session cookie per order — extra state to manage, no benefit over phone-as-password
+
+**Enforcement:**
+- Confirmation page uses `ConfirmationClient` (client component) that calls the lookup endpoint
+- Server wrapper (`app/[locale]/order-confirmation/page.tsx`) only validates `order` + `phone` search params are present; actual ownership check happens at API
+- Page is `dynamic = 'force-dynamic'`, `robots: { index: false, follow: false }`
+
+
+## Step 8.11 Update — Invoice Download on Confirmation Page
+
+**Date:** 2026-09-12
+**Decision:** Confirmation page shows "Download Invoice" as a sign-in CTA (ghost link), not a direct PDF link.
+
+**Context:**
+- `GET /orders/:id/invoice.pdf` endpoint exists but is admin-scoped (`@Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')`)
+- Guest users on confirmation page cannot access this endpoint
+- UI Spec C14 lists "Download invoice" as a button (PDF, [PLACEHOLDER] template)
+
+**Chosen approach:**
+- On confirmation page, "Download Invoice" button links to `/{locale}/signin?next=/{locale}/account/orders`
+- Logged-in users access invoice from `/account/orders/[id]` (admin-scoped endpoint behind their own auth)
+- Guest users are prompted to create an account to access invoice
+
+**Deferred:**
+- **Step 10 (Integrations):** guest invoice PDF delivery via email attachment using notification template (outbox → SES with PDF generated server-side)
+- **Step 9 (Admin):** invoice template polish + download from order console
+
+**Enforcement:**
+- Confirmation page never links directly to `/orders/:id/invoice.pdf`
+- Invoice access always goes through authenticated context (account area) or email delivery
