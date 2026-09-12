@@ -24,3 +24,12 @@ export type { OrdersListProps, OrdersListLabels } from './OrdersList';
 
 export { OrderTracking } from './OrderTracking';
 export type { OrderTrackingProps, OrderTrackingLabels } from './OrderTracking';
+
+export { WishlistGrid } from './WishlistGrid';
+export type { WishlistGridProps, WishlistGridLabels } from './WishlistGrid';
+
+export { AddressBook } from './AddressBook';
+export type { AddressBookProps, AddressBookLabels } from './AddressBook';
+
+export { ProfileSettings } from './ProfileSettings';
+export type { ProfileSettingsProps, ProfileSettingsLabels } from './ProfileSettings';
