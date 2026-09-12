@@ -245,3 +245,41 @@ The storefront's authentication uses:
 **Enforcement:**
 - Confirmation page never links directly to `/orders/:id/invoice.pdf`
 - Invoice access always goes through authenticated context (account area) or email delivery
+
+## Step 10 Update — HR / Attendance / Payroll conventions (Temporary)
+
+**Date:** 2026-09-12 (during Step 10 build)
+**Status:** TEMPORARY — pending client confirmation before Step 16 UAT
+
+### Decisions
+- **Salary cycle:** calendar month (1st → last day, UTC).
+- **Proration:** perDay = floor(baseSalary / daysInMonth); deductions
+  use this perDay.
+- **Overtime pay:** overtimePay = round(overtimeMinutes / 60 * overtimeRate);
+  overtimeRate is poisha per hour, per-employee (SalaryStructure).
+- **Leave deduction:** ALL leave types currently deduct (leaveDeduction =
+  perDay * leaveDays). A paid-leave policy (e.g., N annual leave days paid,
+  others unpaid) will be a Step 12 setting.
+- **Late deduction:** 0 (no late policy configured). Placeholder.
+- **Tax deduction:** flat per-employee value from SalaryStructure. No
+  progressive slab logic (Bangladesh NBR slabs) yet.
+- **PF (provident fund):** flat per-employee value, deducted at payslip.
+- **Payment method for payroll:** CASH / BANK / MFS — chosen at
+  markPaid(runId, method). Default MFS. Journal posting:
+  Salaries Expense Dr / (Cash|Bank|MFS) Cr.
+- **Device attendance:** POST /hr/attendance/device-events accepts
+  normalized punch events; the vendor adapter (fingerprint/face/RFID)
+  is a separately-quoted future phase (workflow ground rule #18).
+
+### Client confirmations needed before Step 16 UAT
+- Paid-leave policy details (which leave types deduct, which do not)
+- Overtime eligibility rules (which employees/roles get OT pay)
+- Late-arrival penalty policy (if any)
+- Tax slab logic vs flat deduction per employee
+- PF contribution split (employer vs employee) if any
+
+### Enforcement
+- `payroll.service.ts` has explanatory comments for each rule + this
+  DECISIONS.md reference.
+- A future setting (Step 12 admin > Settings > Payroll) will make these
+  configurable without code changes.
