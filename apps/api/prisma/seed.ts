@@ -178,6 +178,93 @@ async function seedChartOfAccounts() {
   console.log(`COA seed: created=${result.created}, skipped=${result.skipped}`);
 }
 
+async function seedDepartmentsAndDesignations() {
+  const depts = [
+    { code: 'MGMT', name: 'Management', nameBn: 'ব্যবস্থাপনা' },
+    { code: 'OPS',  name: 'Operations', nameBn: 'অপারেশনস' },
+    { code: 'FIN',  name: 'Finance', nameBn: 'অর্থ' },
+    { code: 'HR',   name: 'Human Resources', nameBn: 'এইচআর' },
+    { code: 'SALES',name: 'Sales', nameBn: 'বিক্রয়' },
+  ];
+  for (const d of depts) {
+    await prisma.department.upsert({
+      where: { code: d.code },
+      update: {},
+      create: d,
+    });
+  }
+  const desigs = [
+    { code: 'CEO',      name: 'CEO' },
+    { code: 'MANAGER',  name: 'Manager' },
+    { code: 'EXEC',     name: 'Executive' },
+    { code: 'ACCT',     name: 'Accountant' },
+    { code: 'CASHIER',  name: 'Cashier' },
+    { code: 'RIDER',    name: 'Delivery Rider' },
+  ];
+  for (const d of desigs) {
+    await prisma.designation.upsert({
+      where: { code: d.code },
+      update: {},
+      create: d,
+    });
+  }
+  console.log('Departments + designations seeded');
+}
+
+async function seedShifts() {
+  const shifts = [
+    { code: 'MORNING', name: 'Morning (9-6)', startTime: '09:00', endTime: '18:00', breakMins: 60 },
+    { code: 'EVENING', name: 'Evening (2-11)', startTime: '14:00', endTime: '23:00', breakMins: 60 },
+  ];
+  for (const s of shifts) {
+    await prisma.shift.upsert({
+      where: { code: s.code },
+      update: {},
+      create: s,
+    });
+  }
+  console.log('Shifts seeded');
+}
+
+async function seedDemoEmployee() {
+  const code = 'EMP-0001';
+  const existing = await prisma.employee.findUnique({ where: { employeeCode: code } });
+  if (existing) {
+    console.log('Demo employee already exists');
+    return;
+  }
+  const hrDept = await prisma.department.findUnique({ where: { code: 'MGMT' } });
+  const managerDesig = await prisma.designation.findUnique({ where: { code: 'MANAGER' } });
+
+  const emp = await prisma.employee.create({
+    data: {
+      employeeCode: code,
+      fullName: 'Demo Manager',
+      fullNameBn: 'ডেমো ম্যানেজার',
+      phone: '+8801700000010',
+      email: 'manager@bluegofer.local',
+      joiningDate: new Date('2026-01-01'),
+      departmentId: hrDept?.id,
+      designationId: managerDesig?.id,
+      status: 'ACTIVE',
+      salaryStructure: {
+        create: {
+          baseSalary: 5_000_000,
+          houseAllowance: 2_500_000,
+          transportAllow: 1_000_000,
+          medicalAllow: 500_000,
+          otherAllowance: 0,
+          providentFund: 0,
+          taxDeduction: 0,
+          otherDeduction: 0,
+          overtimeRate: 15_000,
+        },
+      },
+    },
+  });
+  console.log(`Demo employee created: ${emp.employeeCode}`);
+}
+
 async function main() {
   console.log('Seed starting...');
   await seedRoles();
@@ -187,6 +274,9 @@ async function main() {
   await seedChartOfAccounts();
   await seedDefaultBranch();
   await seedDemoSupplier();
+  await seedDepartmentsAndDesignations();
+  await seedShifts();
+  await seedDemoEmployee();
   console.log('Seed complete');
 }
 
