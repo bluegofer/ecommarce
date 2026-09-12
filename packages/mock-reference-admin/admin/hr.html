@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HR &amp; Employees · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item active" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search employee…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🧑‍💼 HR &amp; Employees</h2><div class="crumb">ERP Suite / HR</div><p>Employee profiles · department linkage to Admin RBAC · role assignment per Appendix A.2.5.</p></div>
+<div class="page-acts"><button class="btn b-primary" data-toast="New employee form">＋ New Employee</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">🧑‍💼</div><div><div class="stat-lbl">Total Staff</div><div class="stat-val">28</div><div class="stat-sub">across 5 depts</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-lbl">Present Today</div><div class="stat-val">24</div><div class="stat-sub">4 on leave</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">📋</div><div><div class="stat-lbl">Open Requisitions</div><div class="stat-value">3</div><div class="cell-sub">HR · Sales · Ops</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">🎓</div><div><div class="stat-lbl">Avg Tenure</div><div class="stat-val">2.4 yr</div><div class="cell-sub">stable team</div></div></div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Employee</th><th>ID</th><th>Department</th><th>Designation</th><th>Salary (৳/mo)</th><th>Joined</th><th>RBAC linkage</th><th></th></tr></thead>
+<tbody>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-sky">AH</span><div><b>MD ANIMUL HOQ</b></div></div></td><td>EMP-001</td><td>Founder / Admin</td><td>Founder</td><td>৳80,000</td><td>01 Jan 2025</td><td><span class="badge b-sky">Super Admin</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-violet">AS</span><div><b>Arif Sadman</b></div></div></td><td>EMP-002</td><td>Catalog</td><td>Lead — Catalog</td><td>৳45,000</td><td>15 Feb 2025</td><td><span class="badge b-violet">Catalog</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-amber">SK</span><div><b>Sadia Khan</b></div></div></td><td>EMP-003</td><td>Finance</td><td>Senior Accountant</td><td>৳52,000</td><td>01 Mar 2025</td><td><span class="badge b-teal">Finance</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-teal">RK</span><div><b>Rumi Khan</b></div></div></td><td>EMP-004</td><td>Operations</td><td>Ops Coordinator</td><td>৳38,000</td><td>10 Mar 2025</td><td><span class="badge b-amber">Ops</span> + <span class="badge b-sky">Delivery</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-green">NP</span><div><b>Nazia Polin</b></div></div></td><td>EMP-005</td><td>Customer Support</td><td>Senior Agent</td><td>৳32,000</td><td>22 Apr 2025</td><td><span class="badge b-amber">Support</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-red">KH</span><div><b>Karim Hossain</b></div></div></td><td>EMP-006</td><td>Delivery</td><td>In-house Rider</td><td>৳26,000</td><td>05 May 2025</td><td>— (no admin access)</td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-amber">MA</span><div><b>Md Ali</b></div></div></td><td>EMP-007</td><td>HR</td><td>HR Executive</td><td>৳36,000</td><td>01 Jun 2025</td><td><span class="badge b-violet">HR / Payroll</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>🧑‍💼 Employee Profile · Arif Sadman</h3></div><div class="card-bd">
+<div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><span class="avatar av-violet" style="width:54px;height:54px;font-size:17px">AS</span><div><b style="font-size:16px">Arif Sadman</b><br><span class="cell-sub">EMP-002 · Catalog Lead</span></div></div>
+<div class="form-row"><div><b style="font-size:11.5px;color:var(--slate-500)">Basic Salary</b><div style="font-size:16px;font-weight:700">৳45,000</div></div><div><b style="font-size:11.5px;color:var(--slate-500)">Allowance</b><div style="font-size:16px;font-weight:700">৳5,000</div></div></div>
+<div class="form-row" style="margin-top:8px"><div><b style="font-size:11.5px;color:var(--slate-500)">Joined</b><div style="font-size:14px;font-weight:600">15 Feb 2025</div></div><div><b style="font-size:11.5px;color:var(--slate-500)">Reports to</b><div style="font-size:14px;font-weight:600">Founder</div></div></div>
+<h4 style="font-size:13px;margin-top:14px">Salary structure</h4>
+<div style="font-size:12.5px;color:var(--slate-600);line-height:1.7">Basic: ৳45,000 · House: ৳5,000 · Transport: ৳2,000 · Medical: ৳1,500 · Gross: <b>৳53,500</b> · Tax (per slab): auto</div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>🏢 Org Tree · Reporting Structure</h3></div><div class="card-bd"><div class="org-tree">
+<div class="org-row"><div class="org-card"><b>Founder</b><small>MD ANIMUL HOQ</small></div></div>
+<div class="org-row"><div class="org-card"><b>Catalog Lead</b><small>Arif Sadman</small></div><div class="org-card"><b>Finance Lead</b><small>Sadia Khan</small></div><div class="org-card"><b>Ops Lead</b><small>Rumi Khan</small></div></div>
+<div class="org-row"><div class="org-card"><b>Ops Coordinators</b><small>3 staff</small></div><div class="org-card"><b>Support Agents</b><small>4 staff</small></div><div class="org-card"><b>In-house Riders</b><small>3 staff</small></div><div class="org-card"><b>Accountants</b><small>2 staff</small></div></div>
+</div></div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

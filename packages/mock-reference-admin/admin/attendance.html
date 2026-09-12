@@ -1,0 +1,61 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attendance · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item active" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search employee…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>⏱️ Attendance</h2><div class="crumb">ERP Suite / HR / Attendance</div><p>Present / Absent / Late / Overtime / Leave tracking · shift management per Appendix A.2.6.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Export">⬇ Export</button><button class="btn b-primary" data-toast="Bulk check-in">✓ Mark All In</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-lbl">Present</div><div class="stat-val">24</div><div class="stat-sub">/ 28 staff</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">⏰</div><div><div class="stat-lbl">Late Today</div><div class="stat-val">4</div><div class="stat-sub">avg 18 min late</div></div></div>
+<div class="card stat"><div class="stat-ic ic-red">❌</div><div><div class="stat-lbl">Absent</div><div class="stat-val">4</div><div class="stat-sub">on approved leave</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">🔥</div><div><div class="stat-lbl">Overtime logged</div><div class="stat-val">14h</div><div class="stat-sub">across 3 staff</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd"><h3>📅 Today · 12 Sep 2026</h3><div class="hd-acts"><select class="sel bsm"><option>Today</option><option>This week</option><option>This month</option></select></div></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Employee</th><th>Department</th><th>Shift</th><th>Check-in</th><th>Check-out</th><th>Status</th><th>OT</th></tr></thead>
+<tbody>
+<tr><td><b>MD ANIMUL HOQ</b></td><td>Founder</td><td>10:00–19:00</td><td>09:42 ✅</td><td>—</td><td><span class="badge b-green">Present</span></td><td>—</td></tr>
+<tr><td><b>Arif Sadman</b></td><td>Catalog</td><td>09:00–18:00</td><td>09:02 ✅</td><td>—</td><td><span class="badge b-green">Present</span></td><td>—</td></tr>
+<tr><td><b>Sadia Khan</b></td><td>Finance</td><td>09:00–18:00</td><td>09:24 ⏰</td><td>—</td><td><span class="badge b-amber">Late · 24min</span></td><td>—</td></tr>
+<tr><td><b>Rumi Khan</b></td><td>Ops</td><td>Round-the-clock (split)</td><td>08:42 ✅</td><td>—</td><td><span class="badge b-green">Present</span></td><td>—</td></tr>
+<tr><td><b>Nazia Polin</b></td><td>Support</td><td>13:00–22:00</td><td>—</td><td>—</td><td><span class="badge b-amber">Wait · shift not started</span></td><td>—</td></tr>
+<tr><td><b>Karim Hossain</b></td><td>Delivery</td><td>Rider · 09:00–21:00</td><td>09:00 ✅</td><td>—</td><td><span class="badge b-green">Present</span></td><td>2.0h</td></tr>
+<tr><td><b>Sifat Rahman</b></td><td>Accounting</td><td>09:00–18:00</td><td>—</td><td>—</td><td><span class="badge b-red">Leave (Sick)</span></td><td>—</td></tr>
+<tr><td><b>Ruma Khan</b></td><td>Catalog</td><td>09:00–18:00</td><td>09:18 ⏰</td><td>—</td><td><span class="badge b-amber">Late · 18min</span></td><td>—</td></tr>
+<tr><td><b>Jasim Uddin</b></td><td>Delivery</td><td>Rider · 13:00–01:00</td><td>12:50 ✅</td><td>—</td><td><span class="badge b-green">Present</span></td><td>—</td></tr>
+<tr><td><b>Mahmood Hossain</b></td><td>Ops</td><td>Round-the-clock (split)</td><td>09:08 ⏰</td><td>—</td><td><span class="badge b-amber">Late · 8min</span></td><td>—</td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>📊 Attendance summary · Sep 2026</h3></div><div class="card-bd">
+<div class="bars" style="height:120px">
+<div class="bar" style="height:88%"><span>26</span></div><div class="bar" style="height:92%"><span>27</span></div><div class="bar" style="height:96%"><span>28</span></div><div class="bar" style="height:88%"><span>26</span></div><div class="bar" style="height:84%"><span>24</span></div><div class="bar" style="height:90%"><span>26</span></div><div class="bar" style="height:92%"><span>27</span></div><div class="bar" style="height:96%"><span>28</span></div><div class="bar" style="height:88%"><span>26</span></div><div class="bar" style="height:84%"><span>24</span></div><div class="bar" style="height:90%"><span>26</span></div><div class="bar" style="height:86%"><span>24</span></div>
+</div>
+<div class="bar-days"><div>W1</div><div>W2</div><div>W3</div><div>W4</div><div>W5</div><div>W6</div><div>W7</div><div>W8</div><div>W9</div><div>W10</div><div>W11</div><div>W12</div></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>📝 Leave Requests</h3></div><div class="card-bd">
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><div style="display:flex;justify-content:space-between"><b>Sifat Rahman</b><span class="badge b-amber">Pending</span></div><div class="cell-sub">Sick leave · 12–13 Sep · 2 days</div><div style="margin-top:6px;display:flex;gap:6px"><button class="btn b-ghost bsm">✓</button><button class="btn b-ghost bsm">✗</button></div></div>
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><div style="display:flex;justify-content:space-between"><b>Mita Akter</b><span class="badge b-green">Approved</span></div><div class="cell-sub">Annual · 18–20 Sep · 3 days</div></div>
+<div style="padding:10px 0"><div style="display:flex;justify-content:space-between"><b>Rezaul Karim</b><span class="badge b-green">Approved</span></div><div class="cell-sub">Casual · 22 Sep · 1 day</div></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>
