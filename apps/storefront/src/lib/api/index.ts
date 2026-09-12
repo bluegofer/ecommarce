@@ -8,4 +8,20 @@ export { cmsApi } from './cms';
 
 export { promotionsApi } from './promotions';
 
+export { accountApi } from './account';
+export type {
+  MeProfile,
+  MeAddress,
+  UpsertAddressInput,
+  UpdateProfileInput,
+} from './account';
+
+export { ordersApi } from './orders';
+export type {
+  MyOrderListItem,
+  MyOrderDetail,
+  MyOrderItem,
+  MyOrderStatusEvent,
+} from './orders';
+
 export type * from './types';

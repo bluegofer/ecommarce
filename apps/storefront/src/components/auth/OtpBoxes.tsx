@@ -4,10 +4,10 @@ import { useEffect, useRef } from 'react';
 import styles from './OtpBoxes.module.css';
 
 export interface OtpBoxesProps {
-  /** Current value (up to 6 digits). */
+  /** Current value (up to `length` digits, no spaces). */
   value: string;
   onChange: (v: string) => void;
-  /** Fires when all 6 digits are filled. */
+  /** Fires when all digits are filled. */
   onComplete?: (code: string) => void;
   /** Error message (rendered below). */
   error?: string;
@@ -28,24 +28,30 @@ export function OtpBoxes({
   length = 6,
 }: OtpBoxesProps) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = value.padEnd(length, ' ').slice(0, length).split('');
+  // Always work with a clean digits-only string
+  const clean = value.replace(/\D/g, '').slice(0, length);
+  const digits = Array.from({ length }, (_, i) => clean[i] ?? '');
   const errId = error ? 'otp-error' : undefined;
 
   useEffect(() => {
-    // Focus first empty box on mount
     const first = refs.current[0];
     if (first) first.focus();
   }, []);
 
+  const emit = (nextClean: string) => {
+    onChange(nextClean);
+    if (nextClean.length === length && onComplete) {
+      onComplete(nextClean);
+    }
+  };
+
   const setAt = (idx: number, ch: string) => {
-    const next = digits.map((d, i) => (i === idx ? ch : d)).join('').trimEnd();
-    onChange(next.replace(/\s/g, ''));
+    const arr = digits.slice();
+    arr[idx] = ch;
+    const joined = arr.join('').replace(/\D/g, '');
+    emit(joined);
     if (ch && idx < length - 1) {
       refs.current[idx + 1]?.focus();
-    }
-    const complete = next.replace(/\s/g, '');
-    if (complete.length === length && onComplete) {
-      onComplete(complete);
     }
   };
 
@@ -56,17 +62,25 @@ export function OtpBoxes({
       return;
     }
     // If user pasted multiple digits, distribute them starting at idx.
-    const chars = digitsOnly.split('');
-    chars.forEach((c, offset) => {
-      const target = idx + offset;
-      if (target < length) setAt(target, c);
-    });
+    if (digitsOnly.length > 1) {
+      const arr = digits.slice();
+      digitsOnly.split('').forEach((c, offset) => {
+        const target = idx + offset;
+        if (target < length) arr[target] = c;
+      });
+      const joined = arr.join('').replace(/\D/g, '');
+      emit(joined);
+      const lastIdx = Math.min(idx + digitsOnly.length, length - 1);
+      refs.current[lastIdx]?.focus();
+      return;
+    }
+    setAt(idx, digitsOnly);
   };
 
   const handleKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       e.preventDefault();
-      if (digits[idx] && digits[idx] !== ' ') {
+      if (digits[idx]) {
         setAt(idx, '');
       } else if (idx > 0) {
         setAt(idx - 1, '');
@@ -83,10 +97,7 @@ export function OtpBoxes({
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
     if (!pasted) return;
-    onChange(pasted);
-    if (pasted.length === length && onComplete) {
-      onComplete(pasted);
-    }
+    emit(pasted);
     const lastIdx = Math.min(pasted.length, length - 1);
     refs.current[lastIdx]?.focus();
   };
@@ -108,7 +119,7 @@ export function OtpBoxes({
             inputMode="numeric"
             autoComplete={i === 0 ? 'one-time-code' : 'off'}
             maxLength={1}
-            value={d.trim()}
+            value={d}
             onChange={(e) => handleInput(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={handlePaste}
