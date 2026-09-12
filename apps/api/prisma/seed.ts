@@ -9,6 +9,10 @@ const ROLES = [
   { code: 'ORDER_SUPPORT', name: 'Order / Support Staff', description: 'Orders, courier, RMA, tickets, customer service' },
   { code: 'MARKETING_MANAGER', name: 'Marketing Manager', description: 'Promotions, coupons, flash sales, CMS, banners' },
   { code: 'FINANCE_READONLY', name: 'Finance (read-only)', description: 'Read-only access to payments, refunds, settlements, reports' },
+  { code: 'FINANCE_MANAGER', name: 'Finance Manager', description: 'Write access to accounting, ledger, journal, payments' },
+  { code: 'PURCHASE_MANAGER', name: 'Purchase Manager', description: 'Suppliers, purchase orders, GRN, invoices, supplier payments' },
+  { code: 'STORE_POS_STAFF', name: 'Store / POS Staff', description: 'POS sales and returns at assigned branch (activated in Step 11)' },
+  { code: 'HR_MANAGER', name: 'HR Manager', description: 'Employees, attendance, payroll (activated in Step 10)' },
 ] as const;
 
 const PERMISSIONS = [
@@ -35,6 +39,18 @@ const PERMISSIONS = [
   { code: 'settings.write', description: 'Edit settings' },
   { code: 'users.read', description: 'View staff users' },
   { code: 'users.write', description: 'Manage staff users' },
+  // Step 9 additions (ERP)
+  { code: 'accounting.read', description: 'View accounting / ledger / reports' },
+  { code: 'accounting.write', description: 'Manage ledger accounts, income/expense' },
+  { code: 'journal.post', description: 'Post or reverse journal entries' },
+  { code: 'suppliers.read', description: 'View suppliers and payables' },
+  { code: 'suppliers.write', description: 'Manage suppliers and record payments' },
+  { code: 'purchase.read', description: 'View requisitions, POs, GRN, invoices' },
+  { code: 'purchase.write', description: 'Create requisitions, POs, GRN, invoices' },
+  { code: 'pos.sell', description: 'Ring up POS sales at assigned branch' },
+  { code: 'pos.return', description: 'Process POS returns and exchanges' },
+  { code: 'hr.read', description: 'View employees, attendance, payroll' },
+  { code: 'hr.write', description: 'Manage employees, attendance, payroll' },
 ] as const;
 
 async function seedRoles() {
@@ -71,6 +87,10 @@ async function assignPermissionsToRoles() {
     ORDER_SUPPORT: ['orders.read', 'orders.write', 'orders.cancel', 'rma.process', 'customers.read', 'customers.write'],
     MARKETING_MANAGER: ['promotions.read', 'promotions.write', 'cms.read', 'cms.write'],
     FINANCE_READONLY: ['payments.read', 'reports.read'],
+    FINANCE_MANAGER: ['payments.read', 'payments.refund', 'reports.read', 'accounting.read', 'accounting.write', 'journal.post', 'suppliers.read', 'suppliers.write'],
+    PURCHASE_MANAGER: ['suppliers.read', 'suppliers.write', 'purchase.read', 'purchase.write', 'inventory.read', 'accounting.read'],
+    STORE_POS_STAFF: ['pos.sell', 'pos.return', 'inventory.read'],
+    HR_MANAGER: ['hr.read', 'hr.write'],
   };
 
   for (const [roleCode, permCodes] of Object.entries(grants)) {
