@@ -325,3 +325,53 @@ multi-dimensional delivery rules, rule-based fees) are DEFERRED to Step 14 / Ste
 land as a clean, documented follow-up rather than mixing into the current scope.
 
 **Owner:** client (may upshift items anytime with a dated note in UPCOMING-CHANGES.md).
+---
+
+## Step 13.1 — Integration Decisions Locked as TEMPORARY MOCK (2026-09-13)
+
+**Status:** TEMPORARY — real credentials will replace mocks without code changes.
+
+### Context
+Client has not yet decided the real providers for Step 13 (D-09, D-10, D-13,
+D-21, D-22). To keep Step 13 on schedule, every integration is wired behind an
+interface with a deterministic mock implementation. Real credentials are wired
+via `.env.local` only — no code changes are required when the client decides.
+
+### Decisions locked as TEMP
+
+| # | Decision | TEMP Answer | Real owner | Real due |
+|---|---|---|---|---|
+| D-09 | SMS aggregator | MOCK | client | before Step 16 launch |
+| D-10 | Delivery charge | Inside Dhaka BDT 60 / Outside Dhaka BDT 120 | client | before Step 14 |
+| D-13 | COD fee | No fee | client | before Step 14 |
+| D-21 | Payment gateways | bKash / Nagad / SSLCommerz all MOCK | client | before Step 16 launch |
+| D-22 | Courier account | Pathao MOCK | client | before Step 16 launch |
+
+### Rationale for the D-10 default
+BDT 60 / 120 is within the TDD §15.2 startup range (BDT 60-150 by zone). It is a
+config value and can change any time without code changes.
+
+### Mock adapter contracts (locked for this phase)
+- `PaymentAdapter` (BKASH / NAGAD / SSLCOMMERZ / COD): deterministic redirect
+  URLs, idempotent webhooks keyed by `eventId`, refunds return success with
+  mock IDs.
+- `CourierAdapter` (PATHAO): deterministic consignment IDs, one
+  PENDING -> IN_TRANSIT event per tracking sync, 1% mock settlement fee.
+- `SmsAdapter` (MOCK): real provider adapter will be selected by `SMS_PROVIDER`.
+- `AnalyticsAdapter` (GA4 / META_CAPI): env flag on/off; real integration in 13.6.
+
+### Files created in 13.1
+- `packages/types/src/payments.ts`, `courier.ts`, `messaging.ts`, `analytics.ts`
+- `packages/types/src/index.ts` (exports appended)
+- `apps/api/src/modules/payments/payment-adapter.interface.ts`
+- `apps/api/src/modules/payments/adapters/mock-payment.adapter.ts`
+- `apps/api/src/modules/courier/courier-adapter.interface.ts`
+- `apps/api/src/modules/courier/adapters/mock-pathao.adapter.ts`
+
+### Enforcement
+- All adapters register via injection tokens (`PAYMENT_ADAPTERS`,
+  `COURIER_ADAPTERS`). Real adapters in 13.2 / 13.4 swap in without touching
+  call sites.
+- Mock behaviour is asserted in integration tests (Step 13.7).
+- Every field a real provider will return is already present in the interface —
+  no shape change when swapping.

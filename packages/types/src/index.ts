@@ -13,3 +13,6 @@ export * from './purchase';
 export * from './suppliers';
 export * from './accounting';
 export * from './hr';
+export * from './payments';
+export * from './courier';
+export * from './messaging';
