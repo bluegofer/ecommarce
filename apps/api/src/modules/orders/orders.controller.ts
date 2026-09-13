@@ -1,8 +1,9 @@
 // apps/api/src/modules/orders/orders.controller.ts
-import { Body, Controller, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers as NestHeaders, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { InvoiceService } from './invoice.service';
+import { CourierService } from '../courier/courier.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -25,6 +26,7 @@ export class OrdersController {
   constructor(
     private readonly orders: OrdersService,
     private readonly invoice: InvoiceService,
+    private readonly courier: CourierService,
   ) {}
 
   @Public()
@@ -77,6 +79,22 @@ export class OrdersController {
     @CurrentUser() user: RequestUser | null,
   ) {
     return this.orders.addNote(id, dto, user?.userId ?? null);
+  }
+
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+  @Post(':id/dispatch')
+  async dispatch(
+    @Param('id') id: string,
+    @Body() body: { courier?: string; note?: string },
+    @NestHeaders('idempotency-key') idemKey: string | undefined,
+  ) {
+    const provider = (body?.courier ?? 'PATHAO').toUpperCase() as
+      | 'PATHAO'
+      | 'STEADFAST'
+      | 'REDX';
+    const key = idemKey ?? `dispatch-${id}-${provider}`;
+    const result = await this.courier.createForOrder(id, provider, body?.note, key);
+    return { ok: result.ok, provider: result.provider, trackingNumber: result.consignmentId, trackingUrl: result.trackingUrl };
   }
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')

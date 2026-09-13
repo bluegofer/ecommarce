@@ -12,6 +12,7 @@ import { PromotionsModule } from '../promotions/promotions.module';
 import { CrmModule } from '../crm/crm.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CartsModule } from '../carts/carts.module';
+import { CourierModule } from '../courier/courier.module';
 import { LedgerService } from '../accounting/services/ledger.service';
 
 @Module({
@@ -21,6 +22,7 @@ import { LedgerService } from '../accounting/services/ledger.service';
     CrmModule,
     NotificationsModule,
     CartsModule,
+    CourierModule,
   ],
   controllers: [OrdersController, CheckoutController, MeOrdersController],
   providers: [OrdersService, CheckoutService, InvoiceService, MeOrdersService, LedgerService],

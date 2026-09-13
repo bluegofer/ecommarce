@@ -29,6 +29,7 @@ import { PurchaseModule } from './modules/purchase/purchase.module';
 import { HrModule } from './modules/hr/hr.module';
 import { PosModule } from './modules/pos/pos.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { CourierModule } from './modules/courier/courier.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     HrModule,
     PosModule,
     PaymentsModule,
+    CourierModule,
   ],
   controllers: [HealthController],
   providers: [
