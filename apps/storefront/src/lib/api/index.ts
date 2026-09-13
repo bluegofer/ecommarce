@@ -25,3 +25,5 @@ export type {
 } from './orders';
 
 export type * from './types';
+export { paymentsApi } from './payments';
+export type { PaymentInitiateInput, PaymentInitiateResult } from './payments';

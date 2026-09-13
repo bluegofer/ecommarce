@@ -5,6 +5,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { AppConfig } from '../../config/configuration';
 import { PaymentsService } from './payments.service';
+import { PaymentsController } from './payments.controller';
 import { PaymentAdapterRegistryImpl } from './payment-adapter.registry';
 import { PAYMENT_ADAPTERS } from './payment-adapter.interface';
 import { MockPaymentAdapter } from './adapters/mock-payment.adapter';
@@ -86,5 +87,6 @@ function buildAdapters(config: AppConfig): PaymentAdapter[] {
     PaymentsService,
   ],
   exports: [PaymentsService],
+  controllers: [PaymentsController],
 })
 export class PaymentsModule {}

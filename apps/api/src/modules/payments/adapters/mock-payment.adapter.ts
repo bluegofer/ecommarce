@@ -28,10 +28,13 @@ export class MockPaymentAdapter implements PaymentAdapter {
     return {
       provider: this.provider,
       providerIntentId: intentId,
+      // Route the browser to our own in-app mock gateway page (dev only).
+      // Real adapters (13.2) return the gateway-hosted URL instead — that
+      // URL comes straight from the provider's API response, not a template.
       redirectUrl:
         this.provider === 'COD'
           ? undefined
-          : `https://mock-gateway.local/${this.provider.toLowerCase()}/checkout?intent=${intentId}`,
+          : `${input.callbackUrl}${input.callbackUrl.includes('?') ? '&' : '?'}intent=${encodeURIComponent(intentId)}`,
       status: 'PENDING',
       rawResponse: {
         mock: true,

@@ -375,3 +375,44 @@ config value and can change any time without code changes.
 - Mock behaviour is asserted in integration tests (Step 13.7).
 - Every field a real provider will return is already present in the interface —
   no shape change when swapping.
+---
+
+## Step 13.3 — Mock Gateway Flow (Option A) + Webhook Replay (2026-09-13)
+
+**Status:** TEMP — replaced by real gateways via env, no code change needed.
+
+### Context
+Real bKash/Nagad/SSLCommerz credentials are not yet available (D-21 still OPEN).
+To keep Step 13 verifiable end-to-end (AC-74: "Sandbox end-to-end"), Step 13.3
+ships a **mock gateway page** in the storefront that lets the developer/demo
+user simulate PAID / FAILED for any wallet provider. The API-side flow is
+identical to production: `POST /payments/initiate` → gateway-hosted redirect →
+`POST /payments/webhook/:provider` with signature header → payment status flip.
+
+### Decision (Option A — chosen)
+- Add `/mock-gateway` page to the storefront, gated by
+  `NEXT_PUBLIC_ENABLE_MOCK_GATEWAY=true` (or non-production NODE_ENV).
+- Production build returns 404 via `notFound()` — no accidental exposure.
+- Real gateways replace this page wholesale; `.env` swap is the only change.
+
+### Files added (13.3)
+- API: `payments.controller.ts`, `main.ts` (rawBody: true),
+  `payments.module.ts` (controller registered), `test/payments/webhook-replay.spec.ts`
+- Storefront: `lib/api/payments.ts`, `app/[locale]/mock-gateway/page.tsx`,
+  `app/[locale]/mock-gateway/MockGatewayClient.tsx`
+- Storefront edit: `CheckoutClient.tsx` — removes the "Payment integration
+  arrives in Step 10" toast short-circuit; all four providers now reach
+  `POST /payments/initiate` and (for wallets/card) redirect to the gateway URL.
+
+### Webhook idempotency (TDD §11.2)
+- `payments.service.applyWebhook` is idempotent: same `(provider, gatewayRef,
+  status)` → no-op; `PENDING` events never change state.
+- Duplicate replay test lives in `test/payments/webhook-replay.spec.ts`.
+- Full Postgres-backed integration test lands in Step 13.7 e2e.
+
+### Out of scope (Step 13.3)
+- Real gateway HTTP calls (they exist in adapters but env keys are empty → mock).
+- Live webhook signature verification for real gateways (adapter-level hook
+  exists; real signing verification exercised when creds arrive in Step 15 UAT).
+- Admin "Payments" screen changes (already built in Step 12; reads the same
+  Payment row that this flow updates).

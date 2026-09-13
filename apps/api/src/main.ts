@@ -7,7 +7,9 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // rawBody: true keeps the raw request body on req.rawBody for webhook
+  // signature verification (payment + courier). Needed by /payments/webhook/*.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
 
   const prefix = process.env.API_GLOBAL_PREFIX ?? 'api/v1';
   app.setGlobalPrefix(prefix);

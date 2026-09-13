@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/context';
 import { useToast } from '@/lib/ui/toast-context';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, paymentsApi } from '@/lib/api';
 import { track } from '@/lib/analytics/events';
 import { CheckoutStepper } from './CheckoutStepper';
 import { AddressStep, type CheckoutAddress } from './AddressStep';
@@ -118,17 +118,9 @@ export function CheckoutClient({ locale, labels }: CheckoutClientProps) {
   const placeOrder = useCallback(async () => {
     if (items.length === 0) return;
 
-    // Non-COD methods: show stub toast (DECISIONS.md: Step 8 Checkout Payment Methods)
-    if (paymentMethod !== 'cod') {
-      showToast({
-        kind: 'info',
-        title: labels.paymentNotReady,
-        durationMs: 5000,
-      });
-      return;
-    }
-
-    const apiMethod: ApiPaymentMethod = 'COD';
+    // Step 13.3: all four providers wired. Wallet/card orders go through
+    // POST /payments/initiate and redirect to the gateway; COD stays inline.
+    const apiMethod: ApiPaymentMethod = paymentMethod.toUpperCase() as ApiPaymentMethod;
 
     // Idempotency-Key — client-generated; server replays duplicates (TDD §11.2)
     const idempotencyKey =
@@ -162,7 +154,32 @@ export function CheckoutClient({ locale, labels }: CheckoutClientProps) {
         { idempotencyKey },
       );
 
-      // Success: clear local cart, navigate to confirmation with orderNumber in state (not URL)
+      // Step 13.3: for non-COD providers, initiate a payment session and
+      // redirect to the gateway (mock-gateway in dev, real gateway with creds).
+      if (apiMethod !== 'COD') {
+        const callbackUrl =
+          typeof window !== 'undefined'
+            ? `${window.location.origin}/${locale}/mock-gateway?order=${encodeURIComponent(result.orderNumber)}&orderId=${encodeURIComponent(result.orderId)}&provider=${encodeURIComponent(apiMethod)}`
+            : `/${locale}/mock-gateway?order=${encodeURIComponent(result.orderNumber)}`;
+
+        const intent = await paymentsApi.initiate(
+          {
+            orderId: result.orderId,
+            provider: apiMethod,
+            callbackUrl,
+          },
+          `init-${result.orderId}-${apiMethod}`,
+        );
+
+        cart.clear();
+        if (intent.redirectUrl) {
+          window.location.href = intent.redirectUrl;
+          return;
+        }
+        // Fallback: no redirect URL (shouldn't happen for wallets) — go to confirmation.
+      }
+
+      // COD (and fallback): clear cart, confirm order inline.
       cart.clear();
       showToast({
         kind: 'success',
@@ -180,7 +197,7 @@ export function CheckoutClient({ locale, labels }: CheckoutClientProps) {
       }
       showToast({ kind: 'error', title: labels.orderFailed, description: msg, durationMs: 8000 });
     }
-  }, [items, address, paymentMethod, cart, locale, labels, router, showToast]);
+  }, [items, address, paymentMethod, cart, locale, labels, router, showToast, subtotalPoisha]);
 
   if (!cart.hydrated) {
     return <div className={styles.placeholder} aria-busy="true" />;
