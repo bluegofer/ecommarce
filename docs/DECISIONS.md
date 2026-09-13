@@ -283,3 +283,45 @@ The storefront's authentication uses:
   DECISIONS.md reference.
 - A future setting (Step 12 admin > Settings > Payroll) will make these
   configurable without code changes.
+
+---
+
+## Step 12 Complete — Admin / Operations Dashboard (2026-09-13)
+
+**Status:** COMPLETE — CI green, staging deploy successful.
+
+### Delivered
+- 50 admin routes covering every module (commerce + ERP + Appendix A enhancements)
+- Tailwind v3 + design tokens from `packages/mock-reference-admin/assets/css/style.css`
+- Brand fix: SkyMart → BlueGofer (D-02)
+- API client (fetch wrapper + Bearer + silent 401 refresh)
+- AuthProvider (in-memory token, HttpOnly refresh cookie)
+- Playwright E2E infrastructure (smoke + RBAC tests, opt-in)
+
+### Deferred to next steps (see UPCOMING-CHANGES.md)
+- Real login flow with production auth (currently stub, wired in Step 12 follow-up)
+- ESLint Next plugin rules (deferred to Step 15, blocked by ESLint 9 incompatibility)
+- 32 lint warnings (unused imports) — cleaned in Step 15
+
+### Known constraints
+- `AUTH_ENABLED=false` in middleware — real auth wiring is a Step 12 follow-up
+- E2E Playwright tests not yet run in CI (added to CI in Step 15)
+- No production database seed yet (Step 16)
+
+---
+
+## Step 13 — Scope Note (2026-09-13)
+
+Before starting Step 13, client requested several operational improvements that
+are NOT in TDD v2.1 or Workflow v2.0. These are logged in `docs/UPCOMING-CHANGES.md`
+as ENH-01..06.
+
+**Decision:** Step 13 will follow TDD v2.1 exactly (single-provider per category,
+env-var config). The client-requested enhancements (admin-config UI, multi-provider,
+multi-dimensional delivery rules, rule-based fees) are DEFERRED to Step 14 / Step 15
+/ Phase 2, tracked in UPCOMING-CHANGES.md.
+
+**Rationale:** Preserves TDD contract; delivers Step 13 on schedule; improvements
+land as a clean, documented follow-up rather than mixing into the current scope.
+
+**Owner:** client (may upshift items anytime with a dated note in UPCOMING-CHANGES.md).
