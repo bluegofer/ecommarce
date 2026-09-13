@@ -1,470 +1,384 @@
 /**
- * Development seed for Step 8 (Storefront Pages C1-C14).
+ * dev seed — minimal demo data for local storefront/API testing.
  *
- * Idempotent: wipes dev-catalog data first (leaves users/roles/permissions/orders alone),
- * then inserts a small but representative dataset so storefront pages render real content.
+ * NOT the Step-16 production seed. This only gives the storefront enough
+ * content to render: categories, products, variants, media placeholders,
+ * one hero banner, one announcement, one flash sale.
  *
- * Run: pnpm --filter @ecommarce/api seed:dev
- * Requires: prisma/seed.ts already run once (roles/permissions/demo admin).
+ * Rules:
+ *   - Every value that will be real content is prefixed [PLACEHOLDER].
+ *   - Idempotent: uses upsert; re-running is safe.
+ *   - Refuses to run in production (NODE_ENV === 'production').
  *
- * NO real products, brands, or imagery. Placeholders only (UI Spec Part E).
+ * Run:  pnpm seed:dev
  */
-
-import { PrismaClient, AttributeType, CmsMenuLocation } from '@prisma/client';
+import { PrismaClient, ProductStatus, CmsPageStatus } from '@prisma/client';
+import { createHash } from 'crypto';
 
 const prisma = new PrismaClient();
 
-// ── Placeholder SVG data URI (neutral, never a broken image) ──
-const PH = (label: string, bg = 'EFF7FB', fg = '25729A') =>
-  `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#${bg}"/><text x="200" y="200" font-family="Inter,sans-serif" font-size="28" font-weight="600" fill="#${fg}" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`,
-  )}`;
+const PLACEHOLDER_IMG = '/placeholder.svg';
+
+function svgDataUrl(label: string): string {
+  // Small inline SVG so we never hit the network.
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">` +
+    `<rect fill="#EFF7FB" width="400" height="400"/>` +
+    `<text x="200" y="205" font-family="Inter,system-ui" font-size="20" ` +
+    `fill="#25729A" text-anchor="middle">${label}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
 async function main() {
-  console.log('Dev seed starting...');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('seed-dev refuses to run with NODE_ENV=production');
+  }
+  console.log('[seed-dev] starting…');
 
-  // ── Wipe dev-catalog data (idempotent re-runs) ──
-  console.log('Wiping existing dev catalog data...');
-  await prisma.flashSaleItem.deleteMany({});
-  await prisma.flashSale.deleteMany({});
-  await prisma.cmsMenuItem.deleteMany({});
-  await prisma.cmsMenu.deleteMany({});
-  await prisma.cmsSection.deleteMany({});
-  await prisma.cmsPageRevision.deleteMany({});
-  await prisma.cmsPage.deleteMany({});
-  await prisma.announcement.deleteMany({});
-  await prisma.productMedia.deleteMany({});
-  await prisma.productAttributeValue.deleteMany({});
-  await prisma.inventoryAdjustment.deleteMany({});
-  await prisma.variant.deleteMany({});
-  await prisma.product.deleteMany({});
-  await prisma.categoryAttribute.deleteMany({});
-  await prisma.attribute.deleteMany({});
-  await prisma.category.deleteMany({});
-  // (leave Warehouse — upsert below)
+  // ---------------------------------------------------------
+  // 1. Categories (root + sub)
+  // ---------------------------------------------------------
+  const rootCats = [
+    { slug: 'electronics', en: 'Electronics',      bn: 'ইলেকট্রনিক্স',  icon: 'cpu',   order: 1 },
+    { slug: 'fashion',     en: 'Fashion',          bn: 'ফ্যাশন',        icon: 'shirt', order: 2 },
+    { slug: 'home-kitchen',en: 'Home & Kitchen',   bn: 'হোম ও কিচেন',   icon: 'home',  order: 3 },
+    { slug: 'grocery',     en: 'Grocery',          bn: 'মুদি',          icon: 'apple', order: 4 },
+  ];
 
-  // ── Warehouse ──
-  const warehouse = await prisma.warehouse.upsert({
-    where: { code: 'MAIN' },
-    update: {},
-    create: { code: 'MAIN', name: 'Main Warehouse', isDefault: true, isActive: true },
-  });
-  console.log(`Warehouse: ${warehouse.code}`);
+  const catIds: Record<string, string> = {};
+  for (const c of rootCats) {
+    const row = await prisma.category.upsert({
+      where: { slug: c.slug },
+      update: { nameEn: c.en, nameBn: c.bn, sortOrder: c.order, isActive: true },
+      create: {
+        slug: c.slug,
+        nameEn: c.en,
+        nameBn: c.bn,
+        iconName: c.icon,
+        sortOrder: c.order,
+        isActive: true,
+      },
+    });
+    catIds[c.slug] = row.id;
+  }
 
-  // ── Attributes ──
-  const colorAttr = await prisma.attribute.create({
-    data: {
-      nameEn: 'Color', nameBn: 'রঙ', slug: 'color',
-      type: AttributeType.ENUM, isVariant: true, isFilterable: true, sortOrder: 1,
-      options: [
-        { value: 'black', labelEn: 'Black', labelBn: 'কালো' },
-        { value: 'white', labelEn: 'White', labelBn: 'সাদা' },
-        { value: 'blue',  labelEn: 'Blue',  labelBn: 'নীল' },
-      ],
-    },
-  });
-  const sizeAttr = await prisma.attribute.create({
-    data: {
-      nameEn: 'Size', nameBn: 'সাইজ', slug: 'size',
-      type: AttributeType.ENUM, isVariant: true, isFilterable: true, sortOrder: 2,
-      options: [
-        { value: 's', labelEn: 'S', labelBn: 'S' },
-        { value: 'm', labelEn: 'M', labelBn: 'M' },
-        { value: 'l', labelEn: 'L', labelBn: 'L' },
-      ],
-    },
-  });
-  const brandAttr = await prisma.attribute.create({
-    data: {
-      nameEn: 'Brand', nameBn: 'ব্র্যান্ড', slug: 'brand',
-      type: AttributeType.TEXT, isVariant: false, isFilterable: true, sortOrder: 3,
-    },
-  });
-  console.log('Attributes: Color, Size, Brand');
+  const subCats = [
+    { slug: 'smartphones',   en: 'Smartphones',   bn: 'স্মার্টফোন',   parent: 'electronics', order: 1 },
+    { slug: 'headphones',    en: 'Headphones',    bn: 'হেডফোন',      parent: 'electronics', order: 2 },
+    { slug: 'mens-shirts',   en: "Men's Shirts",  bn: 'পুরুষ শার্ট',  parent: 'fashion',     order: 1 },
+    { slug: 'kitchen-tools', en: 'Kitchen Tools', bn: 'কিচেন টুলস',   parent: 'home-kitchen',order: 1 },
+  ];
 
-  // ── Categories (tree) ──
-  const electronics = await prisma.category.create({
-    data: {
-      nameEn: 'Electronics', nameBn: 'ইলেকট্রনিক্স', slug: 'electronics',
-      iconName: 'device', sortOrder: 1, isActive: true,
-      metaTitle: 'Electronics — Buy Online | SkyMart',
-      metaDescription: 'Shop the latest electronics with free delivery over ৳1500.',
-    },
-  });
-  const headphones = await prisma.category.create({
-    data: {
-      nameEn: 'Headphones', nameBn: 'হেডফোন', slug: 'headphones',
-      parentId: electronics.id, sortOrder: 1, isActive: true,
-    },
-  });
-  const smartphones = await prisma.category.create({
-    data: {
-      nameEn: 'Smartphones', nameBn: 'স্মার্টফোন', slug: 'smartphones',
-      parentId: electronics.id, sortOrder: 2, isActive: true,
-    },
-  });
-  const fashion = await prisma.category.create({
-    data: {
-      nameEn: 'Fashion', nameBn: 'ফ্যাশন', slug: 'fashion',
-      iconName: 'shirt', sortOrder: 2, isActive: true,
-    },
-  });
-  const mensShoes = await prisma.category.create({
-    data: {
-      nameEn: "Men's Shoes", nameBn: 'পুরুষদের জুতা', slug: 'mens-shoes',
-      parentId: fashion.id, sortOrder: 1, isActive: true,
-    },
-  });
-  const home = await prisma.category.create({
-    data: {
-      nameEn: 'Home & Kitchen', nameBn: 'হোম ও কিচেন', slug: 'home-kitchen',
-      iconName: 'home', sortOrder: 3, isActive: true,
-    },
-  });
-  const beauty = await prisma.category.create({
-    data: {
-      nameEn: 'Beauty', nameBn: 'বিউটি', slug: 'beauty',
-      iconName: 'sparkles', sortOrder: 4, isActive: true,
-    },
-  });
-  console.log('Categories: 4 top-level + 3 children');
+  for (const c of subCats) {
+    const row = await prisma.category.upsert({
+      where: { slug: c.slug },
+      update: { nameEn: c.en, nameBn: c.bn, parentId: catIds[c.parent] ?? null, isActive: true },
+      create: {
+        slug: c.slug,
+        nameEn: c.en,
+        nameBn: c.bn,
+        parentId: catIds[c.parent] ?? null,
+        sortOrder: c.order,
+        isActive: true,
+      },
+    });
+    catIds[c.slug] = row.id;
+  }
+  console.log(`[seed-dev] categories: ${Object.keys(catIds).length}`);
 
-  // ── Category–Attribute links ──
-  await prisma.categoryAttribute.createMany({
-    data: [
-      { categoryId: headphones.id,  attributeId: colorAttr.id, sortOrder: 1 },
-      { categoryId: headphones.id,  attributeId: brandAttr.id, sortOrder: 2 },
-      { categoryId: smartphones.id, attributeId: colorAttr.id, sortOrder: 1 },
-      { categoryId: smartphones.id, attributeId: brandAttr.id, sortOrder: 2 },
-      { categoryId: mensShoes.id,   attributeId: colorAttr.id, sortOrder: 1 },
-      { categoryId: mensShoes.id,   attributeId: sizeAttr.id,  sortOrder: 2 },
-      { categoryId: beauty.id,      attributeId: brandAttr.id, sortOrder: 1 },
-    ],
-  });
-
-  // ── Products + Variants ──
-  type P = {
-    titleEn: string; titleBn: string; slug: string; brand: string;
-    catId: string; pricePoisha: number; compareAtPoisha?: number;
-    stock: number; rating: number; ratingCount: number;
-    isFeatured?: boolean; soldCount?: number;
-    variants: { sku: string; pricePoisha: number; compareAtPoisha?: number; stock: number; attributeValues: object }[];
+  // ---------------------------------------------------------
+  // 2. Products + variants + media
+  // ---------------------------------------------------------
+  type Seed = {
+    slug: string; cat: string; titleEn: string; titleBn: string;
+    brand: string; price: number; compareAt?: number; stock: number;
+    featured?: boolean;
   };
 
-  const products: P[] = [
+  const products: Seed[] = [
+    { slug: 'placeholder-wireless-headphone-x200', cat: 'headphones',  titleEn: '[PLACEHOLDER] Wireless Headphone X200', titleBn: '[PLACEHOLDER] ওয়্যারলেস হেডফোন X200', brand: 'GenericBrand', price: 249900, compareAt: 349900, stock: 42, featured: true },
+    { slug: 'placeholder-bt-earbuds-a10',          cat: 'headphones',  titleEn: '[PLACEHOLDER] BT Earbuds A10',          titleBn: '[PLACEHOLDER] বি টি ইয়ারবাড A10',        brand: 'GenericBrand', price:  89000, compareAt: 129000, stock: 120 },
+    { slug: 'placeholder-smartphone-s1',           cat: 'smartphones', titleEn: '[PLACEHOLDER] Smartphone S1',           titleBn: '[PLACEHOLDER] স্মার্টফোন S1',            brand: 'GenericBrand', price:1899900, compareAt:2199900, stock:  18, featured: true },
+    { slug: 'placeholder-smartphone-s1-pro',       cat: 'smartphones', titleEn: '[PLACEHOLDER] Smartphone S1 Pro',       titleBn: '[PLACEHOLDER] স্মার্টফোন S1 Pro',        brand: 'GenericBrand', price:2599900,                    stock:   9 },
+    { slug: 'placeholder-cotton-shirt-classic',    cat: 'mens-shirts', titleEn: '[PLACEHOLDER] Cotton Shirt Classic',    titleBn: '[PLACEHOLDER] কটন শার্ট ক্লাসিক',        brand: 'GenericBrand', price:  99000, compareAt: 129000, stock:  60 },
+    { slug: 'placeholder-cotton-shirt-slim',       cat: 'mens-shirts', titleEn: '[PLACEHOLDER] Cotton Shirt Slim',       titleBn: '[PLACEHOLDER] কটন শার্ট স্লিম',           brand: 'GenericBrand', price: 109000,                    stock:  35 },
+    { slug: 'placeholder-stainless-pan-24cm',      cat: 'kitchen-tools', titleEn: '[PLACEHOLDER] Stainless Pan 24cm',    titleBn: '[PLACEHOLDER] স্টেইনলেস প্যান ২৪সেমি',   brand: 'GenericBrand', price: 149000, compareAt: 189000, stock:  22 },
+    { slug: 'placeholder-chef-knife-8in',          cat: 'kitchen-tools', titleEn: '[PLACEHOLDER] Chef Knife 8in',         titleBn: '[PLACEHOLDER] শেফ ছুরি ৮ইঞ্চি',           brand: 'GenericBrand', price:  69000,                    stock:  45 },
+  ];
+
+  const variantsBySlug: Record<string, string[]> = {};
+
+  for (let i = 0; i < products.length; i++) {
+    const p = products[i];
+    if (!p) continue;
+    const product = await prisma.product.upsert({
+      where: { slug: p.slug },
+      update: {
+        titleEn: p.titleEn, titleBn: p.titleBn, brand: p.brand,
+        status: ProductStatus.PUBLISHED,
+        publishedAt: new Date(),
+        isFeatured: p.featured ?? false,
+      },
+      create: {
+        slug: p.slug,
+        categoryId: catIds[p.cat]!,
+        titleEn: p.titleEn,
+        titleBn: p.titleBn,
+        descriptionEn: '[PLACEHOLDER] Demo description — replace via admin in Step 16.',
+        descriptionBn: '[PLACEHOLDER] ডেমো বিবরণ — Step 16-এ admin থেকে প্রতিস্থাপিত হবে।',
+        brand: p.brand,
+        status: ProductStatus.PUBLISHED,
+        publishedAt: new Date(),
+        isFeatured: p.featured ?? false,
+        bulletFeatures: ['[PLACEHOLDER] Feature 1', '[PLACEHOLDER] Feature 2'],
+        specsJson: { Warranty: '[PLACEHOLDER] 1 year' },
+      },
+    });
+
+    // Two variants per product (color/option), stock split
+    const skuA = `${p.slug.toUpperCase().slice(0, 20)}-A`;
+    const skuB = `${p.slug.toUpperCase().slice(0, 20)}-B`;
+    const vA = await prisma.variant.upsert({
+      where: { sku: skuA },
+      update: { pricePoisha: p.price, compareAtPoisha: p.compareAt ?? null, stock: p.stock },
+      create: {
+        productId: product.id, sku: skuA, pricePoisha: p.price,
+        compareAtPoisha: p.compareAt ?? null, stock: p.stock,
+        attributeValues: { option: 'A' },
+      },
+    });
+    const vB = await prisma.variant.upsert({
+      where: { sku: skuB },
+      update: { pricePoisha: p.price + 10000, stock: Math.max(0, Math.floor(p.stock / 2)) },
+      create: {
+        productId: product.id, sku: skuB, pricePoisha: p.price + 10000,
+        stock: Math.max(0, Math.floor(p.stock / 2)),
+        attributeValues: { option: 'B' },
+      },
+    });
+    variantsBySlug[p.slug] = [vA.id, vB.id];
+
+    // Media — one placeholder image per product (idempotent).
+    const mediaUrl = svgDataUrl(p.titleEn.slice(0, 20));
+    const existingMedia = await prisma.productMedia.findFirst({
+      where: { productId: product.id, url: mediaUrl },
+    });
+    if (!existingMedia) {
+      await prisma.productMedia.create({
+        data: {
+          productId: product.id,
+          type: 'IMAGE',
+          url: mediaUrl,
+          altText: `${p.titleEn} — front view`,
+          sortOrder: 0,
+        },
+      });
+    }
+  }
+  console.log(`[seed-dev] products: ${products.length}`);
+
+  // ---------------------------------------------------------
+  // 3. CMS sections (hero + promo tiles + best sellers)
+  // ---------------------------------------------------------
+  // HERO_CAROUSEL — storefront page.tsx expects sectionType === 'HERO_CAROUSEL'
+  // and config.slides[] with { imageUrl, titleEn, titleBn, ctaHref, ctaLabelEn, ctaLabelBn }.
+  const heroSlides = [
     {
-      titleEn: 'Wireless Over-Ear Headphones with Active Noise Cancellation',
-      titleBn: 'অ্যাকটিভ নয়েজ ক্যান্সেলিং ওয়্যারলেস ওভার-ইয়ার হেডফোন',
-      slug: 'demo-wireless-over-ear-headphones-anc',
-      brand: 'AcmeAudio', catId: headphones.id,
-      pricePoisha: 219900, compareAtPoisha: 399900, stock: 45,
-      rating: 4.4, ratingCount: 4321, isFeatured: true, soldCount: 8120,
-      variants: [
-        { sku: 'DEMO-HP-ANC-BLK', pricePoisha: 219900, compareAtPoisha: 399900, stock: 25, attributeValues: { color: 'black' } },
-        { sku: 'DEMO-HP-ANC-BLU', pricePoisha: 229900, compareAtPoisha: 399900, stock: 20, attributeValues: { color: 'blue' } },
-      ],
+      imageUrl: svgDataUrl('Hero 1'),
+      titleEn: '20,000 BDT off on smartphones',
+      titleBn: '২০,০০০ টাকার বেশি স্মার্টফোনে ছাড়',
+      ctaHref: '/c/smartphones',
+      ctaLabelEn: 'Shop now',
+      ctaLabelBn: 'এখনই কিনুন',
     },
     {
-      titleEn: 'Smart Watch Series X with Heart Rate Monitor & GPS',
-      titleBn: 'হার্ট রেট মনিটর ও জিপিএস সহ স্মার্ট ওয়াচ সিরিজ এক্স',
-      slug: 'demo-smart-watch-series-x',
-      brand: 'AcmeWear', catId: electronics.id,
-      pricePoisha: 349900, compareAtPoisha: 560000, stock: 3,
-      rating: 5.0, ratingCount: 2110, isFeatured: true, soldCount: 3204,
-      variants: [
-        { sku: 'DEMO-WATCH-X-BLK-S', pricePoisha: 349900, compareAtPoisha: 560000, stock: 2, attributeValues: { color: 'black', size: 's' } },
-        { sku: 'DEMO-WATCH-X-BLK-L', pricePoisha: 359900, compareAtPoisha: 560000, stock: 1, attributeValues: { color: 'black', size: 'l' } },
-      ],
-    },
-    {
-      titleEn: 'Non-Stick Cookware Set 7-piece Induction Safe',
-      titleBn: 'নন-স্টিক কুকওয়্যার সেট ৭ পিস ইন্ডাকশন সেফ',
-      slug: 'demo-non-stick-cookware-set-7pc',
-      brand: 'AcmeHome', catId: home.id,
-      pricePoisha: 189900, compareAtPoisha: 399900, stock: 0,
-      rating: 4.3, ratingCount: 890, soldCount: 1420,
-      variants: [
-        { sku: 'DEMO-COOK-7PC', pricePoisha: 189900, compareAtPoisha: 399900, stock: 0, attributeValues: {} },
-      ],
-    },
-    {
-      titleEn: "Men's Running Shoes Mesh Breathable Lightweight",
-      titleBn: 'পুরুষদের রানিং জুতা মেশ ব্রিদেবল লাইটওয়েট',
-      slug: 'demo-mens-running-shoes-mesh',
-      brand: 'AcmeStep', catId: mensShoes.id,
-      pricePoisha: 145000, compareAtPoisha: 210000, stock: 28,
-      rating: 4.3, ratingCount: 1560, soldCount: 2100,
-      variants: [
-        { sku: 'DEMO-SHOE-BLK-M', pricePoisha: 145000, compareAtPoisha: 210000, stock: 10, attributeValues: { color: 'black', size: 'm' } },
-        { sku: 'DEMO-SHOE-BLK-L', pricePoisha: 145000, compareAtPoisha: 210000, stock: 10, attributeValues: { color: 'black', size: 'l' } },
-        { sku: 'DEMO-SHOE-WHT-M', pricePoisha: 149000, compareAtPoisha: 210000, stock: 8,  attributeValues: { color: 'white', size: 'm' } },
-      ],
-    },
-    {
-      titleEn: 'Portable Bluetooth Speaker Waterproof 20-hour Battery',
-      titleBn: 'পোর্টেবল ব্লুটুথ স্পিকার ওয়াটারপ্রুফ ২০ ঘণ্টা ব্যাটারি',
-      slug: 'demo-portable-bluetooth-speaker',
-      brand: 'AcmeAudio', catId: electronics.id,
-      pricePoisha: 99900, compareAtPoisha: 250000, stock: 62,
-      rating: 5.0, ratingCount: 3204, isFeatured: true, soldCount: 4100,
-      variants: [
-        { sku: 'DEMO-SPK-BLK', pricePoisha: 99900, compareAtPoisha: 250000, stock: 40, attributeValues: { color: 'black' } },
-        { sku: 'DEMO-SPK-BLU', pricePoisha: 99900, compareAtPoisha: 250000, stock: 22, attributeValues: { color: 'blue' } },
-      ],
-    },
-    {
-      titleEn: '20000mAh Power Bank Fast Charge PD 22.5W',
-      titleBn: '২০০০০mAh পাওয়ার ব্যাংক ফাস্ট চার্জ PD 22.5W',
-      slug: 'demo-20000mah-power-bank',
-      brand: 'AcmePower', catId: electronics.id,
-      pricePoisha: 189000, compareAtPoisha: 252000, stock: 55,
-      rating: 4.3, ratingCount: 890, soldCount: 1050,
-      variants: [
-        { sku: 'DEMO-PB-20K-BLK', pricePoisha: 189000, compareAtPoisha: 252000, stock: 55, attributeValues: { color: 'black' } },
-      ],
-    },
-    {
-      titleEn: 'Smart LED Bulb WiFi RGB 16M Colors 9W',
-      titleBn: 'স্মার্ট এলইডি বাল্ব ওয়াইফাই RGB ১৬ মিলিয়ন কালার ৯W',
-      slug: 'demo-smart-led-bulb-rgb',
-      brand: 'AcmeHome', catId: home.id,
-      pricePoisha: 49900, compareAtPoisha: 83000, stock: 120,
-      rating: 4.3, ratingCount: 75, soldCount: 220,
-      variants: [
-        { sku: 'DEMO-BULB-RGB', pricePoisha: 49900, compareAtPoisha: 83000, stock: 120, attributeValues: {} },
-      ],
-    },
-    {
-      titleEn: 'Organic Face Serum Vitamin C 30ml',
-      titleBn: 'অর্গানিক ফেস সিরাম ভিটামিন সি ৩০ml',
-      slug: 'demo-organic-face-serum-vitc',
-      brand: 'AcmeBeauty', catId: beauty.id,
-      pricePoisha: 119900, compareAtPoisha: 265000, stock: 40,
-      rating: 5.0, ratingCount: 88, soldCount: 340,
-      variants: [
-        { sku: 'DEMO-SERUM-VITC-30', pricePoisha: 119900, compareAtPoisha: 265000, stock: 40, attributeValues: {} },
-      ],
+      imageUrl: svgDataUrl('Hero 2'),
+      titleEn: 'Fashion fest — up to 50% off',
+      titleBn: 'ফ্যাশন ফেস্ট — সর্বোচ্চ ৫০% ছাড়',
+      ctaHref: '/c/fashion',
+      ctaLabelEn: 'View deals',
+      ctaLabelBn: 'ডিল দেখুন',
     },
   ];
 
-  let productCount = 0;
-  let variantCount = 0;
+  await prisma.cmsSection.upsert({
+    where: { key: 'home-hero' },
+    update: {
+      sectionType: 'HERO_CAROUSEL',
+      titleEn: 'Hero carousel', titleBn: 'হিরো ক্যারোসেল',
+      config: { slides: heroSlides },
+      isVisible: true,
+    },
+    create: {
+      key: 'home-hero',
+      sectionType: 'HERO_CAROUSEL',
+      titleEn: 'Hero carousel', titleBn: 'হিরো ক্যারোসেল',
+      position: 1,
+      config: { slides: heroSlides },
+      isVisible: true,
+    },
+  });
 
-  for (const p of products) {
-    const product = await prisma.product.create({
-      data: {
-        categoryId: p.catId,
-        slug: p.slug,
-        titleEn: p.titleEn,
-        titleBn: p.titleBn,
-        brand: p.brand,
-        status: 'PUBLISHED',
-        publishedAt: new Date(),
-        descriptionEn: `[PLACEHOLDER] Demo description for ${p.titleEn}. Real copy arrives in Step 14.`,
-        descriptionBn: `[PLACEHOLDER] ডেমো বিবরণ — প্রকৃত কনটেন্ট Step 14-এ আসবে।`,
-        bulletFeatures: [
-          'Placeholder feature one',
-          'Placeholder feature two',
-          'Placeholder feature three',
+  // DEAL_STRIP — storefront expects sectionType === 'DEAL_STRIP' and config.endsAt.
+  const dealEndsAt = new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString();
+  await prisma.cmsSection.upsert({
+    where: { key: 'home-deal-strip' },
+    update: {
+      sectionType: 'DEAL_STRIP',
+      titleEn: 'Deal strip', titleBn: 'ডিল স্ট্রিপ',
+      config: { endsAt: dealEndsAt },
+      isVisible: true,
+    },
+    create: {
+      key: 'home-deal-strip',
+      sectionType: 'DEAL_STRIP',
+      titleEn: 'Deal strip', titleBn: 'ডিল স্ট্রিপ',
+      position: 3,
+      config: { endsAt: dealEndsAt },
+      isVisible: true,
+    },
+  });
+
+  // PROMO_TILES — reserved for future storefront wiring; harmless if unused.
+  await prisma.cmsSection.upsert({
+    where: { key: 'home-promo-tiles' },
+    update: {
+      sectionType: 'PROMO_TILES',
+      titleEn: 'Promo tiles', titleBn: 'প্রোমো টাইল',
+      config: {
+        tiles: [
+          { titleEn: 'Electronics sale', titleBn: 'ইলেকট্রনিক্স সেল', imageUrl: svgDataUrl('Promo 1') },
+          { titleEn: 'Home essentials', titleBn: 'হোম এসেনশিয়াল',   imageUrl: svgDataUrl('Promo 2') },
+          { titleEn: 'Fashion picks',   titleBn: 'ফ্যাশন পিক',       imageUrl: svgDataUrl('Promo 3') },
+          { titleEn: 'Grocery deal',    titleBn: 'মুদি ডিল',         imageUrl: svgDataUrl('Promo 4') },
         ],
-        specsJson: { Brand: p.brand, Warranty: '1 year', Origin: 'Placeholder' },
-        avgRating: p.rating,
-        ratingCount: p.ratingCount,
-        soldCount: p.soldCount ?? 0,
-        isFeatured: !!p.isFeatured,
-        metaTitle: `${p.titleEn} — Price in Bangladesh | SkyMart`,
-        metaDescription: `Buy ${p.titleEn} online at SkyMart.`,
       },
-    });
-    productCount++;
+      isVisible: true,
+    },
+    create: {
+      key: 'home-promo-tiles',
+      sectionType: 'PROMO_TILES',
+      titleEn: 'Promo tiles', titleBn: 'প্রোমো টাইল',
+      position: 4,
+      config: {
+        tiles: [
+          { titleEn: 'Electronics sale', titleBn: 'ইলেকট্রনিক্স সেল', imageUrl: svgDataUrl('Promo 1') },
+          { titleEn: 'Home essentials', titleBn: 'হোম এসেনশিয়াল',   imageUrl: svgDataUrl('Promo 2') },
+          { titleEn: 'Fashion picks',   titleBn: 'ফ্যাশন পিক',       imageUrl: svgDataUrl('Promo 3') },
+          { titleEn: 'Grocery deal',    titleBn: 'মুদি ডিল',         imageUrl: svgDataUrl('Promo 4') },
+        ],
+      },
+      isVisible: true,
+    },
+  });
+  console.log('[seed-dev] cms sections: 3 (HERO_CAROUSEL, DEAL_STRIP, PROMO_TILES)');
 
-    // Media: one placeholder image per product
-    await prisma.productMedia.create({
+  // ---------------------------------------------------------
+  // 4. Announcement (announcement bar)
+  // ---------------------------------------------------------
+  const existingAnn = await prisma.announcement.findFirst({ where: { textEn: { contains: '[PLACEHOLDER]' } } });
+  if (!existingAnn) {
+    await prisma.announcement.create({
       data: {
-        productId: product.id,
-        type: 'IMAGE',
-        url: PH(p.titleEn.split(' ').slice(0, 2).join(' ')),
-        altText: p.titleEn,
-        sortOrder: 0,
-        width: 400,
-        height: 400,
+        textEn: '[PLACEHOLDER] Free delivery on orders over ৳1,500',
+        textBn: '[PLACEHOLDER] ১৫০০ টাকার উপরে ফ্রি ডেলিভারি',
+        bgColor: '#164561',
+        textColor: '#FFFFFF',
+        isActive: true,
       },
     });
+  }
+  console.log('[seed-dev] announcement: 1');
 
-    // Variants
-    for (const v of p.variants) {
-      const variant = await prisma.variant.create({
+  // ---------------------------------------------------------
+  // 5. Flash sale (24h window, 3 items)
+  // ---------------------------------------------------------
+  const flashSlugCandidates = ['placeholder-wireless-headphone-x200', 'placeholder-smartphone-s1', 'placeholder-cotton-shirt-classic'];
+  const flashVariantIds: string[] = [];
+  for (const slug of flashSlugCandidates) {
+    const ids = variantsBySlug[slug] ?? [];
+    if (ids[0]) flashVariantIds.push(ids[0]);
+  }
+
+  if (flashVariantIds.length > 0) {
+    const existing = await prisma.flashSale.findFirst({ where: { name: '[PLACEHOLDER] Flash Sale' } });
+    let flashId: string;
+    if (existing) {
+      flashId = existing.id;
+      await prisma.flashSale.update({
+        where: { id: flashId },
         data: {
-          productId: product.id,
-          warehouseId: warehouse.id,
-          sku: v.sku,
-          pricePoisha: v.pricePoisha,
-          compareAtPoisha: v.compareAtPoisha ?? null,
-          stock: v.stock,
-          lowStockThreshold: 5,
-          attributeValues: v.attributeValues as object,
+          startsAt: new Date(Date.now() - 60 * 60 * 1000),
+          endsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           isActive: true,
         },
       });
-      variantCount++;
-
-      // Initial stock adjustment record (SALE-reason-coded bootstrap)
-      if (v.stock > 0) {
-        await prisma.inventoryAdjustment.create({
-          data: {
-            variantId: variant.id,
-            warehouseId: warehouse.id,
-            delta: v.stock,
-            reason: 'RESTOCK',
-            reasonNote: 'Initial dev seed',
-            stockBefore: 0,
-            stockAfter: v.stock,
-          },
-        });
-      }
-    }
-  }
-  console.log(`Products: ${productCount}, Variants: ${variantCount}`);
-
-  // ── CMS Sections (home feed) ──
-  await prisma.cmsSection.createMany({
-    data: [
-      {
-        key: 'home.hero',
-        sectionType: 'HERO_CAROUSEL',
-        titleEn: 'Mega Electronics Fest', titleBn: 'মেগা ইলেকট্রনিক্স ফেস্ট',
-        position: 0, isVisible: true,
-        config: {
-          autoplayMs: 6000,
-          slides: [
-            { imageUrl: PH('Hero 1', '164561', 'FFFFFF'), titleEn: 'Up to 60% off Headphones', titleBn: 'হেডফোনে ৬০% পর্যন্ত ছাড়', ctaHref: '/electronics', ctaLabelEn: 'Shop Now', ctaLabelBn: 'কিনুন' },
-            { imageUrl: PH('Hero 2', '25729A', 'FFFFFF'), titleEn: 'Smart Watches', titleBn: 'স্মার্ট ওয়াচ', ctaHref: '/smartphones', ctaLabelEn: 'Explore', ctaLabelBn: 'দেখুন' },
-          ],
+    } else {
+      const created = await prisma.flashSale.create({
+        data: {
+          name: '[PLACEHOLDER] Flash Sale',
+          description: '[PLACEHOLDER] Limited-time demo sale',
+          startsAt: new Date(Date.now() - 60 * 60 * 1000),
+          endsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          isActive: true,
         },
-      },
-      {
-        key: 'home.deals-strip',
-        sectionType: 'DEAL_STRIP',
-        titleEn: "Today's Deals", titleBn: 'আজকের অফার',
-        position: 1, isVisible: true,
-        config: { endsAt: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString() },
-      },
-      {
-        key: 'home.best-sellers',
-        sectionType: 'PRODUCT_CAROUSEL',
-        titleEn: 'Best Sellers', titleBn: 'বেস্ট সেলার',
-        position: 2, isVisible: true,
-        config: { source: 'best-sellers', limit: 8 },
-      },
-      {
-        key: 'home.new-arrivals',
-        sectionType: 'PRODUCT_CAROUSEL',
-        titleEn: 'New Arrivals', titleBn: 'নতুন পণ্য',
-        position: 3, isVisible: true,
-        config: { source: 'new-arrivals', limit: 8 },
-      },
-    ],
-  });
-  console.log('CMS Sections: 4 (hero, deals-strip, best-sellers, new-arrivals)');
+      });
+      flashId = created.id;
+    }
 
-  // ── CMS Pages ──
-  await prisma.cmsPage.createMany({
-    data: [
-      {
-        slug: 'about', titleEn: 'About SkyMart', titleBn: 'স্কাইমার্ট সম্পর্কে',
-        bodyEn: '<h2>About SkyMart</h2><p>[PLACEHOLDER] SkyMart is a brand-neutral marketplace placeholder.</p>',
-        bodyBn: '<h2>স্কাইমার্ট সম্পর্কে</h2><p>[PLACEHOLDER] স্কাইমার্ট একটি ব্র্যান্ড-নিউট্রাল প্লেসহোল্ডার মার্কেটপ্লেস।</p>',
-        status: 'PUBLISHED', publishedAt: new Date(),
-      },
-      {
-        slug: 'contact', titleEn: 'Contact Us', titleBn: 'যোগাযোগ করুন',
-        bodyEn: '<h2>Contact</h2><p>[PLACEHOLDER] Call 16-263 or email support@skymart.example.</p>',
-        bodyBn: '<h2>যোগাযোগ</h2><p>[PLACEHOLDER] ১৬-২৬৩ নম্বরে কল করুন বা support@skymart.example-এ ইমেইল করুন।</p>',
-        status: 'PUBLISHED', publishedAt: new Date(),
-      },
-      {
-        slug: 'returns', titleEn: 'Return Policy', titleBn: 'রিটার্ন পলিসি',
-        bodyEn: '<h2>Return Policy</h2><p>7-day returns on most items. See terms.</p>',
-        bodyBn: '<h2>রিটার্ন পলিসি</h2><p>বেশিরভাগ পণ্যে ৭ দিনের রিটার্ন। শর্তাবলী দেখুন।</p>',
-        status: 'PUBLISHED', publishedAt: new Date(),
-      },
-    ],
-  });
-  console.log('CMS Pages: 3 (about, contact, returns)');
+    for (const variantId of flashVariantIds) {
+      await prisma.flashSaleItem.upsert({
+        where: {
+          flashSaleId_variantId: { flashSaleId: flashId, variantId },
+        },
+        update: {
+          dealPricePoisha: 199900,
+          capQuantity: 10,
+        },
+        create: {
+          flashSaleId: flashId,
+          variantId,
+          dealPricePoisha: 199900,
+          capQuantity: 10,
+          soldQuantity: 0,
+        },
+      });
+    }
+    console.log(`[seed-dev] flash sale items: ${flashVariantIds.length}`);
+  }
 
-  // ── CMS Menus ──
-  const headerMenu = await prisma.cmsMenu.create({
-    data: {
-      location: CmsMenuLocation.HEADER,
-      name: 'Main Header',
-      items: {
-        create: [
-          { labelEn: "Today's Deals", labelBn: 'আজকের অফার', url: '/deals', sortOrder: 1, isActive: true },
-          { labelEn: 'Best Sellers',   labelBn: 'বেস্ট সেলার', url: '/c/electronics', sortOrder: 2, isActive: true },
-          { labelEn: 'New Arrivals',   labelBn: 'নতুন পণ্য',  url: '/c/electronics', sortOrder: 3, isActive: true },
-          { labelEn: 'Customer Service', labelBn: 'কাস্টমার সার্ভিস', url: '/pages/contact', sortOrder: 4, isActive: true },
-        ],
-      },
-    },
-  });
-  await prisma.cmsMenu.create({
-    data: {
-      location: CmsMenuLocation.FOOTER,
-      name: 'Footer',
-      items: {
-        create: [
-          { labelEn: 'About',          labelBn: 'সম্পর্কে',       url: '/pages/about',   sortOrder: 1, isActive: true },
-          { labelEn: 'Contact',        labelBn: 'যোগাযোগ',       url: '/pages/contact', sortOrder: 2, isActive: true },
-          { labelEn: 'Return Policy',  labelBn: 'রিটার্ন পলিসি', url: '/pages/returns', sortOrder: 3, isActive: true },
-        ],
-      },
-    },
-  });
-  console.log(`CMS Menus: 2 (HEADER ${headerMenu.id}, FOOTER)`);
-
-  // ── Announcement ──
-  await prisma.announcement.create({
-    data: {
-      textEn: 'Free delivery over ৳1500 — this week only',
-      textBn: '১,৫০০ টাকার উপরে ফ্রি ডেলিভারি — শুধু এই সপ্তাহ',
-      bgColor: '#164561', textColor: '#FFFFFF',
-      linkUrl: '/deals',
-      startsAt: new Date(Date.now() - 60 * 1000),
-      endsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      isActive: true,
-    },
-  });
-  console.log('Announcement: 1 active');
-
-  // ── Flash Sale (active) ──
-  const flashSale = await prisma.flashSale.create({
-    data: {
-      name: 'Electronics Flash Sale',
-      description: 'Limited-time deal on selected electronics',
-      startsAt: new Date(Date.now() - 60 * 1000),
-      endsAt: new Date(Date.now() + 6 * 60 * 60 * 1000),
-      isActive: true,
-    },
-  });
-
-  // Pick first 3 variants to put on sale
-  const someVariants = await prisma.variant.findMany({ take: 3, orderBy: { createdAt: 'asc' } });
-  for (const v of someVariants) {
-    await prisma.flashSaleItem.create({
+  // ---------------------------------------------------------
+  // 6. Dev admin user (only if not exists)
+  // ---------------------------------------------------------
+  const adminEmail = 'admin@bluegofer.local';
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (!existingAdmin) {
+    const bcrypt = await import('bcryptjs');
+    const hash = await bcrypt.hash('Admin123!', 12);
+    await prisma.user.create({
       data: {
-        flashSaleId: flashSale.id,
-        variantId: v.id,
-        dealPricePoisha: Math.round(v.pricePoisha * 0.75), // 25% off
-        capQuantity: 100,
-        soldQuantity: 0,
+        phone: '8801700000000',
+        email: adminEmail,
+        fullName: 'Dev Admin [PLACEHOLDER]',
+        passwordHash: hash,
+        phoneVerifiedAt: new Date(),
+        emailVerifiedAt: new Date(),
       },
     });
+    console.log(`[seed-dev] created dev admin: ${adminEmail} / Admin123!`);
+  } else {
+    console.log(`[seed-dev] admin already exists: ${adminEmail}`);
   }
-  console.log(`Flash Sale: ${flashSale.id} with ${someVariants.length} items`);
 
-  console.log('\nDev seed complete ✓');
+  console.log('[seed-dev] done.');
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error('[seed-dev] FAILED:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

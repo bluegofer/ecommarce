@@ -115,13 +115,19 @@ export class ProductsService {
   }
 
   async findOne(id: string): Promise<ProductDto> {
-    const p = await this.prisma.product.findUnique({ where: { id } });
+    const p = await this.prisma.product.findUnique({
+      where: { id },
+      include: { variants: true, media: { orderBy: { sortOrder: 'asc' } } },
+    });
     if (!p) throw new NotFoundException('product not found');
     return this.toDto(p);
   }
 
   async findBySlug(slug: string): Promise<ProductDto | null> {
-    const p = await this.prisma.product.findUnique({ where: { slug } });
+    const p = await this.prisma.product.findUnique({
+      where: { slug },
+      include: { variants: true, media: { orderBy: { sortOrder: 'asc' } } },
+    });
     return p ? this.toDto(p) : null;
   }
 
@@ -149,6 +155,7 @@ export class ProductsService {
         orderBy: [{ createdAt: 'desc' }],
         skip,
         take: pageSize,
+        include: { variants: true, media: { orderBy: { sortOrder: 'asc' } } },
       }),
     ]);
 
@@ -220,8 +227,39 @@ export class ProductsService {
     isFeatured: boolean;
     createdAt: Date;
     updatedAt: Date;
+    variants?: Array<{
+      id: string;
+      productId: string;
+      sku: string;
+      pricePoisha: number;
+      compareAtPoisha: number | null;
+      stock: number;
+      isActive: boolean;
+      attributeValues: unknown;
+    }>;
+    media?: Array<{
+      id: string;
+      type: string;
+      url: string;
+      altText: string | null;
+      sortOrder: number;
+      variantId: string | null;
+    }>;
   }): ProductDto {
-    return {
+    // Summary fields — computed server-side (TDD §11.4: client never
+    // computes money or stock truth).
+    const activeVariants = (p.variants ?? []).filter((v) => v.isActive);
+    const inStockVariants = activeVariants.filter((v) => v.stock > 0);
+    const pricedVariants = inStockVariants.length > 0 ? inStockVariants : activeVariants;
+    const minPricePoisha =
+      pricedVariants.length > 0
+        ? Math.min(...pricedVariants.map((v) => v.pricePoisha))
+        : 0;
+    const totalStock = activeVariants.reduce((sum, v) => sum + v.stock, 0);
+    const primaryMedia = (p.media ?? [])[0];
+
+    // Base scalar DTO — matches @ecommarce/types ProductDto.
+    const base: ProductDto = {
       id: p.id,
       categoryId: p.categoryId,
       slug: p.slug,
@@ -246,5 +284,41 @@ export class ProductsService {
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
     };
+
+    // Optional summary fields — additive, backward compatible with admin app.
+    // Return type stays ProductDto; extra fields are cast once via an
+    // intersection type so TypeScript accepts them without index-signature pain.
+    const extra: Record<string, unknown> = {};
+
+    if (activeVariants.length > 0) {
+      extra.variants = activeVariants.map((v) => ({
+        id: v.id,
+        productId: v.productId,
+        sku: v.sku,
+        pricePoisha: v.pricePoisha,
+        compareAtPoisha: v.compareAtPoisha,
+        stock: v.stock,
+        attributeValues: v.attributeValues,
+      }));
+      extra.minPricePoisha = minPricePoisha;
+      extra.totalStock = totalStock;
+      const firstWithCompareAt = activeVariants.find(
+        (v) => typeof v.compareAtPoisha === 'number',
+      );
+      extra.maxCompareAtPoisha = firstWithCompareAt?.compareAtPoisha ?? null;
+    }
+    if (primaryMedia) {
+      extra.primaryImageUrl = primaryMedia.url;
+      extra.media = (p.media ?? []).map((m) => ({
+        id: m.id,
+        type: m.type,
+        url: m.url,
+        altText: m.altText,
+        sortOrder: m.sortOrder,
+        variantId: m.variantId,
+      }));
+    }
+
+    return Object.assign(base, extra) as ProductDto;
   }
 }
