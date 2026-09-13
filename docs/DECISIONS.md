@@ -416,3 +416,35 @@ identical to production: `POST /payments/initiate` → gateway-hosted redirect �
   exists; real signing verification exercised when creds arrive in Step 15 UAT).
 - Admin "Payments" screen changes (already built in Step 12; reads the same
   Payment row that this flow updates).
+---
+
+## Step 13.3a — Catalog Serializer Correction (2026-09-13)
+
+**Status:** TEMP — corrective on Step 3's under-delivered product read API.
+
+### Context
+Step 3 promised full product read APIs (TDD §6.1: "variants, prices, stock,
+media"). The shipped `products.service.ts` returned scalar fields only —
+`toDto()` did not include `variants[]`, `media[]`, or computed summary
+fields. Storefront pages (home, PLP, PDP) fell back to placeholder rendering.
+Discovered during Step 13.3 storefront verification.
+
+### Fix
+- `list()`, `findOne()`, `findBySlug()` now `include: { variants, media }`.
+- `toDto()` computes and returns (additive, non-breaking):
+  - `minPricePoisha` — cheapest active variant price (in-stock preferred)
+  - `totalStock` — sum of active variant stock
+  - `maxCompareAtPoisha` — first non-null compareAt
+  - `primaryImageUrl` — first media URL
+  - `variants[]`, `media[]` — full relation arrays
+- TDD §11.4 compliance: the client never computes money or stock.
+
+### Impact
+- Storefront: prices, stock chips, images, and carousels render correctly.
+- Admin app: unaffected (fields are additive).
+- `@ecommarce/types` ProductDto: extra fields cast via
+  `Object.assign(base, extra) as ProductDto` — a Step 14 refactor will
+  declare them as optional in the shared type.
+
+### Scope note
+This is a corrective gap-fill for Step 3's original scope, **not new scope**.
