@@ -169,3 +169,26 @@ Already in scope.
 | Date | Item | Change |
 |---|---|---|
 | 2026-09-13 | ENH-01..06 | Register created — first client-requested enhancements logged |
+---
+
+## ENH-07 — Production credential rollout checklist (client action)
+
+**Requested by:** internal (Step 13.7 wrap-up)
+**Date:** 2026-09-14
+**Owner:** client
+**Classification:** IN-SCOPE — action item for Step 15/16.
+
+**Description:** The client must provide real credentials for all Step 13
+integrations before Step 16 launch (per TDD §17 assumption). See
+`docs/step-13-mock-inventory.md` for the exact env keys per provider.
+
+**Client action items:**
+1. D-09 — SMS aggregator selection (owner: client)
+2. D-10 — Delivery charge per zone (owner: client, due before Step 14)
+3. D-13 — COD fee rules (owner: client, due before Step 14)
+4. D-21 — Payment merchant onboarding: bKash / Nagad / SSLCommerz
+5. D-22 — Pathao courier account opening
+6. GA4 + Meta Business Manager access (for server-side analytics)
+7. AWS SES domain verification (SPF/DKIM)
+
+**Due:** before Step 16 launch (per TDD §14 Phase 8).

@@ -499,3 +499,20 @@ Step 13's "queued" promise is satisfied by the outbox pattern (Step 2). Real
 BullMQ consumer wiring is Step 15 scope (infra/ops). TDD §11.3 says
 "publishers publish from outbox to queue" — the table + marker exist; queue
 activation is infra.
+---
+
+## Step 13.8 — Mock Inventory & Credential Rollout Guide (2026-09-14)
+
+**Status:** COMPLETE — documentation only.
+
+Added `docs/step-13-mock-inventory.md` — a consolidated reference for:
+
+- Every Step 13 integration (payments, courier, messaging, analytics).
+- The exact env keys required to flip each from mock to real (zero code
+  change; the factory auto-detects).
+- Client action items (D-09, D-10, D-13, D-21, D-22) with due dates.
+- Credential ownership per TDD §15.2.
+- Recommended production-rollout order to avoid partial-state issues.
+
+This file is the single source of truth for "what is mocked, and what
+unblocks it." Reference it from client onboarding and Step 15 (AWS infra).
