@@ -2,8 +2,10 @@
 // Places an order: validates stock, reserves, computes money server-side,
 // writes order + items + status history + payment stub in ONE transaction.
 // Called with an idempotency key (handled by global IdempotencyInterceptor).
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { InvoiceService } from './invoice.service';
+import { MessagingService } from '../messaging/messaging.service';
 import { OrdersService } from './orders.service';
 import { RulesEngineService } from '../promotions/rules-engine.service';
 import { CartsService } from '../carts/carts.service';
@@ -14,11 +16,15 @@ const DELIVERY_FLAT_POISHA = 6000;
 
 @Injectable()
 export class CheckoutService {
+  private readonly logger = new Logger(CheckoutService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly orders: OrdersService,
     private readonly rules: RulesEngineService,
     private readonly carts: CartsService,
+    private readonly invoice: InvoiceService,
+    private readonly messaging: MessagingService,
   ) {}
 
   async placeOrder(
@@ -240,6 +246,11 @@ export class CheckoutService {
       return { orderId: order.id, orderNumber: order.orderNumber, totalPoisha };
     });
 
+    // Step 13.5: guest invoice PDF email + order confirmation SMS.
+    // Fire-and-forget — failures are logged in notification_log, never
+    // block the checkout response.
+    void this.sendOrderNotifications(result.orderId, result.orderNumber, dto);
+
     return {
       orderId: result.orderId,
       orderNumber: result.orderNumber,
@@ -247,6 +258,47 @@ export class CheckoutService {
       totalPoisha: result.totalPoisha,
       paymentMethod: dto.paymentMethod,
     };
+  }
+
+  /**
+   * Fires the invoice PDF email + order confirmation SMS in the background.
+   * Idempotent on orderId — safe to retry.
+   */
+  private async sendOrderNotifications(
+    orderId: string,
+    orderNumber: string,
+    dto: PlaceOrderDto,
+  ): Promise<void> {
+    try {
+      const to = dto.contactEmail ?? null;
+      const phone = dto.contactPhone;
+      if (to) {
+        const pdf = await this.invoice.generatePdf(orderId);
+        await this.messaging.sendEmail({
+          to,
+          subject: `Invoice for order ${orderNumber}`,
+          html: `<p>Thank you for your order <strong>${orderNumber}</strong>.</p><p>Invoice attached.</p>`,
+          text: `Thank you for order ${orderNumber}. Invoice attached.`,
+          attachments: [
+            {
+              filename: `invoice-${orderNumber}.pdf`,
+              contentType: 'application/pdf',
+              contentBase64: pdf.toString('base64'),
+            },
+          ],
+          idempotencyKey: `invoice-${orderId}`,
+        });
+      }
+      if (phone) {
+        await this.messaging.sendSms({
+          to: phone,
+          body: `Order ${orderNumber} confirmed. Thank you!`,
+          idempotencyKey: `order-confirm-${orderId}`,
+        });
+      }
+    } catch (err) {
+      this.logger.warn(`sendOrderNotifications failed: ${(err as Error).message}`);
+    }
   }
 
   // -------------------------------------------------------------------------

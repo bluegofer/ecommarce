@@ -19,6 +19,7 @@ import { CmsModule } from './modules/cms/cms.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { RmaModule } from './modules/rma/rma.module';
@@ -47,6 +48,7 @@ import { CourierModule } from './modules/courier/courier.module';
     PromotionsModule,
     CmsModule,
     NotificationsModule,
+    MessagingModule,
     CrmModule,
     CartsModule,
     OrdersModule,

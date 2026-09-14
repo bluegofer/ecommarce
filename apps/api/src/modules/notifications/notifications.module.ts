@@ -7,8 +7,10 @@ import { DispatchController } from './dispatch.controller';
 import { BackInStockService } from './back-in-stock.service';
 import { BackInStockController } from './back-in-stock.controller';
 import { SchedulersService } from './schedulers.service';
+import { MessagingModule } from '../messaging/messaging.module';
 
 @Module({
+  imports: [MessagingModule],
   controllers: [TemplatesController, DispatchController, BackInStockController],
   providers: [TemplatesService, DispatchService, BackInStockService, SchedulersService],
   exports: [TemplatesService, DispatchService, BackInStockService],
