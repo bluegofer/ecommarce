@@ -99,4 +99,14 @@ export const catalogApi = {
       { cache: 'no-store' },
     );
   },
+
+  /**
+   * Step 14.2 — top-N active category slugs for PLP ISR seeding.
+   */
+  async getStaticCategorySlugs(limit = 50): Promise<Array<{ slug: string; updatedAt: string }>> {
+    return api.get<Array<{ slug: string; updatedAt: string }>>(
+      `/categories/static-slugs?limit=${encodeURIComponent(String(limit))}`,
+      { cache: 'no-store' },
+    );
+  },
 };

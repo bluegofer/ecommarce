@@ -104,4 +104,19 @@ export class CategoriesService {
     await this.prisma.category.delete({ where: { id } });
     return { ok: true };
   }
+
+  /**
+   * Step 14.2 — top-N active category slugs for storefront ISR seeding.
+   */
+  async getStaticSlugs(limit: number): Promise<Array<{ slug: string; updatedAt: string }>> {
+    const take = Math.min(Math.max(1, limit), 500);
+    const rows = await this.prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      take,
+      select: { slug: true, updatedAt: true },
+    });
+    return rows.map((r) => ({ slug: r.slug, updatedAt: r.updatedAt.toISOString() }));
+  }
+
 }

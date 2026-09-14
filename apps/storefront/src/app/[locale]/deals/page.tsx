@@ -7,7 +7,10 @@ export const metadata = {
   description: 'Fresh discounts every hour on SkyMart.',
 };
 
-export const dynamic = 'force-dynamic';
+// Step 14.2 — ISR: deals page is fully cacheable (server-synced countdown
+// comes from CMS config). Refresh every 5 minutes; admin publish triggers
+// on-demand revalidation via /api/revalidate.
+export const revalidate = 300;
 
 export default function DealsPage({ params }: { params: { locale: string } }) {
   if (!isLocale(params.locale)) notFound();

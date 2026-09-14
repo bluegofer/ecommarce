@@ -1,5 +1,5 @@
 // apps/api/src/modules/catalog/categories/categories.controller.ts
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -27,6 +27,19 @@ export class CategoriesController {
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.categories.findBySlug(slug);
+  }
+
+  /**
+   * Step 14.2 — top-N active category slugs for PLP ISR seeding.
+   * Public + cacheable. MUST be declared BEFORE @Get(':id') — otherwise
+   * Express resolves "static-slugs" as an :id param.
+   */
+  @Public()
+  @Get('static-slugs')
+  async staticSlugs(@Query('limit') limit?: string) {
+    const parsed = limit ? parseInt(limit, 10) : 50;
+    const safe = Number.isFinite(parsed) ? Math.min(Math.max(1, parsed), 500) : 50;
+    return this.categories.getStaticSlugs(safe);
   }
 
   @Public()

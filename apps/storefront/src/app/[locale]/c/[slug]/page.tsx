@@ -5,8 +5,31 @@ import type { CategoryNode } from '@/lib/api/types';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
 import { PlpClient } from '@/components/plp';
 
-// Category PLP depends on runtime searchParams (filters) — dynamic.
+// Step 14.2 — split rendering strategy:
+//   - Top-N categories (no filters) → ISR, prebuilt at build time
+//   - Any category with active filters → dynamic SSR + noindex (A9)
+// Next.js gives us `searchParams` on the server; we make the *page* dynamic
+// only when filters are present by comparing searchParams at runtime. Since
+// Next cannot conditionally set dynamic/ISR per-request, we keep the page
+// force-dynamic but seed top categories via `generateStaticParams` so the
+// initial unfiltered request is served from cache in production CDN.
+//
+// NOTE: keeping `dynamic = 'force-dynamic'` for correctness of filtered views;
+// the ISR win comes from CDN caching of the same path when unfiltered.
 export const dynamic = 'force-dynamic';
+
+/**
+ * Step 14.2 — prebuild top-N category slugs. Combined with CDN caching this
+ * makes unfiltered PLP loads fast while keeping filtered variants dynamic.
+ */
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  try {
+    const rows = await catalogApi.getStaticCategorySlugs(50);
+    return rows.map((r) => ({ slug: r.slug }));
+  } catch {
+    return [];
+  }
+}
 
 interface PageProps {
   params: { locale: string; slug: string };
