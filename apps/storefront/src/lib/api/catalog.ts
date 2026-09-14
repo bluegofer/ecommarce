@@ -109,4 +109,26 @@ export const catalogApi = {
       { cache: 'no-store' },
     );
   },
+
+  /**
+   * Step 14.3 — sitemap feed for products.
+   */
+  async getSitemapProducts(
+    limit = 1000,
+  ): Promise<Array<{ slug: string; updatedAt: string; primaryImageUrl: string | null }>> {
+    return api.get<Array<{ slug: string; updatedAt: string; primaryImageUrl: string | null }>>(
+      `/products/sitemap-entries?limit=${encodeURIComponent(String(limit))}`,
+      { cache: 'no-store' },
+    );
+  },
+
+  /**
+   * Step 14.3 — sitemap feed for categories.
+   */
+  async getSitemapCategories(): Promise<Array<{ slug: string; updatedAt: string }>> {
+    return api.get<Array<{ slug: string; updatedAt: string }>>(
+      '/categories/sitemap-entries',
+      { cache: 'no-store' },
+    );
+  },
 };

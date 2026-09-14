@@ -49,6 +49,18 @@ export class ProductsController {
    * Step 14.1 — top-N published product slugs for storefront ISR seeding.
    * Public + cacheable — safe to expose; contains no PII.
    */
+  /**
+   * Step 14.3 — sitemap feed: top-N published products for the XML sitemap.
+   * Public + cacheable. Declared BEFORE :id route to avoid param capture.
+   */
+  @Public()
+  @Get('sitemap-entries')
+  async sitemapEntries(@Query('limit') limit?: string) {
+    const parsed = limit ? parseInt(limit, 10) : 1000;
+    const safe = Number.isFinite(parsed) ? Math.min(Math.max(1, parsed), 5000) : 1000;
+    return this.products.getSitemapEntries(safe);
+  }
+
   @Public()
   @Get('static-slugs')
   async staticSlugs(@Query('limit') limit?: string) {

@@ -337,4 +337,36 @@ export class ProductsService {
 
     return Object.assign(base, extra) as ProductDto;
   }
+
+  /**
+   * Step 14.3 — sitemap feed: published products with slug, updatedAt,
+   * and primary image (for image sitemap entries).
+   */
+  async getSitemapEntries(limit: number): Promise<Array<{
+    slug: string;
+    updatedAt: string;
+    primaryImageUrl: string | null;
+  }>> {
+    const take = Math.min(Math.max(1, limit), 5000);
+    const rows = await this.prisma.product.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: [{ soldCount: 'desc' }, { updatedAt: 'desc' }],
+      take,
+      select: {
+        slug: true,
+        updatedAt: true,
+        media: {
+          orderBy: { sortOrder: 'asc' },
+          take: 1,
+          select: { url: true },
+        },
+      },
+    });
+    return rows.map((r) => ({
+      slug: r.slug,
+      updatedAt: r.updatedAt.toISOString(),
+      primaryImageUrl: r.media[0]?.url ?? null,
+    }));
+  }
+
 }

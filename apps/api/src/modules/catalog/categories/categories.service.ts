@@ -119,4 +119,17 @@ export class CategoriesService {
     return rows.map((r) => ({ slug: r.slug, updatedAt: r.updatedAt.toISOString() }));
   }
 
+
+  /**
+   * Step 14.3 — sitemap feed: all active categories (bounded).
+   */
+  async getSitemapEntries(): Promise<Array<{ slug: string; updatedAt: string }>> {
+    const rows = await this.prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { slug: true, updatedAt: true },
+    });
+    return rows.map((r) => ({ slug: r.slug, updatedAt: r.updatedAt.toISOString() }));
+  }
+
 }

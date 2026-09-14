@@ -30,9 +30,18 @@ export class CategoriesController {
   }
 
   /**
+   * Step 14.3 — sitemap feed: all active categories.
+   * Public + cacheable. Declared BEFORE :id route.
+   */
+  @Public()
+  @Get('sitemap-entries')
+  sitemapEntries() {
+    return this.categories.getSitemapEntries();
+  }
+
+  /**
    * Step 14.2 — top-N active category slugs for PLP ISR seeding.
-   * Public + cacheable. MUST be declared BEFORE @Get(':id') — otherwise
-   * Express resolves "static-slugs" as an :id param.
+   * Public + cacheable. MUST be declared BEFORE @Get(':id').
    */
   @Public()
   @Get('static-slugs')
