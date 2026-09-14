@@ -14,6 +14,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { CartsModule } from '../carts/carts.module';
 import { CourierModule } from '../courier/courier.module';
 import { MessagingModule } from '../messaging/messaging.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { LedgerService } from '../accounting/services/ledger.service';
 
 @Module({
@@ -25,6 +26,7 @@ import { LedgerService } from '../accounting/services/ledger.service';
     CartsModule,
     CourierModule,
     MessagingModule,
+    AnalyticsModule,
   ],
   controllers: [OrdersController, CheckoutController, MeOrdersController],
   providers: [OrdersService, CheckoutService, InvoiceService, MeOrdersService, LedgerService],

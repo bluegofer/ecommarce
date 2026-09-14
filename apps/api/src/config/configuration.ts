@@ -47,6 +47,12 @@ export interface AppConfig {
   codMaxOrderValuePoisha: number;
   codHandlingFeePoisha: number;
 
+  // ----- Step 13.6: analytics adapter config -----
+  ga4MeasurementId: string;
+  ga4ApiSecret: string;
+  metaPixelId: string;
+  metaCapiAccessToken: string;
+
   isProduction: boolean;
   isDevelopment: boolean;
 }
@@ -94,6 +100,12 @@ export default (): AppConfig => {
 
     codMaxOrderValuePoisha: Number(process.env.COD_MAX_ORDER_VALUE ?? 0),
     codHandlingFeePoisha: Number(process.env.COD_HANDLING_FEE ?? 0),
+
+    // ----- Step 13.6: analytics adapter config -----
+    ga4MeasurementId: process.env.GA4_MEASUREMENT_ID ?? '',
+    ga4ApiSecret: process.env.GA4_API_SECRET ?? '',
+    metaPixelId: process.env.META_PIXEL_ID ?? '',
+    metaCapiAccessToken: process.env.META_CAPI_ACCESS_TOKEN ?? '',
 
     isProduction: nodeEnv === 'production',
     isDevelopment: nodeEnv === 'development',

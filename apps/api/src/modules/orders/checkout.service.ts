@@ -6,6 +6,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { PrismaService } from '../../database/prisma.service';
 import { InvoiceService } from './invoice.service';
 import { MessagingService } from '../messaging/messaging.service';
+import { EventsService } from '../analytics/events.service';
 import { OrdersService } from './orders.service';
 import { RulesEngineService } from '../promotions/rules-engine.service';
 import { CartsService } from '../carts/carts.service';
@@ -25,6 +26,7 @@ export class CheckoutService {
     private readonly carts: CartsService,
     private readonly invoice: InvoiceService,
     private readonly messaging: MessagingService,
+    private readonly events: EventsService,
   ) {}
 
   async placeOrder(
@@ -296,6 +298,27 @@ export class CheckoutService {
           idempotencyKey: `order-confirm-${orderId}`,
         });
       }
+
+      // Step 13.6: server-side PURCHASE event → GA4 MP + Meta CAPI.
+      // Fire-and-forget through the analytics forwarder (already registered
+      // via EventsService.registerForwarder).
+      await this.events.track({
+        eventType: 'PURCHASE',
+        orderId,
+        customerId: undefined,
+        sessionId: undefined,
+        productId: undefined,
+        variantId: undefined,
+        path: undefined,
+        query: undefined,
+        meta: {
+          email: to ?? undefined,
+          phone,
+          valuePoisha: 0,
+          currency: 'BDT',
+          items: [],
+        },
+      });
     } catch (err) {
       this.logger.warn(`sendOrderNotifications failed: ${(err as Error).message}`);
     }
