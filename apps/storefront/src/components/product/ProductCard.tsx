@@ -104,7 +104,7 @@ export function ProductCard(props: ProductCardProps) {
         <div className={styles.imageWrap}>
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={thumbnailUrl} alt={title} className={styles.image} width={400} height={400} loading="lazy" />
+            <img src={thumbnailUrl} alt={`${title} — front view`} className={styles.image} width={400} height={400} loading="lazy" />
           ) : (
             <span className={styles.imagePlaceholder} aria-hidden="true">
               <CameraIcon />
