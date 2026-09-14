@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi, cmsApi, promotionsApi } from '@/lib/api';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
@@ -14,6 +15,40 @@ import {
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 
 export const revalidate = 60; // ISR — refresh every 60s
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  if (!isLocale(params.locale)) return {};
+  const locale = params.locale as 'bn' | 'en';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const canonical = `${origin}/${locale}`;
+
+  const title =
+    locale === 'bn'
+      ? 'স্কাইমার্ট — অনলাইনে কেনাকাটা'
+      : 'SkyMart — Online Shopping in Bangladesh';
+  const description =
+    locale === 'bn'
+      ? 'ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন সহ সব পণ্য এক জায়গায়। নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি।'
+      : 'Electronics, Fashion, Home & Kitchen and more. Safe payments, fast delivery across Bangladesh.';
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+      languages: {
+        bn: `${origin}/bn`,
+        en: `${origin}/en`,
+        'x-default': `${origin}/bn`,
+      },
+    },
+    openGraph: { title, description, type: 'website', url: canonical },
+  };
+}
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
   if (!isLocale(params.locale)) notFound();

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi } from '@/lib/api';
 import type { CategoryNode } from '@/lib/api/types';
@@ -51,6 +52,48 @@ function findPath(
     }
   }
   return null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string; slug: string };
+}): Promise<Metadata> {
+  if (!isLocale(params.locale)) return {};
+  const locale = params.locale as 'bn' | 'en';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const canonical = `${origin}/${locale}/c/${params.slug}`;
+
+  try {
+    const categories = await catalogApi.getCategoryTree();
+    const found = findPath(categories, params.slug);
+    const name = found
+      ? locale === 'bn'
+        ? found.node.nameBn
+        : found.node.nameEn
+      : params.slug;
+    const title = locale === 'bn' ? `${name} — অনলাইনে কিনুন` : `${name} — Buy Online`;
+    const description =
+      locale === 'bn'
+        ? `${name} ক্যাটাগরির সেরা পণ্য, সেরা দামে। নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি।`
+        : `Shop the best of ${name} at SkyMart. Safe payments, fast delivery.`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical,
+        languages: {
+          bn: `${origin}/bn/c/${params.slug}`,
+          en: `${origin}/en/c/${params.slug}`,
+          'x-default': `${origin}/bn/c/${params.slug}`,
+        },
+      },
+      openGraph: { title, description, type: 'website', url: canonical },
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {

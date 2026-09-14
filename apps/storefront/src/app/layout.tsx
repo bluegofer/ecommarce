@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ServiceWorkerRegistrar, InstallPrompt } from '@/components/pwa';
+import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/json-ld';
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="bn">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd('bn')) }}
+        />
         {children}
         <ServiceWorkerRegistrar />
         <InstallPrompt

@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
 import { FaqAccordion, type FaqAccordionLabels, type FaqItem } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
+import { faqJsonLd } from '@/lib/seo/json-ld';
 
 export const metadata = {
-  title: 'FAQ | SkyMart',
+  title: 'FAQ',
   description: 'Frequently asked questions about orders, delivery, payment, returns and account.',
 };
 
@@ -40,8 +41,16 @@ export default function FaqPage({ params }: { params: { locale: string } }) {
     helpful: bn ? 'এটা কি সহায়ক ছিল?' : 'Was this helpful?',
   };
 
+  const jsonLd = faqJsonLd(
+    items.map((it) => ({ question: it.question, answer: it.answer })),
+  );
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <h1 style={{ maxWidth: 720, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
         {bn ? 'সাধারণ প্রশ্ন (FAQ)' : 'Frequently Asked Questions'}
       </h1>
