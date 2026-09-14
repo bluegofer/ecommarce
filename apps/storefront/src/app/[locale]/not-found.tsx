@@ -1,8 +1,9 @@
-// Root-level 404 — required so any notFound() outside a specific segment
-// has a place to render. Kept minimal; the [locale] variant is preferred.
+// Locale-scoped 404 — keeps the error inside the [locale] segment so
+// notFound() from any nested page renders branded content instead of
+// bubbling up to the root layout.
 import Link from 'next/link';
 
-export default function RootNotFound() {
+export default function LocaleNotFound() {
   return (
     <main
       style={{
@@ -14,9 +15,13 @@ export default function RootNotFound() {
       }}
     >
       <div style={{ fontSize: 64, fontWeight: 700, color: '#87CEEB' }}>404</div>
-      <h1 style={{ fontSize: 24, margin: '12px 0' }}>Page not found</h1>
+      <h1 style={{ fontSize: 24, margin: '12px 0' }}>
+        Page not found / পৃষ্ঠাটি খুঁজে পাওয়া যায়নি
+      </h1>
       <p style={{ color: '#64748B', marginBottom: 24 }}>
-        The page you are looking for does not exist.
+        The link may be broken or the page may have been removed.
+        <br />
+        লিংকটি ভুল হতে পারে অথবা পৃষ্ঠাটি সরিয়ে ফেলা হয়েছে।
       </p>
       <Link
         href="/bn"
@@ -30,7 +35,7 @@ export default function RootNotFound() {
           fontWeight: 600,
         }}
       >
-        Go to Home
+        Go to Home / হোমে যান
       </Link>
     </main>
   );

@@ -6,9 +6,25 @@ import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
 import { PdpClient, type PdpVariant, type PdpImage } from '@/components/pdp';
 
-// PDP fetches product + variants + reviews per request — dynamic for now.
-// Step 11 (SEO) may switch to ISR with generateStaticParams for popular slugs.
-export const dynamic = 'force-dynamic';
+// Step 14.1 — PDP is ISR now. Top-N products by soldCount are prebuilt at
+// build time; new/renamed products trigger on-demand revalidation via
+// POST /api/revalidate (called by the admin publish flow).
+// Reviews and stock still update via time-based revalidate (1 hour).
+export const revalidate = 3600;
+
+/**
+ * Step 14.1 — prebuild the top 100 product slugs at build time.
+ * Remaining products fall back to on-demand ISR on first request.
+ */
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  try {
+    const rows = await catalogApi.getStaticSlugs(100);
+    return rows.map((r) => ({ slug: r.slug }));
+  } catch {
+    // Build must not fail if the API is unreachable — dynamic fallback is fine.
+    return [];
+  }
+}
 
 interface PageProps {
   params: { locale: string; slug: string };
@@ -44,13 +60,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const p = await catalogApi.getProductBySlug(params.slug);
     const title = p.metaTitle ?? (locale === 'bn' ? p.titleBn : p.titleEn);
     const description = p.metaDescription ?? undefined;
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+    const canonical = `${origin}/${locale}/p/${p.slug}`;
     return {
       title,
       description,
+      alternates: {
+        canonical,
+        languages: {
+          bn: `${origin}/bn/p/${p.slug}`,
+          en: `${origin}/en/p/${p.slug}`,
+          'x-default': `${origin}/bn/p/${p.slug}`,
+        },
+      },
       openGraph: {
         title,
         description,
         type: 'website',
+        url: canonical,
       },
     };
   } catch {
@@ -64,11 +91,17 @@ export default async function ProductPage({ params }: PageProps) {
   const t = getDictionary(locale);
 
   // Fetch product + variants + reviews + related in parallel
-  let product: ProductSummary;
+  let product: ProductSummary | null = null;
   try {
     product = await catalogApi.getProductBySlug(params.slug);
   } catch {
+    product = null;
+  }
+  if (!product || typeof product.id !== 'string') {
     notFound();
+    // notFound() throws at runtime; this line satisfies TypeScript's control-flow
+    // analysis so `product` is narrowed to ProductSummary below.
+    throw new Error('unreachable: product missing after notFound()');
   }
 
   const [variants, reviewsSummary, reviewsList, categories, related] = await Promise.all([

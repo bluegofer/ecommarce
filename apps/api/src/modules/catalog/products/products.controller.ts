@@ -45,6 +45,18 @@ export class ProductsController {
     return null;
   }
 
+  /**
+   * Step 14.1 — top-N published product slugs for storefront ISR seeding.
+   * Public + cacheable — safe to expose; contains no PII.
+   */
+  @Public()
+  @Get('static-slugs')
+  async staticSlugs(@Query('limit') limit?: string) {
+    const parsed = limit ? parseInt(limit, 10) : 100;
+    const safe = Number.isFinite(parsed) ? Math.min(Math.max(1, parsed), 500) : 100;
+    return this.products.getStaticSlugs(safe);
+  }
+
   @Public()
   @Get('redirects/list')
   listRedirects() {

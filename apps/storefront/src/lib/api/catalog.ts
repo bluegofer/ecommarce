@@ -88,4 +88,15 @@ export const catalogApi = {
     const res = await api.get<unknown>(`/variants/product/${encodeURIComponent(productId)}`);
     return unwrap<VariantSummary[]>(res);
   },
+
+  /**
+   * Step 14.1 — top-N published product slugs for ISR seeding.
+   * Called from `generateStaticParams` at build time. Bounded (default 100).
+   */
+  async getStaticSlugs(limit = 100): Promise<Array<{ slug: string; updatedAt: string }>> {
+    return api.get<Array<{ slug: string; updatedAt: string }>>(
+      `/products/static-slugs?limit=${encodeURIComponent(String(limit))}`,
+      { cache: 'no-store' },
+    );
+  },
 };

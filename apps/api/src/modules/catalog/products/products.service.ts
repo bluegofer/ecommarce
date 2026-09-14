@@ -168,6 +168,22 @@ export class ProductsService {
     };
   }
 
+  /**
+   * Step 14.1 — returns slug + updatedAt for the top-N products by soldCount
+   * (published only). Used by the storefront's `generateStaticParams` for ISR.
+   * Not paginated — a bounded static-seed list.
+   */
+  async getStaticSlugs(limit: number): Promise<Array<{ slug: string; updatedAt: string }>> {
+    const take = Math.min(Math.max(1, limit), 500);
+    const rows = await this.prisma.product.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: [{ soldCount: 'desc' }, { createdAt: 'desc' }],
+      take,
+      select: { slug: true, updatedAt: true },
+    });
+    return rows.map((r) => ({ slug: r.slug, updatedAt: r.updatedAt.toISOString() }));
+  }
+
   async remove(id: string): Promise<{ ok: true }> {
     const p = await this.prisma.product.findUnique({ where: { id } });
     if (!p) throw new NotFoundException('product not found');
