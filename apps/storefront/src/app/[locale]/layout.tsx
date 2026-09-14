@@ -26,6 +26,7 @@ export default function LocaleLayout({
 
   return (
     <>
+
       <script
         dangerouslySetInnerHTML={{
           __html: `document.documentElement.lang = ${JSON.stringify(locale)};`,

@@ -2,20 +2,42 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  compress: true,
   transpilePackages: ['@ecommarce/types'],
   eslint: { ignoreDuringBuilds: true },
   images: {
     formats: ['image/webp'],
-    // Step 14.5 — tightened from `hostname: '**'` to explicit hosts.
-    // Add new hosts here when a new CDN/bucket is introduced.
+    minimumCacheTTL: 2592000,
     remotePatterns: [
-      // Local dev / API-served uploads
       { protocol: 'http', hostname: 'localhost' },
-      // S3 (ap-south-1) and CDN — Step 15 wires the real domain
       { protocol: 'https', hostname: '*.s3.*.amazonaws.com' },
       { protocol: 'https', hostname: '*.cloudfront.net' },
-      // Data URLs (dev-seed placeholders) are handled by next/image natively.
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/sitemap.xml',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=86400' },
+          { key: 'Content-Type', value: 'application/xml; charset=utf-8' },
+        ],
+      },
+      {
+        source: '/robots.txt',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=86400' },
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
+        ],
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ];
   },
 };
 export default nextConfig;
