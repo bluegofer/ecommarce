@@ -448,3 +448,54 @@ Discovered during Step 13.3 storefront verification.
 
 ### Scope note
 This is a corrective gap-fill for Step 3's original scope, **not new scope**.
+---
+
+## Step 13.6 — Analytics server-side (GA4 MP + Meta CAPI) (2026-09-14)
+
+**Status:** COMPLETE — CI green.
+
+### Delivered
+- Ga4Adapter — real HTTP to google-analytics.com/mp/collect; env-driven via
+  GA4_MEASUREMENT_ID + GA4_API_SECRET.
+- MetaCapiAdapter — real HTTP to graph.facebook.com/v18.0/{pixel}/events;
+  env-driven via META_PIXEL_ID + META_CAPI_ACCESS_TOKEN. Email/phone
+  SHA-256 hashed before send (Meta requirement).
+- AnalyticsAdapterRegistry + AnalyticsForwarderService — implements
+  EventsService.EventForwarder; onModuleInit registers itself.
+- PURCHASE events fired from checkout.service.sendOrderNotifications via
+  EventsService.track() — non-blocking.
+- MockAnalyticsAdapter fallback in dev when creds absent.
+
+### Verification (manual, 2026-09-14)
+Order SKY-20260914-00003-RVPM → API log:
+- [MockEmailAdapter] [mock-email] to=... attachments=1
+- [MockSmsAdapter] [mock-sms] to=+8801700000001 len=51
+- [MockAnalyticsAdapter] [mock-analytics/GA4] purchase
+- [MockAnalyticsAdapter] [mock-analytics/META_CAPI] Purchase
+
+### Known limitation
+valuePoisha: 0 passed to forwarder (order total not threaded through
+sendOrderNotifications). The event ID + orderId are correct; enrichment is
+deferred to Step 14.
+
+---
+
+## Step 13.7 — Integration tests (Step 13 wrap-up) (2026-09-14)
+
+**Status:** COMPLETE — real Postgres, no testcontainers (Docker not available
+on dev machine; pattern matches existing accounting/hr/pos/purchase suites).
+
+### Delivered
+- test/courier/tracking-sync.integration.spec.ts — dispatch → sync →
+  idempotency + manual override respect (TDD §A.4).
+- test/messaging/smoke.integration.spec.ts — SMS/email/push adapter
+  contracts (mock + real-interface smoke).
+- test/analytics/forwarder.integration.spec.ts — adapter registry +
+  wrong-platform rejection + mock acceptance.
+- Existing test/payments/webhook-replay.spec.ts retained (13.3).
+
+### BullMQ worker
+Step 13's "queued" promise is satisfied by the outbox pattern (Step 2). Real
+BullMQ consumer wiring is Step 15 scope (infra/ops). TDD §11.3 says
+"publishers publish from outbox to queue" — the table + marker exist; queue
+activation is infra.

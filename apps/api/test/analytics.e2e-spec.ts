@@ -87,6 +87,23 @@ describe('Analytics (e2e)', () => {
       }
     }
 
+    // Step 13.7 hardening: event-loop drain + pre-funnel assertion.
+    // Step 13.6 wired EventForwarder into EventsService.track() — the POST
+    // endpoint awaits the DB write, but the fire-and-forget forwarder may
+    // still be in flight. Drain the microtask queue and assert the seed
+    // actually landed before querying the funnel.
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    const seededCounts = await prisma.analyticsEvent.groupBy({
+      by: ['eventType'],
+      _count: { _all: true },
+    });
+    const seededByType = Object.fromEntries(
+      seededCounts.map((c) => [c.eventType, c._count._all]),
+    );
+    expect(seededByType['PURCHASE']).toBe(5);
+    expect(seededByType['PAGE_VIEW']).toBe(100);
+
     const res = await request(app.getHttpServer())
       .get('/api/v1/analytics/reports/funnel')
       .set('Authorization', `Bearer ${reporter.accessToken}`)
