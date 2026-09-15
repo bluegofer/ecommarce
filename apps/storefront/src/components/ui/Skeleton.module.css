@@ -1,0 +1,58 @@
+.block {
+  display: block;
+  background: var(--sk-divider);
+  border-radius: var(--sk-radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+.block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(246, 250, 253, 0.65) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s linear infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block::after { animation: none; }
+}
+
+.r_sm { border-radius: var(--sk-radius-sm); }
+.r_md { border-radius: var(--sk-radius-md); }
+.r_lg { border-radius: var(--sk-radius-lg); }
+.r_pill { border-radius: var(--sk-radius-pill); }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  align-items: center;
+}
+
+.rowLines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

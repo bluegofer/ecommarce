@@ -1,0 +1,34 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  height: 40px;
+  background: var(--sk-surface);
+}
+
+.btn {
+  width: 40px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--sk-ink);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn:hover:not(:disabled) { background: var(--sk-hover-row); }
+.btn:disabled { color: var(--sk-disabled); cursor: not-allowed; }
+
+.value {
+  min-width: 40px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  font-variant-numeric: tabular-nums;
+  padding: 0 8px;
+}

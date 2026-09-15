@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_PUBLIC_API_URL: http://localhost:3000
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ecommarce
+          POSTGRES_PASSWORD: ecommarce
+          POSTGRES_DB: ecommarce_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ecommarce"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+          --health-start-period 30s
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+          --health-start-period 30s
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://ecommarce:ecommarce@localhost:5432/ecommarce_test?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-access-secret-xxxxxxxxxxxxxxxxxxxxx
+      JWT_REFRESH_SECRET: ci-refresh-secret-yyyyyyyyyyyyyyyyyyyy
+      JWT_ACCESS_TTL: 900
+      JWT_REFRESH_TTL: 2592000
+      BCRYPT_COST: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate Prisma Client
+        working-directory: apps/api
+        run: pnpm exec prisma generate
+      - name: Apply database schema
+        working-directory: apps/api
+        run: pnpm exec prisma migrate deploy
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - name: Test
+        run: pnpm test
+        timeout-minutes: 8
+      - run: pnpm build

@@ -1,0 +1,9 @@
+name: deploy-production
+on:
+  workflow_dispatch:
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "Wired in Step 12 - AWS production deploy"

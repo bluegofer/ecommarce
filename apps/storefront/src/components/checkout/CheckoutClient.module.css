@@ -1,0 +1,5 @@
+.placeholder {
+  min-height: 400px;
+  background: var(--sk-surface-alt);
+  border-radius: var(--sk-radius-lg);
+}

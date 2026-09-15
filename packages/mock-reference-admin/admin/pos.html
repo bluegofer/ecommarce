@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>POS Terminal · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item active" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Scan barcode or search SKU…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🏪 POS Terminal</h2><div class="crumb">ERP Suite / POS</div><p>Barcode scanning · multi-payment (Cash/Card/bKash/Nagad) · invoice printing · real-time central inventory sync per Appendix A.1.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Cash drawer opened">💰 Open Drawer</button><button class="btn b-ghost" data-toast="End of day report">📊 End-of-day</button><button class="btn b-primary" data-toast="New sale started">🆕 New Sale</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-green">💵</div><div><div class="stat-lbl">Drawer Balance</div><div class="stat-val">৳5,420</div><div class="stat-sub">opening ৳3,000</div></div></div>
+<div class="card stat"><div class="stat-ic ic-sky">📝</div><div><div class="stat-lbl">Invoices Today</div><div class="stat-val">28</div><div class="stat-sub">last: BG-POS-028</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">↩️</div><div><div class="stat-lbl">Returns Today</div><div class="stat-val">2</div><div class="stat-sub">refund ৳1,240</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">🔌</div><div><div class="stat-lbl">Branch Sync</div><div class="stat-val">OK</div><div class="stat-sub">last 14s ago</div></div></div>
+</div>
+
+<div class="pos-layout">
+<div class="card">
+<div class="card-hd"><h3>🛒 Quick Add — Tap product to add</h3><div><div class="search" style="position:relative"><input class="inp" style="width:260px;padding-left:34px" placeholder="Search SKU or scan…"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.6">🔍</span></div></div></div>
+<div class="card-bd">
+<div class="pos-grid">
+<div class="pos-item"><div class="pos-ic">📱</div><div class="pos-nm">Galaxy S25 Ultra</div><div class="pos-pr">৳1,29,999</div></div>
+<div class="pos-item"><div class="pos-ic">👟</div><div class="pos-nm">Nike Air Z. 41</div><div class="pos-pr">৳11,500</div></div>
+<div class="pos-item"><div class="pos-ic">🍚</div><div class="pos-nm">Rice 5kg</div><div class="pos-pr">৳680</div></div>
+<div class="pos-item"><div class="pos-ic">👗</div><div class="pos-nm">Anarkali Kurta</div><div class="pos-pr">৳2,350</div></div>
+<div class="pos-item"><div class="pos-ic">💻</div><div class="pos-nm">MacBook Air M3</div><div class="pos-pr">৳1,54,000</div></div>
+<div class="pos-item"><div class="pos-ic">⌚</div><div class="pos-nm">Watch Pro X</div><div class="pos-pr">৳4,200</div></div>
+<div class="pos-item"><div class="pos-ic">🍯</div><div class="pos-nm">Honey 500g</div><div class="pos-pr">৳450</div></div>
+<div class="pos-item"><div class="pos-ic">👔</div><div class="pos-nm">Linen Shirt</div><div class="pos-pr">৳1,890</div></div>
+<div class="pos-item"><div class="pos-ic">🧴</div><div class="pos-nm">Body Lotion</div><div class="pos-pr">৳520</div></div>
+<div class="pos-item"><div class="pos-ic">🥤</div><div class="pos-nm">Soft Drink 1L</div><div class="pos-pr">৳85</div></div>
+<div class="pos-item"><div class="pos-ic">🍞</div><div class="pos-nm">Brown Bread</div><div class="pos-pr">৳120</div></div>
+<div class="pos-item"><div class="pos-ic">🥛</div><div class="pos-nm">Milk 1L</div><div class="pos-pr">৳95</div></div>
+</div>
+</div>
+</div>
+
+<div>
+<div class="card">
+<div class="card-hd"><h3>🧾 Current Cart · BG-POS-029</h3><span class="badge b-sky">Branch: Dhaka</span></div>
+<div class="card-bd">
+<table style="width:100%;font-size:13px">
+<tr><td>📱 Galaxy S25 Ultra 256<br><span class="cell-sub">৳1,29,999 × 1</span></td><td style="text-align:right;font-weight:600">৳1,29,999</td></tr>
+<tr style="background:var(--slate-50)"><td style="padding:8px 4px">🍯 Organic Honey 500g<br><span class="cell-sub">৳450 × 2</span></td><td style="padding:8px 4px;text-align:right;font-weight:600">৳900</td></tr>
+<tr><td>🥛 Milk 1L<br><span class="cell-sub">৳95 × 3</span></td><td style="text-align:right;font-weight:600">৳285</td></tr>
+</table>
+<hr style="margin:12px 0;border:none;border-top:1px solid var(--slate-100)">
+<div class="summary-line"><span>Subtotal</span><span>৳1,31,184</span></div>
+<div class="summary-line"><span>VAT (5%)</span><span>৳6,559</span></div>
+<div class="summary-line total"><span>Total</span><span>৳1,37,743</span></div>
+<hr style="margin:12px 0;border:none;border-top:1px solid var(--slate-100)">
+<h4 style="font-size:13px;margin-bottom:8px">Pay with</h4>
+<div class="pay-method on" style="margin-bottom:6px"><div class="pm-ic cd">৳</div><div><b>Cash</b><br><span class="cell-sub">৳2,000 offered</span></div></div>
+<div class="pay-method" style="margin-bottom:6px"><div class="pm-ic bk">b</div><div><b>bKash</b></div></div>
+<div class="pay-method" style="margin-bottom:6px"><div class="pm-ic nd">N</div><div><b>Nagad</b></div></div>
+<div class="pay-method"><div class="pm-ic ss">S</div><div><b>Card (SSLCommerz)</b></div></div>
+<button class="btn b-primary block" style="margin-top:14px" data-toast="Invoice printed &amp; sale recorded to inventory">🖨 Charge &amp; Print Invoice</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px"><div class="card-hd"><h3>📜 Today's POS Sales · Branch: Dhaka</h3></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Invoice</th><th>Time</th><th>Method</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><b>BG-POS-028</b></td><td>14:42</td><td><span class="badge b-sky">bKash</span></td><td>3</td><td>৳2,980</td><td><span class="badge b-green">Closed</span></td></tr>
+<tr><td><b>BG-POS-027</b></td><td>13:55</td><td><span class="badge b-slate">Cash</span></td><td>2</td><td>৳1,150</td><td><span class="badge b-green">Closed</span></td></tr>
+<tr><td><b>BG-POS-026</b></td><td>12:30</td><td><span class="badge b-teal">Nagad</span></td><td>5</td><td>৳4,820</td><td><span class="badge b-green">Closed</span></td></tr>
+<tr><td><b>BG-POS-025</b></td><td>11:18</td><td><span class="badge b-violet">Card</span></td><td>1</td><td>৳24,900</td><td><span class="badge b-amber">Returned (A.1)</span></td></tr>
+</tbody></table></div></div></div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>
