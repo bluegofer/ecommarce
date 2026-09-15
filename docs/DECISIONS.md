@@ -516,3 +516,93 @@ Added `docs/step-13-mock-inventory.md` — a consolidated reference for:
 
 This file is the single source of truth for "what is mocked, and what
 unblocks it." Reference it from client onboarding and Step 15 (AWS infra).
+---
+
+## Step 15 — Infrastructure Baseline Decision (2026-09-16)
+
+**Status:** LOCKED — client confirmed $47/month target.
+
+### Context
+Client (owner: MD ANIMUL HOQ) reviewed two infrastructure proposals:
+- TDD §9 full compliance: ~$200-300/month (2× EC2 + ALB + RDS Multi-AZ + WAF + NAT)
+- MVP/minimal: ~$32/month (1× t3.small, self-hosted everything)
+- **Chosen:** Hybrid "Client-Starter" at **~$47/month** — managed DB + Redis in-EC2, single EC2, CloudFront CDN.
+
+### Locked Configuration (Step 15 baseline)
+
+| Service | Spec | Cost/month | Notes |
+|---|---|---|---|
+| EC2 | 1× t3.medium (2 vCPU, 4 GB RAM) | $30 | All-in-one: NestJS API + Next.js Storefront + Admin + BullMQ worker |
+| RDS PostgreSQL | db.t3.micro, 20 GB gp3, single-AZ | $15 | Managed (auto-backup, encryption, patch) |
+| Redis | Self-hosted on EC2 (within 4 GB) | $0 | maxmemory 512 MB, LRU policy, BGSAVE to S3 every 6h |
+| S3 | 5 GB (media + logs) | $1 | |
+| CloudFront | Traffic-based CDN | $0-1 | Free tier 1 TB egress (first 12 months) |
+| Route 53 | 1 hosted zone | $0.50 | |
+| ACM SSL | Wildcard cert | $0 | |
+| SES | Transactional email | $0.50 | |
+| CloudWatch | Logs + basic alarms | $0-3 | Retention policy 30 days |
+| Elastic IP | Attached to EC2 | $0 | |
+| **Total** | | **~$47/month** | |
+
+### TDD §9 Partial Deviations (accepted with rationale)
+
+| TDD Requirement | Deviation | Rationale | Upgrade Trigger |
+|---|---|---|---|
+| EC2 Multi-AZ + ASG | Single EC2 (no ALB/ASG) | $18 ALB + $30 2nd EC2 skipped | Traffic > 50 concurrent |
+| RDS Multi-AZ | Single-AZ RDS | $45/month saved | Before production launch or traffic > 5,000/day |
+| ElastiCache Redis | Self-hosted on EC2 | $12/month saved | Before production launch |
+| WAF + Shield | Deferred | $10-15/month saved | Before public marketing campaign |
+| NAT Gateway | Not provisioned | $32/month saved | When private subnet needed (Step 15 upgrade) |
+
+**TDD references where deviations occur:**
+- §9.1 (VPC public/private): Partial — DB via Security Groups only; not VPC-isolated
+- §9.3 (auto-scaling): Deferred — single EC2
+- §9.4 (backups/DR): Partial — RDS auto-backup (7 days) + S3 manual for Redis; no cross-region DR
+- §10.2 (DB private subnet): Partial — DB reachable only via EC2 SG, not VPC-level isolation
+
+### Capacity Estimate (verified assumptions)
+
+| Metric | Value |
+|---|---|
+| Comfortable concurrent users | 20-30 |
+| Stretch concurrent users | 50 (response 500ms) |
+| Slow but working | 70-100 |
+| Crash/OOM | 150+ |
+| Comfortable unique visitors/day | 2,000-5,000 |
+| Stretch unique visitors/day | 10,000 (slow peaks) |
+| Peak hour handling | 20-30 concurrent (evening 7-10 PM) |
+
+**Reasoning:** Single t3.medium can host all processes with ~1-2 GB spare. RDS db.t3.micro handles startup DB load. Redis self-hosted within spare RAM. CloudFront absorbs static asset load.
+
+### Upgrade Path (staged, TDD-compliant at each tier)
+
+| Stage | Trigger | Monthly | Adds |
+|---|---|---|---|
+| **Client-Starter (current)** | Initial launch | $47 | Single EC2, single-AZ RDS, in-EC2 Redis |
+| **Small Business** | > 5,000 visitors/day | $75 | RDS Multi-AZ upgrade, ElastiCache t3.micro |
+| **Growing** | > 10,000 visitors/day | $120 | 2nd EC2 + ALB, t3.large EC2 |
+| **Production HA** | > 25,000 visitors/day | $220 | WAF, NAT, RDS t3.small Multi-AZ, ASG 2-4 |
+| **Scale** | > 100,000 visitors/day | $500+ | Auto-scaling, read replicas, CDN optimization |
+
+### Client Responsibilities
+
+Per TDD §15.2: Client owns all AWS resources. Developer has least-privilege IAM access only. Monthly AWS bill paid by client's credit card.
+
+### TDD Appendix Reference
+
+This decision is documented as **Appendix B — Infrastructure Baseline & Cost Commitment (Client-Approved)** in the TDD v2.1 PDF (to be inserted after Appendix A).
+
+### Verified Cost Model (against AWS ap-south-1 pricing, 2026)
+
+- t3.medium: $0.0416/hour × 730 = $30.37
+- db.t3.micro: $0.021/hour × 730 = $15.33
+- S3 Standard: $0.023/GB × 5 GB = $0.12
+- CloudFront: $0.085/GB egress (Asia) — free tier covers startup
+- Route 53: $0.50/hosted zone + $0.40/million queries
+- SES: $0.10/1,000 emails
+
+**Total verified: ~$46.80/month at startup scale.**
+
+**Post-free-tier estimate (month 13+):** ~$48-50/month.
+
+**Decision owner:** client — may adjust at any Step 15 checkpoint.
