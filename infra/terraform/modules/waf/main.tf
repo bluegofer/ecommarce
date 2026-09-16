@@ -10,7 +10,14 @@ terraform {
   }
 }
 
+variable "enable_waf" {
+  description = "Toggle WAF (false = skip when CloudFront deferred)"
+  type        = bool
+  default     = false
+}
+
 resource "aws_wafv2_web_acl" "cloudfront" {
+  count = var.enable_waf ? 1 : 0
   provider = aws.us_east_1
   name     = "${var.project}-${var.environment}-waf"
   scope    = "CLOUDFRONT"

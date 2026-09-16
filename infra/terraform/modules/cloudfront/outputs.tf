@@ -1,9 +1,17 @@
+# CloudFront module outputs — conditional (count-based resource)
+# When enable_cloudfront = false → outputs return empty string
+
+output "media_domain" {
+  description = "CloudFront media distribution domain (empty if disabled)"
+  value       = var.enable_cloudfront ? aws_cloudfront_distribution.media[0].domain_name : ""
+}
+
+output "media_distribution_id" {
+  description = "CloudFront media distribution ID (empty if disabled)"
+  value       = var.enable_cloudfront ? aws_cloudfront_distribution.media[0].id : ""
+}
+
 output "storefront_domain" {
-  value = var.enable_storefront ? aws_cloudfront_distribution.storefront[0].domain_name : ""
+  description = "CloudFront storefront domain (not yet provisioned — empty)"
+  value       = ""
 }
-output "storefront_distribution_id" {
-  value = var.enable_storefront ? aws_cloudfront_distribution.storefront[0].id : ""
-}
-output "media_domain" { value = aws_cloudfront_distribution.media.domain_name }
-output "media_distribution_id" { value = aws_cloudfront_distribution.media.id }
-output "media_oac_id" { value = aws_cloudfront_origin_access_control.media.id }

@@ -16,3 +16,11 @@ rds_skip_final_snapshot = true
 
 # Staging EC2: keep t3.medium (same as prod baseline for realistic testing)
 ec2_instance_type = "t3.medium"
+
+# ---------------------------------------------------------------------------
+# CloudFront + WAF: TEMPORARILY DISABLED (2026-09-16)
+# AWS CloudFront verification pending (case 178954985700704)
+# See docs/DECISIONS.md for re-enable procedure
+# ---------------------------------------------------------------------------
+enable_cloudfront = false
+enable_waf        = false

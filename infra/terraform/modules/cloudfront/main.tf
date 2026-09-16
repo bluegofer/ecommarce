@@ -1,3 +1,9 @@
+variable "enable_cloudfront" {
+  description = "Toggle CloudFront (false = skip until AWS verifies)"
+  type        = bool
+  default     = false
+}
+
 # CloudFront — 2 distributions (storefront, media).
 # Storefront origin: ALB (dynamic SSR). Media origin: S3.
 
@@ -10,6 +16,7 @@ resource "aws_cloudfront_origin_access_control" "media" {
 
 # Media distribution
 resource "aws_cloudfront_distribution" "media" {
+  count = var.enable_cloudfront ? 1 : 0
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "${var.project}-${var.environment}-media"

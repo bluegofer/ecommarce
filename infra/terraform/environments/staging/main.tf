@@ -25,6 +25,18 @@ module "vpc" {
   enable_nat_gateway = false # $47 baseline: skip NAT ($32/mo saved)
 }
 
+variable "enable_cloudfront" {
+  description = "Toggle CloudFront"
+  type        = bool
+  default     = false
+}
+
+variable "enable_waf" {
+  description = "Toggle WAF"
+  type        = bool
+  default     = false
+}
+
 # ---------------------------------------------------------------------------
 # Provider alias for CloudFront-scoped resources (WAF) — must be us-east-1
 # ---------------------------------------------------------------------------
@@ -120,6 +132,7 @@ module "acm" {
 # CloudFront (media + storefront distributions)
 # ---------------------------------------------------------------------------
 module "cloudfront" {
+  enable_cloudfront = var.enable_cloudfront
   source              = "../../modules/cloudfront"
   project             = var.project
   environment         = var.environment
@@ -177,6 +190,7 @@ module "ses" {
 # WAF — web ACL for CloudFront
 # ---------------------------------------------------------------------------
 module "waf" {
+  enable_waf        = var.enable_waf
   providers = {
     aws.us_east_1 = aws.us_east_1
   }
