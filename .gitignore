@@ -16,3 +16,20 @@ uploads/
 
 # Temp scratch (Step 9+)
 apps/api/prisma/_step9_parts/
+
+
+# ---------------------------------------------------------------------------
+# Terraform — never commit state/providers/plans (contains secrets)
+# ---------------------------------------------------------------------------
+**/.terraform/
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfstate.backup
+**/*.tfplan
+**/tfplan
+**/tfplan_*
+**/.backup-*/
+**/.backup-*
+**/crash.log
+**/crash.*.log
