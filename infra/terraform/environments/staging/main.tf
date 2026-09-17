@@ -162,7 +162,7 @@ module "iam_extras" {
   environment          = var.environment
   github_org           = "bluegofer"
   github_repo          = "ecommarce"
-  create_oidc_provider = false # Set true only on first apply, then false again
+  create_oidc_provider = true # Set true only on first apply, then false again
 }
 
 # ---------------------------------------------------------------------------
