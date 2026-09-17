@@ -40,3 +40,17 @@ resource "aws_route53_record" "mail_from_txt" {
   ttl     = 600
   records = ["v=spf1 include:amazonses.com ~all"]
 }
+# SES domain verification TXT record (_amazonses)
+resource "aws_route53_record" "amazonses_verification" {
+  zone_id = var.route53_zone_id
+  name    = "_amazonses.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 600
+  records = [aws_ses_domain_identity.main.verification_token]
+}
+
+# Verify the SES domain identity once the TXT record is live
+resource "aws_ses_domain_identity_verification" "main" {
+  domain     = aws_ses_domain_identity.main.id
+  depends_on = [aws_route53_record.amazonses_verification]
+}
