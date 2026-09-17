@@ -102,7 +102,7 @@ module "ec2" {
   source              = "../../modules/ec2"
   project             = var.project
   environment         = var.environment
-  private_subnet_id   = module.vpc.private_subnet_ids[0]
+  public_subnet_id    = module.vpc.public_subnet_ids[0]
   app_sg_id           = module.security_groups.app_sg_id
   instance_type       = var.ec2_instance_type
   root_volume_size_gb = 30

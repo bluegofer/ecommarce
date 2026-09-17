@@ -20,7 +20,7 @@ resource "aws_eip" "app" {
 resource "aws_instance" "app" {
   ami                         = data.aws_ami.amazon_linux_2023.id
   instance_type               = var.instance_type
-  subnet_id                   = var.private_subnet_id
+  subnet_id                   = var.public_subnet_id
   vpc_security_group_ids      = [var.app_sg_id]
   associate_public_ip_address = false
   key_name                    = var.key_name != "" ? var.key_name : null
@@ -76,6 +76,11 @@ resource "aws_iam_role_policy_attachment" "ecr_read" {
 resource "aws_iam_role_policy_attachment" "cloudwatch_agent" {
   role       = aws_iam_role.app.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_managed" {
+  role       = aws_iam_role.app.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy" "secrets_read" {

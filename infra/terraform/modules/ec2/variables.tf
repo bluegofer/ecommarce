@@ -1,6 +1,9 @@
 variable "project" { type = string }
 variable "environment" { type = string }
-variable "private_subnet_id" { type = string }
+variable "public_subnet_id" {
+  description = "Public subnet ID (internet-facing, for SSM without NAT)"
+  type        = string
+}
 variable "app_sg_id" { type = string }
 variable "instance_type" {
   type    = string
