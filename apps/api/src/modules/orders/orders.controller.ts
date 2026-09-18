@@ -13,6 +13,7 @@ import type {
   OrderListQueryDto,
   UpdateOrderStatusDto,
 } from '@ecommarce/types';
+import { LookupOrderQueryDto } from './dto/lookup-order.dto';
 import type { Response } from 'express';
 
 interface RequestUser {
@@ -31,9 +32,9 @@ export class OrdersController {
 
   @Public()
   @Get('lookup')
-  async lookup(@Query('orderNumber') orderNumber: string, @Query('phone') phone: string) {
-    const order = await this.orders.findByNumber(orderNumber);
-    if (!order || order.contactPhone !== phone) {
+  async lookup(@Query() query: LookupOrderQueryDto) {
+    const order = await this.orders.findByNumber(query.orderNumber);
+    if (!order || order.contactPhone !== query.phone) {
       return { ok: false };
     }
     return { ok: true, order };

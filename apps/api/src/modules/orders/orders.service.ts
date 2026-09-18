@@ -65,6 +65,14 @@ export class OrdersService {
   }
 
   async findByNumber(orderNumber: string): Promise<OrderDto | null> {
+    // Defense-in-depth guard for BLUEGOFER-API-1 (Step 15.8).
+    // Missing/empty orderNumber must never reach Prisma findUnique --
+    // it would throw a PrismaClientValidationError mapped to HTTP 500.
+    // The controller-level LookupOrderQueryDto already rejects this case
+    // with HTTP 400; this guard protects any internal caller too.
+    if (!orderNumber || typeof orderNumber !== 'string' || orderNumber.trim() === '') {
+      return null;
+    }
     const row = await this.prisma.order.findUnique({
       where: { orderNumber },
       include: {
