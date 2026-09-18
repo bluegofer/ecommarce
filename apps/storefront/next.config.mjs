@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -40,4 +42,23 @@ const nextConfig = {
     ];
   },
 };
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Sentry organization + project (Step 15.11)
+  org: 'bluegofer',
+  project: 'bluegofer-storefront',
+
+  // CI/deploy behavior: don't fail build if Sentry upload fails
+  silent: true,
+
+  // Upload a larger set of source maps for better stack traces
+  widenClientFileUpload: true,
+
+  // Hide source maps from client bundle (security)
+  hideSourceMaps: true,
+
+  // Reduce server bundle size by disabling Sentry logger
+  disableLogger: true,
+
+  // Auto-instrument Vercel Cron Monitors if/when deployed to Vercel (future)
+  automaticVercelMonitors: false,
+});

@@ -1,3 +1,4 @@
+import './instrument';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -6,12 +7,16 @@ import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 
+import { SentryExceptionFilter } from './common/filters/sentry-exception.filter';
+
 async function bootstrap() {
   // rawBody: true keeps the raw request body on req.rawBody for webhook
   // signature verification (payment + courier). Needed by /payments/webhook/*.
   const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
 
-  const prefix = process.env.API_GLOBAL_PREFIX ?? 'api/v1';
+  
+  app.useGlobalFilters(new SentryExceptionFilter());
+const prefix = process.env.API_GLOBAL_PREFIX ?? 'api/v1';
   app.setGlobalPrefix(prefix);
   app.use(helmet());
   app.use(cookieParser());
