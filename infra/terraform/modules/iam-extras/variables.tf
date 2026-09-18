@@ -13,3 +13,8 @@ variable "create_oidc_provider" {
   type        = bool
   default     = false
 }
+
+variable "account_id" {
+  description = "AWS account ID (used for globally-unique S3 bucket names)"
+  type        = string
+}

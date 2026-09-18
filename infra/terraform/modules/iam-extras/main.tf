@@ -26,7 +26,7 @@ resource "aws_iam_role" "github_deploy" {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
-                StringLike = {
+        StringLike = {
           "token.actions.githubusercontent.com:sub" = [
             "repo:${var.github_org}/${var.github_repo}:*",
             "repo:${var.github_org}@*/${var.github_repo}@*:*"
@@ -73,6 +73,70 @@ resource "aws_iam_role_policy" "github_deploy" {
           "ssm:ListCommandInvocations"
         ]
         Resource = "*"
+      }
+    ]
+  })
+}
+
+# ---------------------------------------------------------------------------
+# EC2 role — S3 access for backups + ad-hoc file transfer.
+# Step 15.12.4 — Redis BGSAVE-to-S3 + script/diagnostic transfer.
+#
+# Scope:
+#   - s3:ListBucket / GetBucketLocation : whole bucket (prefix discovery)
+#   - redis-backups/* : read + write + delete (backup push + verify + cleanup)
+#   - tmp/*           : read + write + delete (ad-hoc file transfer)
+#   - backups/*       : write-only       (future DB dumps)
+# ---------------------------------------------------------------------------
+resource "aws_iam_role_policy" "ec2_s3_backup_access" {
+  name = "${var.project}-${var.environment}-ec2-s3-backup-access"
+  role = "${var.project}-${var.environment}-ec2-role"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ListBucket"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = "arn:aws:s3:::${var.project}-${var.environment}-logs-${var.account_id}"
+      },
+      {
+        Sid    = "RedisBackupsWriteAndVerify"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:AbortMultipartUpload"
+        ]
+        Resource = "arn:aws:s3:::${var.project}-${var.environment}-logs-${var.account_id}/redis-backups/*"
+      },
+      {
+        Sid    = "TmpBidirectionalTransfer"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:AbortMultipartUpload"
+        ]
+        Resource = "arn:aws:s3:::${var.project}-${var.environment}-logs-${var.account_id}/tmp/*"
+      },
+      {
+        Sid    = "FutureBackupsWriteOnly"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+          "s3:AbortMultipartUpload"
+        ]
+        Resource = "arn:aws:s3:::${var.project}-${var.environment}-logs-${var.account_id}/backups/*"
       }
     ]
   })

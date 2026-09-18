@@ -154,7 +154,7 @@ module "secrets" {
 }
 
 # ---------------------------------------------------------------------------
-# IAM extras — GitHub OIDC deploy role
+# IAM extras — GitHub OIDC deploy role + EC2 S3 backup policy
 # ---------------------------------------------------------------------------
 module "iam_extras" {
   source               = "../../modules/iam-extras"
@@ -163,6 +163,7 @@ module "iam_extras" {
   github_org           = "bluegofer"
   github_repo          = "ecommarce"
   create_oidc_provider = true # Set true only on first apply, then false again
+  account_id           = var.account_id   # Step 15.12.4 — EC2 Redis backup S3 access
 }
 
 # ---------------------------------------------------------------------------
