@@ -950,4 +950,49 @@ No deviation from TDD Appendix B locked tier.
 - Step 15.11 DONE
 - Step 15.12 (Backups configuration) — 3rd Phase A sub-step
 - Step 15.14 (Cost verification)
-- Then Phase B (Security sweep — will fix BLUEGOFER-API-1)
+- Then Phase B (Security sweep — will fix BLUEGOFER-API-1)---
+
+## Step 15.12 — Backups Configuration (2026-09-18)
+
+**Status:** COMPLETE
+
+### Delivered
+
+| Component | Config | Evidence |
+|---|---|---|
+| RDS auto backup | 7-day retention, daily 03:00 UTC, KMS-encrypted, single-AZ (Appendix B), gp3, not public | `aws rds describe-db-instances` |
+| RDS manual drill | `bluegofer-staging-pg-dr-drill-20260918` (available, encrypted) | `aws rds describe-db-snapshots` |
+| S3 media bucket | Versioning ON + lifecycle IA@30d, expire@365d | `get-bucket-versioning/lifecycle` |
+| S3 logs bucket | Versioning ON + lifecycle expire@90d | `get-bucket-versioning/lifecycle` |
+| Redis BGSAVE-to-S3 | systemd timer every 6h UTC, script `scripts/redis-backup-to-s3.sh` | `systemctl list-timers redis-backup.timer` |
+| IAM policy | `bluegofer-staging-ec2-s3-backup-access` (redis-backups/, tmp/, backups/) | `aws iam list-role-policies` |
+| DR runbook | `docs/dr-runbook.md` (5 scenarios, RPO/RTO, schedule) | repo |
+| Cost Δ | +~$0.83/mo, within $47 tier | AWS Cost Explorer |
+
+### Findings & Fixes
+
+1. **S3 bucket names carry account-ID suffix** — Terraform naming pattern `{prefix}-{account_id}`. EC2 role was initially scoped to wrong prefix (no suffix) → fixed.
+2. **EC2 role least-privilege correctly enforced** — cannot read bucket config (control-plane); use `bluegofer-admin` IAM user for verification.
+3. **SSM heredoc paste unreliable** — corrupted `|` and other chars. **Permanent pattern:** Windows → `aws s3 cp` to `tmp/` → EC2 `aws s3 cp` down → `sudo mv`. `.gitattributes` now enforces LF for `.sh`/`.service`/`.timer`.
+4. **`.gitattributes` added** — prevents CRLF corruption on Windows clones for shell scripts + systemd units.
+
+### Kept snapshots
+
+- `bluegofer-staging-pg-dr-drill-20260918` — retained through Step 16 launch as known-good restore point.
+
+### Deferred drift (from full terraform plan, 2026-09-18)
+
+Full `terraform plan` showed unintended drift not related to Step 15.12 — deferred to Step 15.8/15.10 for controlled maintenance window:
+
+| Issue | Priority | Handle |
+|---|---|---|
+| EC2 AMI pin missing — `data.aws_ami` auto-updates → would replace instance | High | Step 15.10 (maintenance window + pin AMI) |
+| CloudWatch 2 alarms (disk/memory) CLI-created vs Terraform state mismatch | Med | Step 15.8 |
+| SNS email subscription — confirm pending in email inbox | Med | Step 15.8 |
+| Security group ingress drift (2 rules) | Med | Step 15.8 |
+
+**Rationale:** Correcting drift mid-Step 15.12 would risk EC2 replacement. All items safe at current runtime; no user-facing impact.
+
+### Next
+
+Step 15.12 DONE → Step 15.14 (Cost verification) → Phase B (15.8 Security sweep).
