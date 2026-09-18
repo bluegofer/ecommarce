@@ -13,7 +13,7 @@
  * Step 15.11.5 — DECISIONS.md compliance.
  */
 import * as Sentry from '@sentry/nestjs';
-import { scrubEvent } from '@ecommarce/config/sentry';
+import { scrubEvent } from './common/sentry/pii-scrub';
 
 const dsn = process.env.SENTRY_DSN;
 const environment = process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development';
