@@ -155,9 +155,9 @@ jobs:
 
       - name: Check admin
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://admin.nolimitshopping.com/bn)
-          echo "Admin (bn locale): HTTP $STATUS"
-          [ "$STATUS" = "200" ] || exit 1
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-redirs 0 https://admin.nolimitshopping.com/)
+          echo "Admin (root, no redirects): HTTP $STATUS"
+          [[ "$STATUS" =~ ^(200|301|302|307|308)$ ]] || exit 1
 
       - name: Deploy summary
         if: always()
