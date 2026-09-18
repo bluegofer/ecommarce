@@ -839,3 +839,115 @@ No deviation from TDD Appendix B locked tier.
 ### Terraform State Note
 
 The 2 new alarms (disk-high, memory-high) were created via AWS CLI on 2026-09-18 for immediate effect. Terraform mirror added same day. If `terraform plan` shows drift, use `terraform import`:
+
+---
+
+## Step 15.11 — Sentry Error Tracking Integration (2026-09-18)
+
+**Status:** COMPLETE — verified in production, first issue captured.
+
+### Delivered
+
+| Component | Specification | Evidence |
+|---|---|---|
+| Sentry Account | Free tier org `bluegofer` | https://bluegofer.sentry.io |
+| Projects | 3 — `bluegofer-api`, `bluegofer-storefront`, `bluegofer-admin` | Sentry dashboard |
+| SDK Packages | `@sentry/nestjs@^10.75.0` (API), `@sentry/nextjs@^10.75.0` (Storefront + Admin) | `package.json` |
+| API Integration | `instrument.ts` (early import in `main.ts`) + `SentryExceptionFilter` (5xx only) | verified in container logs |
+| Storefront Integration | `instrumentation.ts` + `sentry.{server,client,edge}.config.ts` | runtime verification |
+| Admin Integration | Same as storefront | runtime verification |
+| PII Scrub | Emails, phones, JWTs, auth headers, IPs redacted | `pii-scrub.ts` (shared + API-local copies) |
+| Alerting | Every new issue → email `cloud.bluegofer@gmail.com` | Sentry settings |
+| Verification | First production issue captured — `BLUEGOFER-API-1` | Sentry dashboard |
+| Cost | **$0** (free tier — 5K errors/month, 10K perf units) | No credit card required |
+
+### Cost Impact
+
+| Line Item | Monthly | Actual |
+|---|---|---|
+| Sentry SaaS | $0 (free tier) | $0 |
+| **Net Δ to $47 plan** | **$0** | **$0** |
+
+No deviation from TDD Appendix B locked tier.
+
+### Files Committed
+
+**Repo (Step 15.11 — commit `ed973da`):**
+- `apps/api/src/instrument.ts` — Sentry init
+- `apps/api/src/common/filters/sentry-exception.filter.ts` — 5xx capture
+- `apps/api/src/common/sentry/pii-scrub.ts` — API-local PII scrub
+- `apps/api/src/main.ts` — import './instrument'
+- `apps/storefront/instrumentation.ts` + 3 sentry config files
+- `apps/admin/instrumentation.ts` + 3 sentry config files
+- `packages/config/sentry/pii-scrub.ts` — shared for Next.js apps
+- `packages/config/package.json` — `./sentry` export added
+- `apps/*/package.json` — dependencies added
+- `apps/*/next.config.mjs` — wrapped with `withSentryConfig`
+- `apps/*/.env.example` — SENTRY_* env templates
+- `pnpm-lock.yaml`, `package.json` — typescript pin 5.4.5
+
+**Repo (Step 15.11.1 — commit `30f47b4`):**
+- `apps/api/src/common/sentry/pii-scrub.ts` — API-local copy (fix runtime module resolution)
+- `apps/api/src/instrument.ts` — import path updated
+
+**EC2-side (not committed, but persistent):**
+- `apps/api/.env` — `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`
+- `apps/storefront/.env.local` — `NEXT_PUBLIC_SENTRY_DSN` etc.
+- `apps/admin/.env.local` — `NEXT_PUBLIC_SENTRY_DSN` etc.
+
+### Root Cause Analyses (Learnings)
+
+**1. API runtime crash on Sentry import (commit ed973da):**
+- **Symptom:** Container crash-loop, smoke test 15× HTTP 502.
+- **Cause:** `require('@ecommarce/config/sentry')` at runtime — API's tsc-only build cannot load `.ts` from workspace package; Node.js runtime rejects `.ts` extension.
+- **Fix:** Inline `pii-scrub.ts` into `apps/api/src/common/sentry/` (compiled to `dist/*.js`). Next.js apps keep `packages/config/sentry` (webpack bundles at build time).
+
+**2. Disk full on EC2 (22.37 GB):**
+- **Symptom:** `failed to register layer: no space left on device`.
+- **Cause:** Docker image layers accumulate on each ECR push. Multiple prior deploys left stale layers.
+- **Fix:** `sudo docker system prune -af --volumes=false` freed 22.37 GB. **Permanent fix:** CI workflow now runs prune before pull.
+
+**3. Container didn't pick up new image (`--force-recreate`):**
+- **Symptom:** `docker compose pull` fetched new image, `docker compose up -d` didn't recreate container (same `:latest` tag).
+- **Cause:** Docker Compose compares config, not image digest. Same tag = "no change".
+- **Fix:** `up -d --force-recreate` forces recreation. **Permanent fix:** CI workflow updated.
+
+### Known Issues Tracked (Step 15.8 action items)
+
+**Issue BLUEGOFER-API-1 — `GET /api/v1/orders/lookup` returns 500 instead of 400:**
+- **Cause:** Missing query params (`orderNumber`, `phone`) not validated; `findByNumber(undefined)` called → `PrismaClientValidationError`.
+- **Fix target:** Step 15.8 (Security sweep) — add `@Query()` DTO validation.
+- **Files:** `apps/api/src/modules/orders/orders.controller.ts:32`, `apps/api/src/modules/orders/orders.service.ts:60`.
+
+### Sentry DSN Rotation Pending
+
+**Context:** During setup, DSNs were inadvertently pasted into chat. For security hygiene, rotate API + Admin DSNs before Step 16 launch:
+- Sentry UI: Settings → Project → Client Keys (DSN) → Rotate
+- Update `.env` + `.env.local` accordingly
+- Restart containers
+
+**Trigger:** Before Step 16 (UAT + Launch).
+
+### CI/CD Workflow Changes (Step 15.11.14)
+
+**`.github/workflows/deploy-staging.yml` updated:**
+- Added `df -h /` + `docker system prune -af --volumes=false` before pull
+- Changed `up -d` → `up -d --force-recreate`
+
+### Learnings Recorded
+
+1. **PowerShell multiline string (`@'...'@`) unreliable for large content** — use Notepad for markdown/YAML edits, not shell heredocs.
+2. **`Out-File -Encoding utf8` adds BOM** — always use `[System.IO.File]::WriteAllText($path, $content, [UTF8Encoding]::new($false))`.
+3. **`Set-Content` same BOM issue** — same fix.
+4. **tsc-only builds cannot require workspace `.ts`** — for API, inline helpers into `src/`.
+5. **Docker Compose `:latest` tag doesn't trigger recreate** — always use `--force-recreate` in deploy.
+6. **Disk accumulation on EC2 from ECR pushes** — prune before pull in CI.
+7. **PowerShell vs SSM shell — commands NOT interchangeable** — `&&` doesn't work in old PowerShell; `~/` path doesn't work in PowerShell; `sed`/`grep` need SSM shell.
+8. **PAT never paste in chat** — generate → type in shell → push → revoke immediately.
+
+### Next
+
+- Step 15.11 DONE
+- Step 15.12 (Backups configuration) — 3rd Phase A sub-step
+- Step 15.14 (Cost verification)
+- Then Phase B (Security sweep — will fix BLUEGOFER-API-1)

@@ -93,9 +93,12 @@ jobs:
             --parameters commands='[
               "set -e",
               "cd /home/ssm-user/apps/ecommarce",
+              "df -h / | tail -1",
+              "sudo docker system prune -af --volumes=false",
+              "df -h / | tail -1",
               "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}",
               "docker compose -f docker-compose.prod.yml pull",
-              "docker compose -f docker-compose.prod.yml up -d",
+              "docker compose -f docker-compose.prod.yml up -d --force-recreate",
               "docker exec bluegofer-api npx prisma migrate deploy || true",
               "sleep 10",
               "docker compose -f docker-compose.prod.yml ps"
