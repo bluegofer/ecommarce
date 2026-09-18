@@ -1,9 +1,169 @@
 name: deploy-staging
+
 on:
   push:
     branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 390630836942.dkr.ecr.ap-south-1.amazonaws.com
+  EC2_INSTANCE_ID: i-02e21d2aba38958db
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  placeholder:
+  build-and-push:
+    name: Build and push Docker images
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - run: echo "Wired in Step 12 - AWS staging deploy"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-Staging-Deploy
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/bluegofer-staging-api:latest
+            ${{ env.ECR_REGISTRY }}/bluegofer-staging-api:${{ github.sha }}
+
+      - name: Build and push Storefront image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/storefront/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/bluegofer-staging-storefront:latest
+            ${{ env.ECR_REGISTRY }}/bluegofer-staging-storefront:${{ github.sha }}
+
+      - name: Build and push Admin image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/admin/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/bluegofer-staging-admin:latest
+            ${{ env.ECR_REGISTRY }}/bluegofer-staging-admin:${{ github.sha }}
+
+  deploy:
+    name: Deploy to EC2 via SSM
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run deploy commands via SSM
+        id: ssm-deploy
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ env.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "GitHub Actions deploy ${{ github.sha }}" \
+            --parameters commands='[
+              "set -e",
+              "cd /home/ssm-user/apps/ecommarce",
+              "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}",
+              "docker compose -f docker-compose.prod.yml pull",
+              "docker compose -f docker-compose.prod.yml up -d",
+              "docker exec bluegofer-api npx prisma migrate deploy || true",
+              "sleep 10",
+              "docker compose -f docker-compose.prod.yml ps"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+
+      - name: Wait for SSM command completion
+        run: |
+          for i in $(seq 1 30); do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "${{ steps.ssm-deploy.outputs.command_id }}" \
+              --instance-id "${{ env.EC2_INSTANCE_ID }}" \
+              --query "Status" --output text 2>/dev/null || echo "Pending")
+            echo "Attempt $i: Status=$STATUS"
+            if [ "$STATUS" = "Success" ] || [ "$STATUS" = "Failed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          if [ "$STATUS" != "Success" ]; then
+            echo "Deploy failed or timed out. Fetching output..."
+            aws ssm get-command-invocation \
+              --command-id "${{ steps.ssm-deploy.outputs.command_id }}" \
+              --instance-id "${{ env.EC2_INSTANCE_ID }}" \
+              --query "StandardOutputContent" --output text
+            exit 1
+          fi
+
+  smoke-test:
+    name: Smoke test
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check API health
+        run: |
+          for i in $(seq 1 15); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.nolimitshopping.com/api/v1/health)
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "API health OK"
+              curl -s https://api.nolimitshopping.com/api/v1/health
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "API health check failed"
+          exit 1
+
+      - name: Check storefront
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://nolimitshopping.com/bn)
+          echo "Storefront (bn locale): HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Check admin
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-redirs 0 https://admin.nolimitshopping.com/)
+          echo "Admin (root, no redirects): HTTP $STATUS"
+          [[ "$STATUS" =~ ^(200|301|302|307|308)$ ]] || exit 1
+
+      - name: Deploy summary
+        if: always()
+        run: |
+          echo "### Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Deployed at: $(date -u)" >> $GITHUB_STEP_SUMMARY

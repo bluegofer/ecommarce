@@ -36,7 +36,7 @@ resource "aws_iam_role" "github_deploy" {
   tags = { Name = "${var.project}-${var.environment}-github-deploy" }
 }
 
-# Deploy policy — ECR push, ECS/EC2 deploy later
+# Deploy policy — ECR push, SSM deploy to EC2, S3 artifacts
 resource "aws_iam_role_policy" "github_deploy" {
   name = "${var.project}-${var.environment}-deploy-policy"
   role = aws_iam_role.github_deploy.id
@@ -60,6 +60,15 @@ resource "aws_iam_role_policy" "github_deploy" {
       {
         Effect   = "Allow"
         Action   = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand",
+          "ssm:GetCommandInvocation",
+          "ssm:ListCommandInvocations"
+        ]
         Resource = "*"
       }
     ]

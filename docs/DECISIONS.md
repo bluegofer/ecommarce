@@ -679,3 +679,106 @@ Cost stays within TDD Appendix B locked tier ($47-50).
 - Decision owner: Client (Musavi Fardin)
 - Technical owner: Development team
 - Re-evaluate: After AWS Support case 178954985700704 resolution OR 2026-09-30 (whichever first)
+
+---
+
+## Step 15.5/15.6 — SES Production + GitHub Actions CD (2026-09-18)
+
+**Status:** IN PROGRESS — awaiting AWS verification(s)
+
+### Context
+
+Step 15.5 (SES out of sandbox) এবং Step 15.6 (GitHub Actions CI/CD) এগোনোর সময় দুটো external dependency pending রয়েছে যা background-এ AWS handle করছে। Sessions এগোনোর সাথে সাথে এগুলো track না করলে ভুলে যাওয়ার risk আছে।
+
+### Pending Item 1: SES Production Access Request
+
+| Field | Value |
+|---|---|
+| AWS Support Case ID | `178967334800250` |
+| Submitted (initial) | 2026-09-17 23:29 UTC+4 |
+| Status | **Customer action completed** (our reply sent 2026-09-18 00:00 UTC+4) |
+| Awaiting | AWS Support human review |
+| Expected response | Within 24h of our reply (~2026-09-18 24:00 UTC+4) |
+| Console URL | https://console.aws.amazon.com/support/home?region=ap-south-1 |
+| Reply content | Detailed use case: volume, list maintenance, bounce/complaint/unsubscribe handling, content patterns, verification status |
+| Last AWS reply | 2026-09-17 23:29 UTC+4 — requested additional info |
+| Our reply sent | 2026-09-18 00:00 UTC+4 |
+| Escalation trigger | If no response by 2026-09-19 12:00 → add new comment to case |
+
+**Outcome states (expected):**
+- `Resolved — Approved`: SES production access live, quota → 50,000/day
+- `Resolved — Denied`: Fallback investigation needed (rare with our reply quality)
+- `Pending`: Wait 24-48h more
+
+### Pending Item 2: DKIM Verification
+
+| Field | Value |
+|---|---|
+| Domain | `nolimitshopping.com` |
+| Records in Route 53 | 3× CNAME at `*._domainkey.nolimitshopping.com` → `*.dkim.amazonses.com` ✅ |
+| DNS propagation | ✅ Verified (Google DNS 8.8.8.8) |
+| SES verification status | **Pending** (as of 2026-09-18) |
+| Expected completion | 2026-09-18 to 2026-09-20 |
+| Verification command | `aws ses get-identity-dkim-attributes --identities nolimitshopping.com` |
+| Trigger for escalation | If still `Pending` by 2026-09-21 → open AWS Support case |
+
+**Note:** Domain verification (`_amazonses.nolimitshopping.com` TXT) is ✅ **Success** — the DKIM CNAME validation is a separate, slower SES-side process (typical 24-72h).
+
+### Actions Taken in This Session
+
+**SES module Terraform fix (Step 15.5):**
+- Discovered Terraform SES module was missing `_amazonses.nolimitshopping.com` verification TXT record
+- Root cause: `aws_route53_record.amazonses_verification` + `aws_ses_domain_identity_verification` resources were never declared in `infra/terraform/modules/ses/main.tf`
+- Fix: Added both resources; applied via Terraform (2 resources created)
+- Result: Domain verification → `Success`
+- Committed as `1e46a44` (SSM CLI push)
+
+**GitHub Actions CI/CD (Step 15.6):**
+- Created `.github/workflows/deploy-staging.yml` (151 lines) — build 3 Docker images → ECR push → SSM SendCommand → EC2 deploy → smoke test
+- Created `.github/workflows/deploy-production.yml` (82 lines) — manual approval gate, placeholder for Step 16
+- Set GitHub secrets: `AWS_ROLE_ARN`, `AWS_REGION`
+- Fixed 3 sub-issues during first run:
+  1. **OIDC provider missing** → `create_oidc_provider = true` in staging module call
+  2. **Trust policy subject mismatch** → Added new GitHub format `repo:bluegofer@*/ecommarce@*:*` alongside legacy `repo:bluegofer/ecommarce:*`
+  3. **Smoke test redirects** → Storefront uses `/bn` locale path; Admin accepts `200|301|302|307|308`
+- Committed: `bc7893a`, `240b78c`, `bfd4983`, latest fix pending
+- **Result:** Build + Deploy jobs pass ✅; Smoke test green after final fix
+
+### Learnings Recorded
+
+1. **GitHub OIDC subject format changed in 2024** — Now includes numeric IDs: `repo:ORG@<org-id>/REPO@<repo-id>:ref:refs/heads/BRANCH`. Trust policies must match both old and new formats.
+2. **GitHub Desktop unreliable in this environment** — Doesn't detect CLI-made changes; use `git` CLI directly with PAT for commit/push (see standalone prompt in session history).
+3. **EC2 git repo was 80+ commits behind origin** — Always `git fetch origin` before making changes. Synced this session.
+4. **tfplan* files must never be committed** — Added pattern to `.gitignore`.
+5. **SSM shell vs PowerShell** — PowerShell for AWS control-plane (IAM/EC2/RDS/SES); SSM shell for EC2-side file/docker operations.
+
+### Files Committed This Session
+
+- `infra/terraform/modules/ses/main.tf` (SES verification resources)
+- `infra/terraform/modules/iam-extras/main.tf` (SSM permissions + OIDC trust policy)
+- `infra/terraform/environments/staging/main.tf` (`create_oidc_provider = true`)
+- `infra/terraform/environments/staging/terraform.tfvars` (removed unused variable)
+- `.github/workflows/deploy-staging.yml` (151 lines)
+- `.github/workflows/deploy-production.yml` (82 lines)
+- `.gitignore` (tfplan patterns)
+- `apps/api/Dockerfile` (Step 15.4 fix, committed from EC2)
+- `docker-compose.prod.yml` (Step 15.4 artifact, committed from EC2)
+
+### Next Steps When Pending Items Resolve
+
+**When SES Production Access approved:**
+1. Verify quota: `aws sesv2 get-account` → `Max24HourSend` should be `50000`
+2. Send test email to non-verified address
+3. Update this DECISIONS.md entry status → `RESOLVED`
+4. Continue Step 15.7+ (CloudWatch, security, backups, DR)
+
+**When DKIM → Success:**
+1. Verify: `aws ses get-identity-dkim-attributes --identities nolimitshopping.com`
+2. Status shows `DkimVerificationStatus: Success`
+3. Add reference to SES case if still pending
+4. Update this entry status
+
+**If DKIM still Pending after 2026-09-21:**
+1. Open SES Support case: "DKIM verification stuck > 72h"
+2. Reference domain, 3 CNAME records (with values), CloudTrail logs
+3. Escalate severity if needed

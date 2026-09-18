@@ -40,3 +40,7 @@ apps/api/prisma/_step9_parts/
 *.backup
 **/*.bak-*
 *.bak.*
+# Terraform plan binaries (never commit)
+infra/terraform/environments/*/tfplan*
+infra/terraform/environments/*/*.tfplan
+
