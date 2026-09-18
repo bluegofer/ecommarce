@@ -39,3 +39,4 @@ apps/api/prisma/_step9_parts/
 *.bak
 *.backup
 **/*.bak-*
+*.bak.*
