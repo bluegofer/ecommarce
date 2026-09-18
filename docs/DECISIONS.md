@@ -996,3 +996,43 @@ Full `terraform plan` showed unintended drift not related to Step 15.12 — defe
 ### Next
 
 Step 15.12 DONE → Step 15.14 (Cost verification) → Phase B (15.8 Security sweep).
+---
+
+## Step 15.8.2 — Security Fix: orders/lookup input validation (2026-09-18)
+
+**Status:** COMPLETE — verified in production, CI green.
+
+### Context
+
+Sentry issue `BLUEGOFER-API-1` (captured Step 15.11) reported `GET /api/v1/orders/lookup` returning `HTTP 500` when required query params were missing. Root cause: raw `@Query('orderNumber')` / `@Query('phone')` strings reached `OrdersService.findByNumber()`, which called `prisma.order.findUnique({where: {orderNumber: undefined}})` → `PrismaClientValidationError` → global filter mapped to 500.
+
+### Fix
+
+| Layer | File | Change |
+|---|---|---|
+| DTO | `apps/api/src/modules/orders/dto/lookup-order.dto.ts` (new) | `LookupOrderQueryDto` class-validator: `orderNumber` required 3–64 chars, `phone` required 6–20 chars |
+| Controller | `apps/api/src/modules/orders/orders.controller.ts` | `lookup()` uses `@Query() LookupOrderQueryDto`; global `ValidationPipe` rejects missing/empty params with 400 before service logic |
+| Service (defense-in-depth) | `apps/api/src/modules/orders/orders.service.ts` | `findByNumber()` returns `null` for empty/undefined `orderNumber`; never reaches Prisma |
+
+### Verification (production, 2026-09-18 20:25 UTC)
+
+| Test | Expected | Actual |
+|---|---|---|
+| No params | 400 | 400 + 6 validation msgs ✅ |
+| Only `orderNumber` | 400 | 400 + 3 phone msgs ✅ |
+| Only `phone` | 400 | 400 + 3 orderNumber msgs ✅ |
+| Both valid, not found | 200 `{ok:false}` | 200 `{ok:false}` ✅ |
+
+**Sentry `BLUEGOFER-API-1`:** Resolved.
+
+### Commit
+
+- `112f049` — `step-15.8.2: fix(api): validate orders/lookup query params (BLUEGOFER-API-1)`
+
+### Follow-up (Step 15.8.4 audit)
+
+Discovered during this fix: `OrderListQueryDto` in `packages/types/src/orders.ts` is a **TypeScript interface**, not a class-validator class. The global `ValidationPipe` (whitelist + forbidNonWhitelisted + transform) is therefore a no-op for it — malformed query params on `GET /api/v1/orders` are silently accepted instead of rejected at the door. **Action:** convert to class-based DTO or add a controller-local DTO during Step 15.8.4 audit. Tracked as finding `F-03` (pending).
+
+### Reference
+
+- `docs/security-check-report.md` → F-01
