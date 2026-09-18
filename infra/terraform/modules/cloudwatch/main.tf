@@ -76,3 +76,39 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage_low" {
 
   dimensions = { DBInstanceIdentifier = var.rds_instance_id }
 }
+
+# EC2 root disk usage high (custom metric from CloudWatch Agent)
+resource "aws_cloudwatch_metric_alarm" "ec2_disk_high" {
+  alarm_name          = "${var.project}-${var.environment}-ec2-disk-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "DISK_USED_PERCENT"
+  namespace           = "Bluegofer/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 85
+  alarm_description   = "EC2 root disk usage > 85% for 2 consecutive minutes"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
+  treat_missing_data  = "notBreaching"
+
+  dimensions = { InstanceId = var.ec2_instance_id }
+}
+
+# EC2 memory usage high (custom metric from CloudWatch Agent)
+resource "aws_cloudwatch_metric_alarm" "ec2_memory_high" {
+  alarm_name          = "${var.project}-${var.environment}-ec2-memory-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "MEM_USED_PERCENT"
+  namespace           = "Bluegofer/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 85
+  alarm_description   = "EC2 memory usage > 85% for 2 consecutive minutes"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
+  treat_missing_data  = "notBreaching"
+
+  dimensions = { InstanceId = var.ec2_instance_id }
+}

@@ -782,3 +782,60 @@ Step 15.5 (SES out of sandbox) এবং Step 15.6 (GitHub Actions CI/CD) এগ
 1. Open SES Support case: "DKIM verification stuck > 72h"
 2. Reference domain, 3 CNAME records (with values), CloudTrail logs
 3. Escalate severity if needed
+
+---
+
+## Step 15.7 — CloudWatch Logs + Dashboards + Agent (2026-09-18)
+
+**Status:** COMPLETE — all sub-steps verified, committed, pushed.
+
+### Delivered
+
+| Component | Specification | Evidence |
+|---|---|---|
+| CloudWatch Agent | `amazon-cloudwatch-agent 1.300069.1` installed on EC2 `i-02e21d2aba38958db` | `systemctl status amazon-cloudwatch-agent` → active (running) |
+| Custom Metrics Namespace | `Bluegofer/EC2` (CPU idle/iowait/user/system, MEM_USED_PERCENT, DISK_USED_PERCENT, swap, diskio, netstat) | `aws cloudwatch list-metrics --namespace Bluegofer/EC2` shows 15+ metrics |
+| Log Groups (CW Agent) | `/bluegofer/staging/system` (cloud-init, dnf) + `/bluegofer/staging/nginx` (access, error) | 30-day retention, streams active |
+| Log Groups (Docker awslogs) | `/bluegofer/staging/{api,storefront,admin,redis}` — all 4 containers | `docker inspect` → `LogConfig.Type: awslogs` |
+| Retention | 30 days on all 6 log groups | `aws logs describe-log-groups` |
+| Alarms | +2 new (ec2-disk-high >85%, ec2-memory-high >85%); total 6 | `aws cloudwatch describe-alarms` |
+| Dashboard | `BlueGofer-Staging` (6 widgets: alarms, CPU, memory, disk, RDS, log errors + ingestion) | `aws cloudwatch get-dashboard` |
+| SNS Wiring | All 6 alarms → `bluegofer-staging-alerts` | verified via `describe-alarms` |
+| IAM Policy | `CloudWatchAgentServerPolicy` already attached to `bluegofer-staging-ec2-role` | no IaC change needed |
+
+### Cost Impact (verified against $47/month plan)
+
+| Line Item | Estimate | Actual |
+|---|---|---|
+| CloudWatch Logs ingestion | ~$0.50-1.50/month | within budget |
+| Custom metrics (CW Agent) | $0 (default free-tier) | $0 |
+| Dashboard (1 dashboard) | $0 (3 dashboards free-tier) | $0 |
+| **Net Δ** | **~+$0.50-2/month** | within `CloudWatch $0-3` budget line |
+
+No deviation from TDD Appendix B locked tier.
+
+### Files Committed (EC2-side)
+
+- `docker-compose.prod.yml` — `logging: driver: awslogs` added to all 4 services (api, storefront, admin, redis)
+- `.gitignore` — `*.bak.*` pattern
+- Commits: `1025959` + `3efad4a` (merge) → pushed to `origin/staging`
+
+### Files Committed (Windows-side, this entry)
+
+- `infra/terraform/modules/cloudwatch/main.tf` — 2 new alarms mirrored (ec2_disk_high, ec2_memory_high)
+- `docs/DECISIONS.md` — this entry
+- `docs/aws-runbook.md` — new operational runbook
+
+### Configuration Files (EC2-side, not in repo)
+
+- `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.d/custom-override.json` — active agent config (metrics + log sources)
+- Backup `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.d/file_amazon-cloudwatch-agent.json` — original config (superseded by custom-override)
+
+### Known Limitations
+
+1. `/var/log/secure` (auth logs) — AL2023 uses `imjournal`, file doesn't exist. CW Agent skips silently. Future: add journald-based collection if auth log shipping required.
+2. `storedBytes: 0` in early checks — normal (Docker daemon flushes every 5s, AWS ingestion eventual consistency).
+
+### Terraform State Note
+
+The 2 new alarms (disk-high, memory-high) were created via AWS CLI on 2026-09-18 for immediate effect. Terraform mirror added same day. If `terraform plan` shows drift, use `terraform import`:
