@@ -149,14 +149,14 @@ jobs:
 
       - name: Check storefront
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://nolimitshopping.com)
-          echo "Storefront: HTTP $STATUS"
+          STATUS=$(curl -sL -o /dev/null -w "%{http_code}" https://nolimitshopping.com)
+          echo "Storefront (following redirects): HTTP $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
       - name: Check admin
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://admin.nolimitshopping.com)
-          echo "Admin: HTTP $STATUS"
+          STATUS=$(curl -sL -o /dev/null -w "%{http_code}" https://admin.nolimitshopping.com)
+          echo "Admin (following redirects): HTTP $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
       - name: Deploy summary
