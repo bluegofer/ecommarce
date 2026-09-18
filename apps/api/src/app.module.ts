@@ -42,9 +42,11 @@ import { CourierModule } from './modules/courier/courier.module';
     }),
     // F-04 (Step 15.8.4): global rate limiting per TDD section 10.3.
     // Default 100 req/min per IP; sensitive endpoints override via @Throttle().
+    // Note: no `name` key -- v6 auto-assigns 'default' which is what
+    // @Throttle({ default: {...} }) keys against. Explicitly setting
+    // `name: 'default'` caused per-route overrides to silently skip.
     ThrottlerModule.forRoot([
       {
-        name: 'default',
         ttl: 60_000,
         limit: 100,
       },
