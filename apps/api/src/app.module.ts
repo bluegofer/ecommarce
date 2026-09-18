@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { default as configuration } from './config/configuration';
 import { DatabaseModule } from './database/database.module';
@@ -39,6 +40,15 @@ import { CourierModule } from './modules/courier/courier.module';
       envFilePath: ['.env', '../../.env'],
       load: [configuration],
     }),
+    // F-04 (Step 15.8.4): global rate limiting per TDD section 10.3.
+    // Default 100 req/min per IP; sensitive endpoints override via @Throttle().
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000,
+        limit: 100,
+      },
+    ]),
     DatabaseModule,
     AuthModule,
     JobsModule,
@@ -65,6 +75,8 @@ import { CourierModule } from './modules/courier/courier.module';
   ],
   controllers: [HealthController],
   providers: [
+    // F-04 (Step 15.8.4): ThrottlerGuard runs first -- rejects floods before JWT parsing.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },

@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 
 import { LoginDto } from './dto/login.dto';
@@ -27,6 +28,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } }) // F-04: prevent bulk account creation
   @Post('register')
   async register(@Body() dto: RegisterDto): Promise<{ ok: true; userId: string; devCode: string | null }> {
     const { userId } = await this.auth.register(dto);
@@ -35,6 +37,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60_000 } }) // F-04: prevent SMS bombing (real per-SMS cost)
   @Post('otp/request')
   @HttpCode(200)
   async requestOtp(@Body() dto: RequestOtpDto): Promise<{ ok: true; devCode: string | null }> {
@@ -43,6 +46,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } }) // F-04: OTP brute-force protection
   @Post('otp/verify')
   @HttpCode(200)
   async verifyOtp(@Body() dto: VerifyOtpDto): Promise<{ ok: true }> {
@@ -52,6 +56,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } }) // F-04: brute-force protection
   @Post('login')
   @HttpCode(200)
   async login(

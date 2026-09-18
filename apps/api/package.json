@@ -24,6 +24,7 @@
         "@nestjs/passport": "^11.0.5",
         "@nestjs/platform-express": "^10.4.4",
         "@nestjs/swagger": "^7.4.2",
+        "@nestjs/throttler": "^6.7.0",
         "@prisma/client": "^5.20.0",
         "@sentry/nestjs": "^10.75.0",
         "@sentry/nextjs": "^10.75.0",
