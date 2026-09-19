@@ -1,20 +1,27 @@
+// apps/storefront/src/lib/seo/json-ld.ts
+//
 // Step 14.4 — shared JSON-LD builders used across the storefront.
-const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+// Step 15.9.1 — centralized on BRAND (F-14, F-16) + fixed website name field.
+
+import { BRAND } from '@/lib/brand';
+
+const ORIGIN = BRAND.url;
 
 export function organizationJsonLd(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'SkyMart',
+    name: BRAND.name,
     url: ORIGIN,
-    logo: `${ORIGIN}/icons/icon.svg`,
+    logo: `${ORIGIN}${BRAND.icons.logo}`,
     sameAs: [] as string[],
     contactPoint: [
       {
         '@type': 'ContactPoint',
         contactType: 'customer service',
         areaServed: 'BD',
-        availableLanguage: ['bn', 'en'],
+        availableLanguage: [...BRAND.locales.supported],
+        email: BRAND.supportEmail,
       },
     ],
   };
@@ -24,8 +31,9 @@ export function websiteJsonLd(locale: 'bn' | 'en'): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'SkyMart',
+    name: BRAND.name,
     url: `${ORIGIN}/${locale}`,
+    inLanguage: locale === 'bn' ? 'bn-BD' : 'en-US',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${ORIGIN}/${locale}/s?k={search_term_string}`,

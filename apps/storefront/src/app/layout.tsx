@@ -1,26 +1,29 @@
+// apps/storefront/src/app/layout.tsx
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ServiceWorkerRegistrar, InstallPrompt } from '@/components/pwa';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/json-ld';
+import { BRAND } from '@/lib/brand';
 
+// metadataBase fixes Next.js resolve of relative OG/Twitter image URLs.
+// Without it, Next.js falls back to http://localhost:3000 in production.
 export const metadata: Metadata = {
+  metadataBase: new URL(BRAND.url),
   title: {
-    default: 'SkyMart — Online Shopping in Bangladesh',
-    template: '%s | SkyMart',
+    default: `${BRAND.name} — ${BRAND.taglineEn}`,
+    template: `%s | ${BRAND.name}`,
   },
-  description:
-    'SkyMart — a category-agnostic marketplace placeholder. Fast delivery, safe payments, easy returns.',
-  applicationName: 'SkyMart',
+  description: BRAND.descriptionEn,
+  applicationName: BRAND.name,
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 'SkyMart',
-    statusBarStyle: 'default',
+    title: BRAND.name,
   },
   formatDetection: { telephone: false, email: false, address: false },
   icons: {
-    icon: '/icons/icon.svg',
-    apple: '/icons/apple-touch-icon.svg',
+    icon: BRAND.icons.icon,
+    apple: BRAND.icons.apple,
   },
 };
 
@@ -35,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // lang="bn" is the default; [locale]/layout.tsx overrides it on the client
   // once the URL param is known (App Router root layout cannot read params).
   return (
-    <html lang="bn">
+    <html lang={BRAND.locales.default}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -47,14 +50,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd('bn')) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd(BRAND.locales.default)) }}
         />
         {children}
         <ServiceWorkerRegistrar />
         <InstallPrompt
           labels={{
-            title: 'Install SkyMart',
-            body: 'Add SkyMart to your home screen for faster shopping',
+            title: `Install ${BRAND.name}`,
+            body: `Add ${BRAND.name} to your home screen for faster shopping`,
             install: 'Install',
             dismiss: 'Dismiss',
           }}
