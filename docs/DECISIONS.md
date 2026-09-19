@@ -1036,3 +1036,60 @@ Discovered during this fix: `OrderListQueryDto` in `packages/types/src/orders.ts
 ### Reference
 
 - `docs/security-check-report.md` → F-01
+
+---
+
+## Step 15.8.4 — Rate limiting (F-04) + app security sweep close-out (2026-09-19)
+
+**Status:** COMPLETE — F-04 fixed + verified in production; app sweep done; pen-test deferred to Step 15.9.
+
+### Context
+
+Step 15.8.4 audit found no rate limiting anywhere in the API (`@nestjs/throttler` not installed, source-wide grep for `Throttle`/`ThrottlerGuard` empty). Sensitive endpoints (`/auth/login`, `/auth/register`, `/auth/otp/request`, `/auth/otp/verify`, `/checkout/place-order`, `/promotions/evaluate-cart`) were open to brute-force, SMS bombing, coupon enumeration, and order spam. TDD §10.3 requires per-IP/per-account rate limits on exactly these endpoints.
+
+### Fix — three iterations (honest timeline)
+
+| Iter | Commit | Change | Result |
+|---|---|---|---|
+| 1 | `abddcbc` | Install @nestjs/throttler@6.7.0; global ThrottlerModule.forRoot (100/min); @Throttle overrides on sensitive endpoints; ThrottlerGuard as first APP_GUARD | CI RED — 27 tests failed (429 on /auth/register in e2e helpers) |
+| 2 | `4e823c1` | Removed explicit name: 'default' from forRoot (misdiagnosis) | CI STILL RED — same 27 tests |
+| 3 | `92cc8a5` | Correct root cause — tests intentionally register many users per suite; skip throttler when NODE_ENV === 'test'. New AppThrottlerGuard extends ThrottlerGuard with override shouldSkip(). Also added override modifier (fixes TS4114 from noImplicitOverride: true). | CI GREEN — all 26 suites pass; deploy success |
+
+### Verification (production, 2026-09-19 05:36 UTC)
+
+Login rate limit (POST /api/v1/auth/login, limit 5/min):
+- req 1..5 => 401
+- req 6 => 429 (triggered at exactly 6th request)
+- Header: X-RateLimit-Limit: 5 (confirms @Throttle override applied, not global 100)
+
+Global default (GET /api/v1/health):
+- Header: X-RateLimit-Limit: 100 (confirms forRoot global active)
+
+Test env skip: CI passes (115 tests) — confirms NODE_ENV=test path returns true from shouldSkip().
+
+### Files touched
+
+- apps/api/package.json + pnpm-lock.yaml — @nestjs/throttler@6.7.0
+- apps/api/src/app.module.ts — ThrottlerModule.forRoot + AppThrottlerGuard as first APP_GUARD
+- apps/api/src/common/guards/app-throttler.guard.ts (new) — test-env skip subclass
+- apps/api/src/modules/auth/auth.controller.ts — @Throttle on register/otp/verify/login
+- apps/api/src/modules/orders/checkout.controller.ts — @Throttle on place-order
+- apps/api/src/modules/promotions/rules-engine.controller.ts — @Throttle on evaluate-cart
+- docs/security-check-report.md — F-01..F-06 documented, learning log added
+- docs/DECISIONS.md — this entry
+
+### Learnings recorded
+
+1. @nestjs/throttler v6 + global guard + NODE_ENV=test → custom shouldSkip() subclass is the correct pattern; do this at install time.
+2. noImplicitOverride: true in root tsconfig → all NestJS subclass method overrides need override keyword.
+3. Correct DTO field names are required to prove rate limiting (initial test used phone instead of identifier → 400 not 401/429).
+
+### Deferred (from this step, tracked in docs/security-check-report.md)
+
+- F-03 — OrderListQueryDto (and possibly other DTOs) declared as TS interface in packages/types → class-validator no-op. Fix requires packages/types/tsconfig.json decorator flags; deferred as input-validation sweep backlog item.
+- F-05 — CSRF: mitigated by design (Bearer tokens for state-changing routes; refresh cookie only used by /refresh and /logout which have no business state). No explicit CSRF token needed.
+- F-06 — Refresh cookie SameSite=lax → upgrade to strict deferred to Step 15.9 after verifying payment-gateway callback flow.
+
+### Next
+
+Step 15.9 — Penetration checks (auth bypass, IDOR, webhook forgery, coupon race, checkout tampering, ERP path hardening, F-06 evaluation).
