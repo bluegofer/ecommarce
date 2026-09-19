@@ -1,0 +1,115 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar">
+<div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item active" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button>
+<div class="tb-search"><input placeholder="Search orders, products, customers, invoices…"></div>
+<span class="lang-switch">EN · <b>বাংলা</b></span>
+<button class="icon-btn">🔔<span class="notif-badge">5</span></button>
+<span class="avatar av-sky">A</span>
+</header>
+<div class="content">
+<div class="page-hd"><div><h2>📊 Dashboard</h2><div class="crumb">Home / Overview</div><p>Real-time control room — sales, orders, customers & ERP pulse (today).</p></div>
+<div class="page-acts"><button class="btn b-primary" data-toast="Manual order creation modal (mock)">＋ New Order</button><a class="btn b-ghost" href="analytics.html">📈 Reports</a><button class="btn b-ghost" data-toast="Date range filter opened">📅 Today</button></div></div>
+
+<div class="grid g-4">
+<div class="card stat"><div class="stat-ic ic-green">💰</div><div><div class="stat-lbl">Today's Sales</div><div class="stat-val">৳128,450</div><div class="stat-sub"><span class="up">▲ 12.4%</span> vs yesterday</div></div></div>
+<div class="card stat"><div class="stat-ic ic-sky">🧾</div><div><div class="stat-lbl">Orders Today</div><div class="stat-val">214</div><div class="stat-sub"><span class="up">▲ 18</span> · 12 pending verification (A)</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">👥</div><div><div class="stat-lbl">New Customers</div><div class="stat-val">34</div><div class="stat-sub"><span class="up">▲ 6</span> this week</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">⏳</div><div><div class="stat-lbl">Pending Verification</div><div class="stat-val">12</div><div class="stat-sub">A.1 OMS · Verified pipeline step</div></div></div>
+</div>
+
+<div class="grid g-2c" style="margin-top:16px">
+<div>
+<div class="grid">
+<div class="card">
+<div class="card-hd"><h3>💰 Sales — Last 7 Days (৳k)</h3><div class="hd-acts"><select class="sel bsm"><option>This week</option><option>Last week</option></select></div></div>
+<div class="card-bd">
+<div class="bars">
+<div class="bar" style="height:42%"><span>54</span></div><div class="bar" style="height:56%"><span>72</span></div><div class="bar" style="height:50%"><span>64</span></div><div class="bar" style="height:63%"><span>81</span></div><div class="bar" style="height:57%"><span>74</span></div><div class="bar" style="height:72%"><span>92</span></div><div class="bar" style="height:100%"><span class="up">128</span></div>
+</div>
+<div class="bar-days"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+</div>
+</div>
+<div class="card">
+<div class="card-hd"><h3>🧾 Recent Orders</h3><div class="hd-acts"><a class="btn b-ghost bsm" href="orders.html">View all →</a></div></div>
+<div class="card-bd flush">
+<div class="tbl">
+<table>
+<thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>#BG-10234</b><br><span class="cell-sub">Today 10:42</span></td><td>Rahim Uddin<br><span class="cell-sub">01712-345678</span></td><td>2</td><td>৳4,560</td><td>COD</td><td><span class="badge b-amber">Pending Verify</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><b>#BG-10233</b><br><span class="cell-sub">Today 10:18</span></td><td>Nusrat Jahan</td><td>1</td><td>৳1,250</td><td><span class="badge b-sky">bKash</span></td><td><span class="badge b-sky">Verified</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><b>#BG-10232</b><br><span class="cell-sub">Today 09:56</span></td><td>Tanvir Ahmed</td><td>3</td><td>৳6,980</td><td>SSLCommerz</td><td><span class="badge b-violet">Processing</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><b>#BG-10231</b><br><span class="cell-sub">Today 09:31</span></td><td>Mita Chowdhury</td><td>1</td><td>৳2,150</td><td><span class="badge b-teal">Nagad</span></td><td><span class="badge b-green">Shipped</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><b>#BG-10230</b><br><span class="cell-sub">Today 08:47</span></td><td>Kabir Hasan</td><td>4</td><td>৳9,320</td><td>COD</td><td><span class="badge b-green">Delivered</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+<tr><td><b>#BG-10229</b><br><span class="cell-sub">Today 08:12</span></td><td>Sadia Islam</td><td>1</td><td>৳890</td><td>COD</td><td><span class="badge b-red">Returned (A.1)</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div class="card"><div class="card-hd"><h3>💳 Payment Split</h3></div><div class="card-bd"><div class="donut-wrap">
+<div class="donut"><div class="donut-in">Today<br><b>৳128k</b></div></div>
+<div class="legend"><div class="lg-row"><span class="lg-chip" style="background:var(--sky-500)"></span>COD<div><b>46%</b></div></div><div class="lg-row"><span class="lg-chip" style="background:var(--amber-500)"></span>bKash<div><b>27%</b></div></div><div class="lg-row"><span class="lg-chip" style="background:var(--violet-500)"></span>Nagad<div><b>18%</b></div></div><div class="lg-row"><span class="lg-chip" style="background:var(--green-500)"></span>SSLCommerz<div><b>9%</b></div></div></div>
+</div></div></div>
+<div class="card" style="margin-top:14px"><div class="card-hd"><h3>⚡ Quick Actions</h3></div><div class="card-bd"><div style="display:flex;flex-wrap:wrap;gap:8px">
+<a class="btn b-primary bsm" href="orders.html">🧾 Orders</a>
+<a class="btn b-ghost bsm" href="products.html">🛍️ Products</a>
+<a class="btn b-ghost bsm" href="pos.html">🏪 POS</a>
+<a class="btn b-ghost bsm" href="accounting.html">📒 Accounting</a>
+<a class="btn b-ghost bsm" href="cms.html">📝 CMS</a>
+<a class="btn b-ghost bsm" href="promotions.html">🏷️ Promos</a>
+</div></div></div>
+</div>
+</div>
+
+<div class="grid" style="margin-top:16px">
+<div class="card"><div class="card-hd"><h3>📉 Order Funnel — Today</h3><div class="hd-sub">Visits → Conversion</div></div><div class="card-bd">
+<div class="fstep"><div class="fl"><span>Visits</span><b>10,240</b></div><div class="track"><i style="width:100%"></i></div></div>
+<div class="fstep"><div class="fl"><span>Product views</span><b>4,180</b></div><div class="track"><i style="width:41%"></i></div></div>
+<div class="fstep"><div class="fl"><span>Add to cart</span><b>1,240</b></div><div class="track"><i style="width:12%"></i></div></div>
+<div class="fstep"><div class="fl"><span>Checkout started</span><b>640</b></div><div class="track"><i style="width:6%"></i></div></div>
+<div class="fstep"><div class="fl"><span>Paid orders</span><b>214</b></div><div class="track"><i style="width:2%"></i></div></div>
+</div></div>
+
+<div class="card"><div class="card-hd"><h3>⚠️ Low Stock Alerts</h3><a class="btn b-ghost bsm" href="inventory.html">Review →</a></div><div class="card-bd">
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center;gap:12px"><div><b>iPhone 15 Pro 256GB</b><br><span class="cell-sub">SKU APL-2048 · Branch: Dhaka HQ</span></div><span class="badge b-red">2 left</span></div>
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center;gap:12px"><div><b>Nike Air Zoom M</b><br><span class="cell-sub">SKU NK-0912 · Branch: Chittagong</span></div><span class="badge b-amber">4 left</span></div>
+<div style="padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:12px"><div><b>Basmati Rice 5kg</b><br><span class="cell-sub">SKU GR-1108 · Branch: All</span></div><span class="badge b-amber">3 left</span></div>
+</div></div>
+
+<div class="card"><div class="card-hd"><h3>🚚 Delivery Timeline · A.4</h3></div><div class="card-bd"><div class="timeline">
+<div class="tl-item done"><div class="t">BG-10230 delivered — Pathao</div><div class="d">Today 09:12 · COD collected ৳9,320</div></div>
+<div class="tl-item active"><div class="t">BG-10228 out for delivery — RedX</div><div class="d">Today 10:05 · Rider: Arif</div></div>
+<div class="tl-item"><div class="t">BG-10225 in transit — Pathao</div><div class="d">Yesterday 21:40 · #PT-8812</div></div>
+<div class="tl-item failed"><div class="t">BG-10220 RTO — customer refused</div><div class="d">Yesterday 18:22 · return initiated</div></div>
+</div></div></div>
+</div>
+
+<div class="grid g-3" style="margin-top:16px">
+<div class="card"><div class="card-hd"><h3>🏪 POS Today</h3></div><div class="card-bd"><div style="display:grid;gap:8px"><div class="stat" style="padding:8px 0"><div class="stat-ic ic-violet">🛒</div><div><div class="stat-lbl">In-store Sales</div><div class="stat-val">৳36,400</div><div class="stat-sub"><span class="up">▲ 9%</span></div></div></div></div></div></div>
+<div class="card"><div class="card-hd"><h3>💸 Payroll · This Month</h3></div><div class="card-bd"><div style="display:grid;gap:8px"><div class="stat" style="padding:8px 0"><div class="stat-ic ic-green">📂</div><div><div class="stat-lbl">Payroll Run</div><div class="stat-val">৳4,82,000</div><div class="stat-sub">28 staff · Sep 2026</div></div></div></div></div></div>
+<div class="card"><div class="card-hd"><h3>📊 Net Profit (MTD)</h3></div><div class="card-bd"><div style="display:grid;gap:8px"><div class="stat" style="padding:8px 0"><div class="stat-ic ic-amber">📈</div><div><div class="stat-lbl">Sep 2026</div><div class="stat-val">৳11,42,300</div><div class="stat-sub"><span class="up">▲ 8.2%</span> vs Aug</div></div></div></div></div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

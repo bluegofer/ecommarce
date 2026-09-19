@@ -1,0 +1,78 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notifications · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item active" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search templates…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🔔 Notifications</h2><div class="crumb">Marketing / Notifications</div><p>SMS &amp; Email templates · abandoned-cart automation · back-in-stock alerts · transactional triggers.</p></div>
+<div class="page-acts"><button class="btn b-primary" data-toast="New template editor">＋ New Template</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">📧</div><div><div class="stat-lbl">Emails Sent Today</div><div class="stat-val">3,842</div><div class="stat-sub">delivery rate 98.2%</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">📱</div><div><div class="stat-lbl">SMS Sent Today</div><div class="stat-val">2,184</div><div class="stat-sub">delivery rate 96.4%</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">🛒</div><div><div class="stat-lbl">Abandoned Cart Recovery</div><div class="stat-val">৳48,200</div><div class="stat-sub">118 carts recovered</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">🔁</div><div><div class="stat-lbl">Back-in-stock alerts</div><div class="stat-val">412</div><div class="cell-sub">subscribers</div></div></div>
+</div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">📨 Templates</div>
+<div class="tab">🛒 Abandoned-cart automation</div>
+<div class="tab">⚙️ Channels (SMS / Email / Push)</div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Template ID</th><th>Trigger</th><th>Channel</th><th>Last Edited</th><th>Delivery</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>TPL-001</b></td><td>Order Placed</td><td><span class="badge b-green">SMS</span> + <span class="badge b-sky">Email</span></td><td>12 Sep 2026</td><td>99.1%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-002</b></td><td>Order Verified (A.1)</td><td><span class="badge b-sky">Email</span></td><td>12 Sep 2026</td><td>98.8%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-003</b></td><td>Order Shipped / Tracking</td><td><span class="badge b-green">SMS</span> + <span class="badge b-sky">Email</span></td><td>10 Sep 2026</td><td>97.4%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-004</b></td><td>Delivered (review ask)</td><td><span class="badge b-sky">Email</span></td><td>06 Sep 2026</td><td>96.2%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-005</b></td><td>Abandoned cart — 1h</td><td><span class="badge b-sky">Email</span></td><td>08 Sep 2026</td><td>92.0%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-006</b></td><td>Abandoned cart — 24h</td><td><span class="badge b-green">SMS</span></td><td>08 Sep 2026</td><td>95.7%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-007</b></td><td>Back-in-stock alert</td><td><span class="badge b-sky">Email</span></td><td>04 Sep 2026</td><td>94.0%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+<tr><td><b>TPL-008</b></td><td>Welcome (new account)</td><td><span class="badge b-sky">Email</span></td><td>02 Sep 2026</td><td>98.5%</td><td><div class="t-actions"><button>✏️</button><button>👁</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>📝 Template Editor · TPL-005</h3><div class="hd-acts"><button class="btn b-ghost bsm">⇠ Back</button></div></div><div class="card-bd">
+<div class="form-row"><div class="field"><label>Subject</label><input class="inp" value="You left something in your cart 🛒"></div><div class="field"><label>From name</label><input class="inp" value="BlueGofer"></div></div>
+<div class="field"><label>Body (HTML / plain)</label><textarea class="ta" rows="8">Hi {{customer.first_name}},
+
+You left these items in your cart:
+
+{{cart.items_table}}
+
+Your cart will be saved for 7 days. Use WELCOME10 to save 10%:
+
+[ Complete Your Order → ] {{cart.checkout_url}}
+
+— BlueGofer Team</textarea></div>
+<div class="form-row"><div class="field"><label>Variables</label><input class="inp" value="customer.first_name, cart.items_table, cart.checkout_url"></div><div class="field"><label>Trigger delay</label><select class="sel"><option>1 hour</option><option>6 hours</option><option>24 hours</option><option>48 hours</option></select></div></div>
+<label class="switch"><input type="checkbox" checked><span class="dot"></span> Active · Sent via SES (Amazon SES)</label>
+</div></div>
+<div class="card"><div class="card-hd"><h3>📊 Channel Health</h3></div><div class="card-bd">
+<div class="summary-line"><span>SES · Email</span><span class="badge b-green">Connected</span></div>
+<div class="summary-line" style="margin-top:6px"><span>SSL Wireless · SMS</span><span class="badge b-green">Connected</span></div>
+<div class="summary-line" style="margin-top:6px"><span>bKash notify URL</span><span class="badge b-green">Configured</span></div>
+<div class="summary-line" style="margin-top:6px"><span>Pathao webhook</span><span class="badge b-green">Active</span></div>
+<div class="summary-line" style="margin-top:6px"><span>Steadfast webhook</span><span class="badge b-amber">Reconnect</span></div>
+<div class="summary-line" style="margin-top:6px"><span>RedX webhook</span><span class="badge b-green">Active</span></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

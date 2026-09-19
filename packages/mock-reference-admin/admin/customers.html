@@ -1,0 +1,70 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Customers · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item active" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search customer, phone, email…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>👥 Customers · CRM</h2><div class="crumb">Customer / CRM</div><p>Unified profiles · segmentation · CLV · follow-ups · complaint log per Appendix A.3.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Segment email/campaign export">⇪ Export Segment</button><button class="btn b-primary" data-toast="New customer form">＋ New Customer</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">👥</div><div><div class="stat-lbl">Total Customers</div><div class="stat-val">8,412</div><div class="stat-sub"><span class="up">▲ 34</span> today</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">💎</div><div><div class="stat-lbl">High-Value (CLV ≥ ৳50k)</div><div class="stat-val">412</div><div class="stat-sub">top 5%</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">↻</div><div><div class="stat-lbl">Repeat Buyers</div><div class="stat-val">2,184</div><div class="stat-sub">2+ orders</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">⚠️</div><div><div class="stat-lbl">At-Risk</div><div class="stat-val">118</div><div class="stat-sub">no order ≥ 90 days</div></div></div>
+</div>
+
+<div class="card">
+<div class="tbl">
+<table>
+<thead><tr><th></th><th>Customer</th><th>Phone</th><th>Orders</th><th>Total Spent</th><th>CLV (A.3)</th><th>Segment</th><th>Last Order</th><th></th></tr></thead>
+<tbody>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-sky">RU</span><div><b>Rahim Uddin</b><br><span class="cell-sub">rahim.uddin@gmail.com</span></div></div></td><td>01712-345678</td><td>14</td><td>৳58,120</td><td><b>৳62,400</b></td><td><span class="badge b-green">High-value</span></td><td>Today 10:42</td><td><div class="t-actions"><button>👁</button><button>📞</button><button>✉️</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-violet">NJ</span><div><b>Nusrat Jahan</b><br><span class="cell-sub">nusrat.j@outlook.com</span></div></div></td><td>01922-110987</td><td>7</td><td>৳18,540</td><td><b>৳22,800</b></td><td><span class="badge b-sky">Regular</span></td><td>Today 10:18</td><td><div class="t-actions"><button>👁</button><button>📞</button><button>✉️</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-amber">TA</span><div><b>Tanvir Ahmed</b><br><span class="cell-sub">tanvir@gmail.com</span></div></div></td><td>01678-221144</td><td>3</td><td>৳9,500</td><td><b>৳11,800</b></td><td><span class="badge b-sky">New</span></td><td>Today 09:56</td><td><div class="t-actions"><button>👁</button><button>📞</button><button>✉️</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-teal">MC</span><div><b>Mita Chowdhury</b></div></div></td><td>01515-998877</td><td>22</td><td>৳1,02,400</td><td><b>৳1,20,000</b></td><td><span class="badge b-green">High-value</span></td><td>Today 09:31</td><td><div class="t-actions"><button>👁</button><button>📞</button><button>✉️</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-green">SI</span><div><b>Sadia Islam</b></div></div></td><td>01333-554433</td><td>2</td><td>৳2,140</td><td><b>৳3,200</b></td><td><span class="badge b-amber">At-risk</span></td><td>Today 08:12</td><td><div class="t-actions"><button>👁</button><button>📞</button><button>✉️</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-red">KH</span><div><b>Kabir Hasan</b></div></div></td><td>01777-110022</td><td>9</td><td>৳42,800</td><td><b>৳45,500</b></td><td><span class="badge b-violet">Loyal</span></td><td>Today 08:47</td><td><div class="t-actions"><button>👁</button><button>📞</button><button>✉️</button></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="grid g-2c" style="margin-top:16px">
+<div class="card"><div class="card-hd"><h3>💚 Customer Profile · Mita Chowdhury</h3><span class="badge b-green">High-value</span></div><div class="card-bd">
+<div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><span class="avatar av-teal" style="width:56px;height:56px;font-size:18px">MC</span><div><b style="font-size:16px">Mita Chowdhury</b><br><span class="cell-sub">01515-998877 · mita.c@yahoo.com</span></div></div>
+<div class="form-row"><div><b style="font-size:11.5px;color:var(--slate-500)">CLV (A.3)</b><div style="font-size:18px;font-weight:700;color:var(--sky-700)">৳1,20,000</div></div><div><b style="font-size:11.5px;color:var(--slate-500)">Avg Order</b><div style="font-size:18px;font-weight:700">৳4,654</div></div></div>
+<h4 style="font-size:13px;margin-top:14px">Order History (top 3)</h4>
+<div style="padding:8px 0;border-bottom:1px solid var(--slate-100);font-size:12.5px"><b>#BG-10231</b> · Today · ৳2,150 · Shipped</div>
+<div style="padding:8px 0;border-bottom:1px solid var(--slate-100);font-size:12.5px"><b>#BG-10112</b> · 02 Sep · ৳5,820 · Delivered</div>
+<div style="padding:8px 0;font-size:12.5px"><b>#BG-10098</b> · 28 Aug · ৳7,430 · Delivered</div>
+<h4 style="font-size:13px;margin-top:14px">📋 Follow-up Log · A.3</h4>
+<div class="timeline" style="margin-top:8px">
+<div class="tl-item done"><div class="t">Replied about new stock</div><div class="d">Today 09:14 · via SMS</div></div>
+<div class="tl-item active"><div class="t">Birthday voucher sent (৳500)</div><div class="d">Yesterday</div></div>
+<div class="tl-item"><div class="t">Complaint resolved — exchange approved</div><div class="d">20 Aug · Ledger update</div></div>
+</div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>🎯 Smart Segments</h3></div><div class="card-bd">
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><b>💎 High-value (CLV ≥ ৳50k)</b><br><span class="cell-sub">Last 12 months · 412 customers</span><div style="margin-top:6px"><button class="btn b-ghost bsm">⇪ Export</button> <button class="btn b-ghost bsm">📨 Email campaign</button></div></div>
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><b>⚠️ At-Risk (no order ≥ 90 days)</b><br><span class="cell-sub">118 customers</span><div style="margin-top:6px"><button class="btn b-ghost bsm">⇪ Export</button> <button class="btn b-primary bsm">🎁 Send ৳200 voucher</button></div></div>
+<div style="padding:10px 0"><b>🆕 New (first order this month)</b><br><span class="cell-sub">986 customers</span><div style="margin-top:6px"><button class="btn b-ghost bsm">⇪ Export</button></div></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

@@ -1,0 +1,4 @@
+.wrap { display: inline-flex; align-items: center; gap: 8px; }
+.label { font-size: 13px; color: var(--sk-muted); }
+.select { height: 36px; padding: 0 32px 0 12px; border: 1px solid var(--sk-border); border-radius: var(--sk-radius-pill); background: var(--sk-surface); color: var(--sk-body); font-size: 13px; font-weight: 500; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; transition: border-color var(--sk-motion-fast) var(--sk-ease); }
+.select:hover, .select:focus { border-color: var(--sk-brand-400); }
