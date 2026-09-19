@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 import { default as configuration } from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './common/health.controller';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
@@ -77,8 +78,9 @@ import { CourierModule } from './modules/courier/courier.module';
   ],
   controllers: [HealthController],
   providers: [
-    // F-04 (Step 15.8.4): ThrottlerGuard runs first -- rejects floods before JWT parsing.
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // F-04 (Step 15.8.4): AppThrottlerGuard runs first -- rejects floods before JWT parsing.
+    // Custom subclass skips throttling when NODE_ENV=test (jest suites).
+    { provide: APP_GUARD, useClass: AppThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
