@@ -12,11 +12,15 @@ import {
 import { api, setAccessToken, refreshAccessToken } from './api';
 
 export interface AuthUser {
-  id: string;
+  userId: string;
+  customerId: string | null;
   email: string | null;
   fullName: string;
   phone: string;
-  roles: string[];
+  phoneVerified: boolean;
+  emailVerified: boolean;
+  totalOrders: number;
+  totalSpentPoisha: number;
 }
 
 interface AuthContextValue {
@@ -36,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadMe = useCallback(async () => {
     try {
-      const me = await api.get<AuthUser>('/api/v1/auth/me');
+      const me = await api.get<AuthUser>('/api/v1/me');
       setUser(me);
     } catch {
       setUser(null);
