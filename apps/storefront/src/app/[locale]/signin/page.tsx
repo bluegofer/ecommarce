@@ -3,7 +3,7 @@ import { SignInForm, type SignInLabels } from '@/components/auth';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Sign In | SkyMart',
+  title: 'Sign In | BlueGofer',
   robots: { index: false, follow: true },
 };
 

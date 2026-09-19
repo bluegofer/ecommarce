@@ -3,7 +3,7 @@ import { AddressBook, type AddressBookLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Your Addresses | SkyMart',
+  title: 'Your Addresses | BlueGofer',
   robots: { index: false, follow: false },
 };
 

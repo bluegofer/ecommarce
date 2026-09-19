@@ -3,8 +3,8 @@ import { ContactForm, type ContactFormLabels } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Contact Us | SkyMart',
-  description: 'Contact SkyMart customer service — 24/7 support for orders, returns, and product questions.',
+  title: 'Contact Us | BlueGofer',
+  description: 'Contact BlueGofer customer service — 24/7 support for orders, returns, and product questions.',
 };
 
 export default function ContactPage({ params }: { params: { locale: string } }) {
@@ -29,7 +29,7 @@ export default function ContactPage({ params }: { params: { locale: string } }) 
     hotlineTitle: bn ? 'হটলাইন' : 'Hotline',
     hotlineBody: bn ? '১৬-২৬৩ · সকাল ৮টা - রাত ১০টা' : '16-263 · 8am – 10pm daily',
     emailTitle: bn ? 'ইমেইল' : 'Email',
-    emailBody: bn ? 'support@skymart.example' : 'support@skymart.example',
+    emailBody: bn ? 'cloud.bluegofer@gmail.com' : 'cloud.bluegofer@gmail.com',
     whatsappTitle: bn ? 'হোয়াটসঅ্যাপ' : 'WhatsApp',
     whatsappBody: bn ? '+880 1XXX-XXXXXX' : '+880 1XXX-XXXXXX',
   };

@@ -1,5 +1,5 @@
 /**
- * Typed fetch wrapper for the SkyMart API.
+ * Typed fetch wrapper for the BlueGofer API.
  * Base URL comes from NEXT_PUBLIC_API_URL (dev default: local NestJS).
  * All responses are JSON; errors throw ApiError with status + parsed body.
  *

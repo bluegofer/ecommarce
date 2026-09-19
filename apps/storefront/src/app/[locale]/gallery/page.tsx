@@ -86,7 +86,7 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
           locale={locale}
         />
 
-        <h1 style={{ marginTop: 16, fontFamily: 'var(--sk-font-en)' }}>SkyMart · Step 7 gallery</h1>
+        <h1 style={{ marginTop: 16, fontFamily: 'var(--sk-font-en)' }}>BlueGofer · Step 7 gallery</h1>
         <p style={{ color: 'var(--sk-muted)', fontFamily: 'var(--sk-font-en)' }}>
           Locale = <strong>{locale}</strong> · All global components rendered once for visual + axe audit.
         </p>
@@ -254,7 +254,7 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
           language: 'Language',
           currency: 'Currency',
           country: 'Country',
-          brand: 'SkyMart',
+          brand: 'BlueGofer',
         }}
         columns={[
           { heading: t['footer.about'], links: [

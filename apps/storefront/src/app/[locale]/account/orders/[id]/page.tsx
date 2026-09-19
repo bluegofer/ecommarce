@@ -3,7 +3,7 @@ import { OrderTracking, type OrderTrackingLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Track Order | SkyMart',
+  title: 'Track Order | BlueGofer',
   robots: { index: false, follow: false },
 };
 

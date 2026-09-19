@@ -63,7 +63,7 @@ function truncateMiddle(items: BreadcrumbItem[], maxVisible: number): Breadcrumb
 }
 
 function BreadcrumbJsonLd({ items }: { items: BreadcrumbItem[] }) {
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
   const data = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

@@ -103,9 +103,9 @@ export function Header({
               <HamburgerIcon />
             </button>
 
-            <Link href={`/${locale}`} className={styles.logo} aria-label="SkyMart home">
+            <Link href={`/${locale}`} className={styles.logo} aria-label="BlueGofer home">
               <PinIcon />
-              <span className={styles.logoText}>SkyMart</span>
+              <span className={styles.logoText}>BlueGofer</span>
             </Link>
 
             <button type="button" className={styles.deliver} aria-label={labels.deliverTo}>

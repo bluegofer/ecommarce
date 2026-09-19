@@ -18,11 +18,11 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const q = stringParam(searchParams.k) ?? '';
   const title = q
     ? locale === 'bn'
-      ? `"${q}" — অনলাইনে কিনুন | স্কাইমার্ট`
-      : `"${q}" — Buy Online | SkyMart`
+      ? `"${q}" — অনলাইনে কিনুন | ব্লু-গোফার`
+      : `"${q}" — Buy Online | BlueGofer`
     : locale === 'bn'
-      ? 'অনুসন্ধান | স্কাইমার্ট'
-      : 'Search | SkyMart';
+      ? 'অনুসন্ধান | ব্লু-গোফার'
+      : 'Search | BlueGofer';
   return { title, robots: { index: false, follow: true } };
 }
 
@@ -189,7 +189,7 @@ function footerLabels(t: ReturnType<typeof getDictionary>) {
     language: 'Language',
     currency: 'Currency',
     country: 'Country',
-    brand: 'SkyMart',
+    brand: 'BlueGofer',
   };
 }
 

@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const p = await catalogApi.getProductBySlug(params.slug);
     const title = p.metaTitle ?? (locale === 'bn' ? p.titleBn : p.titleEn);
     const description = p.metaDescription ?? undefined;
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
     const canonical = `${origin}/${locale}/p/${p.slug}`;
     return {
       title,
@@ -315,7 +315,7 @@ function buildProductJsonLd(
   locale: 'bn' | 'en',
   reviews: ReviewsSummary,
 ) {
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
   const inStockVariant = variants.find((v) => v.stock > 0) ?? variants[0];
   const pricePoisha = inStockVariant?.pricePoisha ?? 0;
   const priceBDT = (pricePoisha / 100).toFixed(2);
@@ -351,7 +351,7 @@ function buildProductJsonLd(
 }
 
 function buildBreadcrumbJsonLd(items: { label: string; href?: string }[]) {
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -438,7 +438,7 @@ function footerLabels(t: ReturnType<typeof getDictionary>) {
     language: 'Language',
     currency: 'Currency',
     country: 'Country',
-    brand: 'SkyMart',
+    brand: 'BlueGofer',
   };
 }
 

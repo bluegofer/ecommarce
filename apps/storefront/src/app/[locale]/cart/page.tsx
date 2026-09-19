@@ -161,7 +161,7 @@ function footerLabels(t: ReturnType<typeof getDictionary>) {
     language: 'Language',
     currency: 'Currency',
     country: 'Country',
-    brand: 'SkyMart',
+    brand: 'BlueGofer',
   };
 }
 

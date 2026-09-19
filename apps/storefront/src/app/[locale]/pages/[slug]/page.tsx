@@ -19,10 +19,10 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const page = await fetchPage(params.slug);
-  if (!page) return { title: 'Page Not Found | SkyMart', robots: { index: false } };
+  if (!page) return { title: 'Page Not Found | BlueGofer', robots: { index: false } };
   const title = params.locale === 'bn' ? page.titleBn : page.titleEn;
   return {
-    title: `${title} | SkyMart`,
+    title: `${title} | BlueGofer`,
     description: page.metaDescription ?? undefined,
   };
 }

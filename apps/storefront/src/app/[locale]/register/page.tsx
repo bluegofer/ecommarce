@@ -3,7 +3,7 @@ import { RegisterForm, type RegisterLabels } from '@/components/auth';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Create Account | SkyMart',
+  title: 'Create Account | BlueGofer',
   robots: { index: false, follow: true },
 };
 

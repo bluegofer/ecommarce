@@ -3,7 +3,7 @@ import { ProfileSettings, type ProfileSettingsLabels } from '@/components/accoun
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Account Settings | SkyMart',
+  title: 'Account Settings | BlueGofer',
   robots: { index: false, follow: false },
 };
 

@@ -3,8 +3,8 @@ import { DealsClient, type DealsLabels } from '@/components/deals';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: "Today's Deals | SkyMart",
-  description: 'Fresh discounts every hour on SkyMart.',
+  title: "Today's Deals | BlueGofer",
+  description: 'Fresh discounts every hour on BlueGofer.',
 };
 
 // Step 14.2 — ISR: deals page is fully cacheable (server-synced countdown

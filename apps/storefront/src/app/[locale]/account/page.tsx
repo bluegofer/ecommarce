@@ -3,7 +3,7 @@ import { AccountOverview, type AccountOverviewLabels } from '@/components/accoun
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'My Account | SkyMart',
+  title: 'My Account | BlueGofer',
   robots: { index: false, follow: false },
 };
 

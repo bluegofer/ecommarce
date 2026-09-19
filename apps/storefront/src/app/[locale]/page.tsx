@@ -23,13 +23,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   if (!isLocale(params.locale)) return {};
   const locale = params.locale as 'bn' | 'en';
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
   const canonical = `${origin}/${locale}`;
 
   const title =
     locale === 'bn'
-      ? 'স্কাইমার্ট — অনলাইনে কেনাকাটা'
-      : 'SkyMart — Online Shopping in Bangladesh';
+      ? 'ব্লু-গোফার — অনলাইনে কেনাকাটা'
+      : 'BlueGofer — Online Shopping in Bangladesh';
   const description =
     locale === 'bn'
       ? 'ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন সহ সব পণ্য এক জায়গায়। নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি।'
@@ -177,7 +177,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
 
         {/* Visually hidden h1 for a11y + SEO — page has no visible h1 by design (UI Spec C1) */}
         <h1 className="visually-hidden">
-          {locale === 'bn' ? 'স্কাইমার্ট — অনলাইনে কেনাকাটা' : 'SkyMart — Shop Online in Bangladesh'}
+          {locale === 'bn' ? 'ব্লু-গোফার — অনলাইনে কেনাকাটা' : 'BlueGofer — Shop Online in Bangladesh'}
         </h1>
 
         {heroSlides.length > 0 ? <HeroCarousel slides={heroSlides} locale={locale} autoplayMs={6000} /> : null}
@@ -216,15 +216,15 @@ export default async function HomePage({ params }: { params: { locale: string } 
         ) : null}
 
         <SeoTextBlock
-          title={locale === 'bn' ? 'স্কাইমার্টে অনলাইনে কিনুন' : 'Shop online at SkyMart'}
+          title={locale === 'bn' ? 'ব্লু-গোফারে অনলাইনে কিনুন' : 'Shop online at BlueGofer'}
           paragraphs={
             locale === 'bn'
               ? [
-                  'স্কাইমার্ট বাংলাদেশের একটি দ্রুত বর্ধনশীল অনলাইন মার্কেটপ্লেস। ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন, বিউটি সহ সব ধরনের পণ্য এক জায়গায়।',
+                  'ব্লু-গোফার বাংলাদেশের একটি দ্রুত বর্ধনশীল অনলাইন মার্কেটপ্লেস। ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন, বিউটি সহ সব ধরনের পণ্য এক জায়গায়।',
                   'বিকাশ, নগদ, কার্ড বা ক্যাশ অন ডেলিভারিতে নিরাপদ পেমেন্ট। ১,৫০০ টাকার উপরে অর্ডারে ফ্রি ডেলিভারি। ৭ দিনের সহজ রিটার্ন।',
                 ]
               : [
-                  "SkyMart is Bangladesh's rapidly growing online marketplace offering products across Electronics, Fashion, Home & Kitchen, Beauty and more.",
+                  "BlueGofer is Bangladesh's rapidly growing online marketplace offering products across Electronics, Fashion, Home & Kitchen, Beauty and more.",
                   'Pay safely with bKash, Nagad, Card, or Cash on Delivery. Free delivery on eligible orders over ৳1,500. Easy 7-day returns.',
                 ]
           }
@@ -246,7 +246,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
           language: 'Language',
           currency: 'Currency',
           country: 'Country',
-          brand: 'SkyMart',
+          brand: 'BlueGofer',
         }}
         columns={[
           { heading: t['footer.about'], links: [

@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og';
 import { catalogApi } from '@/lib/api';
 
 export const runtime = 'edge';
-export const alt = 'Category — SkyMart';
+export const alt = 'Category — BlueGofer';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -67,8 +67,8 @@ export default async function Image({ params }: Props) {
             color: '#64748B',
           }}
         >
-          <span style={{ fontWeight: 700, color: '#0C2B3D' }}>SkyMart</span>
-          <span>skymart.example</span>
+          <span style={{ fontWeight: 700, color: '#0C2B3D' }}>BlueGofer</span>
+          <span>nolimitshopping.com</span>
         </div>
       </div>
     ),

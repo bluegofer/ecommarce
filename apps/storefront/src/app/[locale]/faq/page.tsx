@@ -32,7 +32,7 @@ export default function FaqPage({ params }: { params: { locale: string } }) {
         { id: 'q5', category: 'Returns & Refunds', question: 'What is the return policy?', answer: 'Most items can be returned within 7 days of delivery for a full refund. Items must be unused, in original packaging, with all tags attached. Some categories (perishable food, personal care) are non-returnable.' },
         { id: 'q6', category: 'Returns & Refunds', question: 'How do I initiate a return?', answer: 'Go to Your Orders → find the item → click "Return items" → choose a reason and refund method → schedule a pickup. Our courier will collect the item within 48 hours.' },
         { id: 'q7', category: 'Account & Security', question: 'How do I reset my password?', answer: 'On the sign-in page, click "Forgot your password?", enter your mobile number or email, and follow the OTP verification. You can set a new password in seconds.' },
-        { id: 'q8', category: 'Account & Security', question: 'Is my payment information secure?', answer: 'Yes. SkyMart uses PCI-DSS compliant, tokenised payment via SSLCommerz. We never store your card details on our servers.' },
+        { id: 'q8', category: 'Account & Security', question: 'Is my payment information secure?', answer: 'Yes. BlueGofer uses PCI-DSS compliant, tokenised payment via SSLCommerz. We never store your card details on our servers.' },
       ];
 
   const labels: FaqAccordionLabels = {

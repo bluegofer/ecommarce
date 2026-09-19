@@ -3,7 +3,7 @@
 // Auth-gated and internal routes are disallowed entirely.
 import type { MetadataRoute } from 'next';
 
-const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
 
 export default function robots(): MetadataRoute.Robots {
   return {

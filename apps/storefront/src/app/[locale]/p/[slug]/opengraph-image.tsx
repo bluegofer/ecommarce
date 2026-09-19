@@ -4,7 +4,7 @@ import { ImageResponse } from 'next/og';
 import { catalogApi } from '@/lib/api';
 
 export const runtime = 'edge';
-export const alt = 'Product — SkyMart';
+export const alt = 'Product — BlueGofer';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -14,7 +14,7 @@ interface Props {
 
 export default async function Image({ params }: Props) {
   const locale = (params.locale === 'en' ? 'en' : 'bn') as 'bn' | 'en';
-  let title = 'SkyMart';
+  let title = 'BlueGofer';
   let brand = '';
   let price = '';
   let imgUrl: string | null = null;
@@ -60,7 +60,7 @@ export default async function Image({ params }: Props) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imgUrl} alt="" width={460} height={510} style={{ objectFit: 'cover' }} />
           ) : (
-            <div style={{ fontSize: 48, color: '#25729A' }}>SkyMart</div>
+            <div style={{ fontSize: 48, color: '#25729A' }}>BlueGofer</div>
           )}
         </div>
         <div
@@ -93,7 +93,7 @@ export default async function Image({ params }: Props) {
               color: '#64748B',
             }}
           >
-            <span style={{ fontWeight: 700, color: '#0C2B3D' }}>SkyMart</span>
+            <span style={{ fontWeight: 700, color: '#0C2B3D' }}>BlueGofer</span>
             <span>·</span>
             <span>Free delivery over ৳1,500</span>
           </div>

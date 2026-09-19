@@ -2,10 +2,10 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'SkyMart — Online Shopping in Bangladesh',
-    short_name: 'SkyMart',
+    name: 'BlueGofer — Online Shopping in Bangladesh',
+    short_name: 'BlueGofer',
     description:
-      'SkyMart — a category-agnostic marketplace placeholder. Fast delivery, safe payments, easy returns.',
+      'BlueGofer — a category-agnostic marketplace placeholder. Fast delivery, safe payments, easy returns.',
     start_url: '/bn',
     display: 'standalone',
     background_color: '#F6FAFD',

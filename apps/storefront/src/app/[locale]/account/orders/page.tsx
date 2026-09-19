@@ -3,7 +3,7 @@ import { OrdersList, type OrdersListLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Your Orders | SkyMart',
+  title: 'Your Orders | BlueGofer',
   robots: { index: false, follow: false },
 };
 

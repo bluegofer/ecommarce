@@ -9,7 +9,7 @@ import { isLocale, type Locale } from '@/lib/i18n';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Order Confirmed | SkyMart',
+  title: 'Order Confirmed | BlueGofer',
   robots: { index: false, follow: false },
 };
 

@@ -61,7 +61,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   if (!isLocale(params.locale)) return {};
   const locale = params.locale as 'bn' | 'en';
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
   const canonical = `${origin}/${locale}/c/${params.slug}`;
 
   try {
@@ -76,7 +76,7 @@ export async function generateMetadata({
     const description =
       locale === 'bn'
         ? `${name} ক্যাটাগরির সেরা পণ্য, সেরা দামে। নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি।`
-        : `Shop the best of ${name} at SkyMart. Safe payments, fast delivery.`;
+        : `Shop the best of ${name} at BlueGofer. Safe payments, fast delivery.`;
 
     return {
       title,
@@ -273,7 +273,7 @@ function footerLabels(t: ReturnType<typeof getDictionary>) {
     language: 'Language',
     currency: 'Currency',
     country: 'Country',
-    brand: 'SkyMart',
+    brand: 'BlueGofer',
   };
 }
 

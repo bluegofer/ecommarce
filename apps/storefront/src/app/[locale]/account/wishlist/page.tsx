@@ -3,7 +3,7 @@ import { WishlistGrid, type WishlistGridLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Wishlist | SkyMart',
+  title: 'Wishlist | BlueGofer',
   robots: { index: false, follow: false },
 };
 
