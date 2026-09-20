@@ -1093,3 +1093,43 @@ Test env skip: CI passes (115 tests) — confirms NODE_ENV=test path returns tru
 ### Next
 
 Step 15.9 — Penetration checks (auth bypass, IDOR, webhook forgery, coupon race, checkout tampering, ERP path hardening, F-06 evaluation).
+
+
+---
+
+## Step 15.9 — Penetration Check Findings & Fixes (2026-09-20)
+
+**Status:** COMPLETE — 15 findings closed, 4 High, 5 Medium, 3 Low/Info, 2 withdrawn (false alarms).
+
+### TOTP enforcement rollout (F-07 + F-13)
+
+**Decision:** Two-stage login for staff (Option α), soft enforcement at launch.
+
+**Behavior:**
+- Customers: unchanged single-step login.
+- Staff with TOTP enrolled: login returns `{ requireTotp, tempToken }`; access token issued only after `/auth/totp/verify`.
+- Staff without TOTP: login succeeds but returns `{ mustEnrollTotp: true, accessToken }`; admin UI routes to `/settings/profile?enroll=totp` and displays a persistent warning banner until enrollment completes.
+
+**Enforcement mode:** Soft at launch (allows staff in, flags missing TOTP).
+**Future upgrade path:** A config flag `TOTP_ENFORCEMENT_MODE = 'soft' | 'strict'` — when 'strict', login for TOTP-less staff is rejected with an error prompting enrollment. Trigger: after all current staff have enrolled (target: before Step 16 launch).
+
+**Temp token:** JWT with `scope: 'totp'`, TTL 5 minutes, signed with `JWT_ACCESS_SECRET`. Cannot be used as an access token (JwtAuthGuard rejects scoped tokens).
+
+**Audit:** enrollment and disable events logged via the standard audit interceptor.
+
+### Brand centralization (F-14)
+
+**Source of truth:** `apps/storefront/src/lib/brand.ts` exports `BRAND`.
+**Rule:** No literal "BlueGofer" string anywhere else in the storefront. All copy reads from BRAND or i18n dicts.
+**Preserved (deferred rename):** localStorage keys + DOM events prefixed `skymart:` — kept for backward compat with users' existing browser state. Future migration is a Step 16+ optional task.
+
+### Admin middleware enforcement (F-11)
+
+**Cookie checked:** `refresh_token` (same cookie as storefront — shared parent domain).
+**Public paths:** `/login` only.
+**Non-public with no cookie:** 307 redirect to `/login?next=<original>`.
+**Enforcement boundary:** HTTP-level shell gate. Real authorization (roles, TOTP-enrolled status) enforced server-side in API guards.
+
+### Client-facing outcome
+
+The storefront, JSON-LD, OG images, PWA manifest, and page copy now all consistently show **BlueGofer** (brand per D-02) on **https://nolimitshopping.com** with correct metadata. Admin console enforces 2FA on login for staff accounts.

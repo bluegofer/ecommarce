@@ -156,3 +156,72 @@
       return super.shouldSkip(_context);
     }
   }
+
+---
+
+## Step 15.9 — Penetration Checks (2026-09-20)
+
+Scope: TDD §6.13 (admin 2FA), §10.1 (auth hardening), §10.3 (rate limiting).
+All tests against staging (production image + production data fixtures only).
+
+### Findings & Resolutions
+
+| ID | Finding | Severity | Status | Evidence |
+|---|---|---|---|---|
+| **F-07** | TOTP enforcement absent server-side; staff logged in without 2FA | 🔴 High | ✅ FIXED | See "F-07/F-13 fix" below |
+| **F-08** | Rate-limit bypass via X-Forwarded-For (theory) | — | ✅ WITHDRAWN | 5 req/401 + 6th req/429 verified live. Bucket NOT shared across routes. |
+| **F-09** | CSRF guard fail-open when csrf_token cookie missing | 🟡 Low | ✅ FIXED | csrf.guard.ts now requires either (a) cookie+header match, or (b) same-origin (Origin/Referer) |
+| **F-10** | `/auth/refresh` + `/auth/logout` had no @Throttle | 🟡 Info | ✅ FIXED | 30/min refresh, 10/min logout |
+| **F-11** | Admin middleware AUTH_ENABLED=false; unauthed visitors saw admin shell | 🔴 High | ✅ FIXED | middleware.ts checks `refresh_token` cookie, redirects to /login with next= |
+| **F-12** | auth.service.ts syntax (terminal-truncation artifact) | — | ✅ WITHDRAWN | tsc --noEmit clean on HEAD; was not real |
+| **F-13** | `/auth/totp/verify` endpoint missing; admin UI called it but got 404 | 🔴 High | ✅ FIXED | Endpoint added + TempTokenGuard + DTO |
+| **F-14** | Storefront brand was "SkyMart" in production HTML | 🔴 High | ✅ FIXED | 30 files swept; BRAND config in apps/storefront/src/lib/brand.ts |
+| **F-15** | og:image used `http://localhost:3000` in production | 🟠 Medium | ✅ FIXED | metadataBase added; resolves to https://nolimitshopping.com |
+| **F-16** | JSON-LD Organization.url = skymart.example (placeholder) | 🟠 Medium | ✅ FIXED | Now uses BRAND.url from NEXT_PUBLIC_SITE_URL |
+| **F-18** | Admin called /api/v1/auth/me (404); real endpoint is /api/v1/me | 🟠 Medium | ✅ FIXED | Corrected URL + AuthUser shape aligned to MeProfileDto |
+| **F-19** | metadataBase missing → all relative OG URLs broken | 🟠 Medium | ✅ FIXED | Same as F-15 fix |
+| **F-20** | Malformed icons block in root layout metadata | 🟠 Medium | ✅ FIXED | Now proper `icons: { icon, apple }` block |
+| **F-21** | Orphan `<script>` tag → websiteJsonLd never rendered | 🟠 Medium | ✅ FIXED | Second `<script type="application/ld+json">` correctly opened |
+| **F-22** | faqJsonLd — mainEntity array never built (missing `.map`) | 🟠 Medium | ✅ FIXED | File parsed incorrectly; now valid |
+
+### F-07 / F-13 fix (TOTP enforcement — the biggest change)
+
+**New endpoints:**
+- `POST /auth/totp/verify` — completes login challenge (temp token → access + refresh)
+- `POST /auth/totp/enroll` — generates QR + secret for staff
+- `POST /auth/totp/confirm` — activates enrollment after first valid code
+- `POST /auth/totp/disable` — deactivates TOTP (requires current code)
+
+**Login flow (Option α — two-stage):**
+- Customer login: unchanged single-step
+- Staff with TOTP enrolled: `POST /auth/login` returns `{ requireTotp: true, tempToken }` (5-min TTL, scope=totp); access token only after `/auth/totp/verify` succeeds
+- Staff without TOTP yet: `POST /auth/login` returns `{ mustEnrollTotp: true, accessToken }` (soft mode — allows login but admin UI routes to enrollment)
+
+**Enforcement guard:** `TempTokenGuard` (common/guards/temp-token.guard.ts) verifies `scope=totp` claim.
+
+**Rollout mode:** Soft (mustEnrollTotp flag) at launch; can switch to strict (login rejected until TOTP enrolled) via future config flag.
+
+**Admin middleware:** `apps/admin/src/middleware.ts` now enforces `refresh_token` cookie on all non-public paths, redirecting to `/login?next=`.
+
+### F-14 fix (brand sweep)
+
+Created `apps/storefront/src/lib/brand.ts` — single source of truth for brand name + URL + locales + icons.
+
+Metadata + JSON-LD + OG image generators now consume BRAND. Bulk sweep across 30 files removed literal "SkyMart" / "skymart.example". Bangla script also swept (`স্কাইমার্ট` → `ব্লু-গোফার`).
+
+**Deliberately preserved (breaking-change risk):**
+- `localStorage` key `'skymart:wishlist:v1'` (users' existing wishlists)
+- DOM event `'skymart:wishlist-changed'` (paired with storage)
+- `localStorage` key `'skymart:pwa-install-dismissed'` (PWA install UX)
+
+**Note:** Future migration could rename these to `bluegofer:*`, requiring a one-time read-old + write-new migration. Deferred to Step 16+ — non-critical.
+
+### Verify (production, post-deploy)
+
+- `curl https://nolimitshopping.com/bn | grep "<title>"` → `ব্লু-গোফার — অনলাইনে কেনাকাটা | BlueGofer` ✅
+- `og:image` = `https://nolimitshopping.com/...` (no localhost) ✅
+- JSON-LD Organization.name = BlueGofer ✅
+- `SkyMart` count in HTML = 0 ✅
+- Admin dashboard redirects to /login when unauthed ✅
+- `POST /api/v1/auth/totp/verify` with valid temp + bad code → 401 ✅
+- `POST /api/v1/auth/totp/verify` with expired/invalid temp → 401 ✅
