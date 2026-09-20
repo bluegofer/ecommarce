@@ -26,13 +26,18 @@ export interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ requireTotp: boolean }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ requireTotp: boolean; mustEnrollTotp?: boolean }>;
   verifyTotp: (code: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+// Session storage for the temp token during the two-step login (F-13).
+const TEMP_TOKEN_KEY = 'admin_temp_totp_token';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -53,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else setUser(null);
   }, [loadMe]);
 
-  // Silent restore on mount
   useEffect(() => {
     (async () => {
       await refresh();
@@ -66,18 +70,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await api.post<{
         accessToken?: string;
         requireTotp?: boolean;
+        mustEnrollTotp?: boolean;
+        tempToken?: string;
         user?: AuthUser;
       }>(
         '/api/v1/auth/login',
-        { email, password },
+        { identifier: email, password },
         { skipAuth: true },
       );
-      if (res.requireTotp) return { requireTotp: true };
+
+      if (res.requireTotp) {
+        if (res.tempToken && typeof window !== 'undefined') {
+          window.sessionStorage.setItem(TEMP_TOKEN_KEY, res.tempToken);
+        }
+        return { requireTotp: true };
+      }
+
       if (res.accessToken) {
         setAccessToken(res.accessToken);
         if (res.user) setUser(res.user);
         else await loadMe();
       }
+
+      if (res.mustEnrollTotp) {
+        return { requireTotp: false, mustEnrollTotp: true };
+      }
+
       return { requireTotp: false };
     },
     [loadMe],
@@ -85,15 +103,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyTotp = useCallback(
     async (code: string) => {
+      const tempToken =
+        typeof window !== 'undefined'
+          ? window.sessionStorage.getItem(TEMP_TOKEN_KEY)
+          : null;
+      if (!tempToken) throw new Error('No TOTP challenge token');
+
       const res = await api.post<{ accessToken: string; user: AuthUser }>(
         '/api/v1/auth/totp/verify',
         { code },
-        { skipAuth: true },
+        { skipAuth: true, headers: { Authorization: `Bearer ${tempToken}` } },
       );
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem(TEMP_TOKEN_KEY);
+      }
       setAccessToken(res.accessToken);
-      setUser(res.user);
+      await loadMe();
     },
-    [],
+    [loadMe],
   );
 
   const signOut = useCallback(async () => {
@@ -104,6 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setAccessToken(null);
     setUser(null);
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(TEMP_TOKEN_KEY);
+    }
   }, []);
 
   const value = useMemo<AuthContextValue>(
