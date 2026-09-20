@@ -1,10 +1,13 @@
+// apps/api/src/modules/auth/auth.controller.ts
 import {
   Body,
   Controller,
+  Headers,
   HttpCode,
   Post,
   Req,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -13,11 +16,28 @@ import { Request } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RequestOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import { TotpConfirmDto, TotpVerifyDto, TotpDisableDto } from './dto/totp.dto';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
+import { TotpService } from './totp.service';
 import { Public } from '../../common/decorators/public.decorator';
+import {
+  CurrentUser,
+  type AuthUser,
+} from '../../common/decorators/current-user.decorator';
+import { TempTokenGuard } from '../../common/guards/temp-token.guard';
 
 const REFRESH_COOKIE = 'refresh_token';
+// Same refresh cookie is used by both storefront and admin (same parent domain
+// api.nolimitshopping.com). The admin middleware (apps/admin/src/middleware.ts)
+// checks for this exact cookie name. F-11 from step-15.9.
+const REFRESH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// Refresh + logout throttles (F-10 from step-15.9): previously unlimited,
+// which allowed slow-loris style refresh flooding. Now bounded per IP.
+const REFRESH_THROTTLE = { default: { limit: 30, ttl: 60_000 } };
+const LOGOUT_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
+const TOTP_VERIFY_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
 
 @ApiTags('auth')
 @Controller('auth')
@@ -25,12 +45,15 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly otp: OtpService,
+    private readonly totp: TotpService,
   ) {}
 
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60_000 } }) // F-04: prevent bulk account creation
   @Post('register')
-  async register(@Body() dto: RegisterDto): Promise<{ ok: true; userId: string; devCode: string | null }> {
+  async register(
+    @Body() dto: RegisterDto,
+  ): Promise<{ ok: true; userId: string; devCode: string | null }> {
     const { userId } = await this.auth.register(dto);
     const otpRes = await this.otp.issue(dto.phone);
     return { ok: true, userId, devCode: otpRes.devCode ?? null };
@@ -40,7 +63,9 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 60_000 } }) // F-04: prevent SMS bombing (real per-SMS cost)
   @Post('otp/request')
   @HttpCode(200)
-  async requestOtp(@Body() dto: RequestOtpDto): Promise<{ ok: true; devCode: string | null }> {
+  async requestOtp(
+    @Body() dto: RequestOtpDto,
+  ): Promise<{ ok: true; devCode: string | null }> {
     const res = await this.otp.issue(dto.phone);
     return { ok: true, devCode: res.devCode ?? null };
   }
@@ -62,25 +87,151 @@ export class AuthController {
   async login(
     @Body() dto: LoginDto,
     @Req() req: Request,
+  ): Promise<
+    | { ok: true; accessToken: string; expiresIn: number }
+    | { ok: true; requireTotp: true; tempToken: string; expiresIn: number }
+    | { ok: true; mustEnrollTotp: true; accessToken: string; expiresIn: number }
+  > {
+    const result = await this.auth.login(
+      dto,
+      req.header('user-agent') ?? undefined,
+      req.ip,
+    );
+
+    // F-07 + F-13 (step-15.9): staff accounts are challenged for TOTP.
+    if (result.kind === 'totp-required') {
+      return {
+        ok: true,
+        requireTotp: true,
+        tempToken: result.tempToken,
+        expiresIn: result.expiresIn,
+      };
+    }
+
+    // Any successful full login (customer or staff-must-enroll) issues the
+    // rotating refresh cookie. Cookie flags are the current safe defaults.
+    req.res?.cookie?.(REFRESH_COOKIE, result.refreshToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: result.refreshExpiresIn * 1000,
+      path: '/',
+    });
+
+    if (result.kind === 'staff-must-enroll-totp') {
+      return {
+        ok: true,
+        mustEnrollTotp: true,
+        accessToken: result.accessToken,
+        expiresIn: result.expiresIn,
+      };
+    }
+
+    return {
+      ok: true,
+      accessToken: result.accessToken,
+      expiresIn: result.expiresIn,
+    };
+  }
+
+  /**
+   * F-13 (step-15.9): completes the staff 2FA challenge.
+   * The temp token from POST /auth/login is provided as a Bearer; the 6-digit
+   * TOTP code is in the body. On success we issue the normal access + rotating
+   * refresh pair and set the same refresh cookie the storefront uses, so the
+   * admin middleware sees a valid session on the next request.
+   */
+  @Public()
+  @UseGuards(TempTokenGuard)
+  @Throttle(TOTP_VERIFY_THROTTLE)
+  @Post('totp/verify')
+  @HttpCode(200)
+  async totpVerify(
+    @Body() dto: TotpVerifyDto,
+    @Headers('authorization') authHeader: string | undefined,
+    @Req() req: Request,
   ): Promise<{ ok: true; accessToken: string; expiresIn: number }> {
-    const tokens = await this.auth.login(dto, req.header('user-agent') ?? undefined, req.ip);
+    const bearer = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : undefined;
+    if (!bearer) throw new UnauthorizedException('Missing temp token');
+
+    const tokens = await this.auth.verifyTotpLogin(
+      bearer,
+      dto.code,
+      req.header('user-agent') ?? undefined,
+      req.ip,
+    );
+
     req.res?.cookie?.(REFRESH_COOKIE, tokens.refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      maxAge: tokens.refreshExpiresIn * 1000,
+      maxAge: REFRESH_COOKIE_MAX_AGE_MS,
       path: '/',
     });
-    return { ok: true, accessToken: tokens.accessToken, expiresIn: tokens.expiresIn };
+
+    return {
+      ok: true,
+      accessToken: tokens.accessToken,
+      expiresIn: tokens.expiresIn,
+    };
+  }
+
+  /**
+   * Enrolls TOTP for the currently logged-in staff member.
+   * Returns the otpauth URL QR (data URL) + raw secret so the admin UI can
+   * display it. The secret is not active until /auth/totp/confirm succeeds
+   * with a live 6-digit code (prevents locking the user out on a bad scan).
+   */
+  @Post('totp/enroll')
+  @HttpCode(200)
+  async totpEnroll(
+    @CurrentUser() user: AuthUser,
+  ): Promise<{ ok: true; qrDataUrl: string; secret: string }> {
+    const result = await this.totp.enrol(user.userId, user.phone);
+    return { ok: true, qrDataUrl: result.qrDataUrl, secret: result.secret };
+  }
+
+  @Post('totp/confirm')
+  @HttpCode(200)
+  async totpConfirm(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: TotpConfirmDto,
+  ): Promise<{ ok: true }> {
+    const valid = await this.totp.verify(user.userId, dto.code);
+    if (!valid) throw new UnauthorizedException('Invalid TOTP code');
+    return { ok: true };
+  }
+
+  @Post('totp/disable')
+  @HttpCode(200)
+  async totpDisable(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: TotpDisableDto,
+  ): Promise<{ ok: true }> {
+    const valid = await this.totp.verify(user.userId, dto.code);
+    if (!valid) throw new UnauthorizedException('Invalid TOTP code');
+    await this.auth.disableTotp(user.userId);
+    return { ok: true };
   }
 
   @Public()
+  @Throttle(REFRESH_THROTTLE) // F-10 (step-15.9)
   @Post('refresh')
   @HttpCode(200)
-  async refresh(@Req() req: Request): Promise<{ ok: true; accessToken: string; expiresIn: number }> {
-    const token = (req.cookies as Record<string, string> | undefined)?.[REFRESH_COOKIE];
+  async refresh(
+    @Req() req: Request,
+  ): Promise<{ ok: true; accessToken: string; expiresIn: number }> {
+    const token = (req.cookies as Record<string, string> | undefined)?.[
+      REFRESH_COOKIE
+    ];
     if (!token) throw new UnauthorizedException('No refresh token');
-    const tokens = await this.auth.refresh(token, req.header('user-agent') ?? undefined, req.ip);
+    const tokens = await this.auth.refresh(
+      token,
+      req.header('user-agent') ?? undefined,
+      req.ip,
+    );
     req.res?.cookie?.(REFRESH_COOKIE, tokens.refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
@@ -88,14 +239,21 @@ export class AuthController {
       maxAge: tokens.refreshExpiresIn * 1000,
       path: '/',
     });
-    return { ok: true, accessToken: tokens.accessToken, expiresIn: tokens.expiresIn };
+    return {
+      ok: true,
+      accessToken: tokens.accessToken,
+      expiresIn: tokens.expiresIn,
+    };
   }
 
   @Public()
+  @Throttle(LOGOUT_THROTTLE) // F-10 (step-15.9)
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request): Promise<{ ok: true }> {
-    const token = (req.cookies as Record<string, string> | undefined)?.[REFRESH_COOKIE];
+    const token = (req.cookies as Record<string, string> | undefined)?.[
+      REFRESH_COOKIE
+    ];
     if (token) await this.auth.logout(token);
     req.res?.clearCookie?.(REFRESH_COOKIE, { path: '/' });
     return { ok: true };

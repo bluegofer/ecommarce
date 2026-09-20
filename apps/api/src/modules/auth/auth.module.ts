@@ -1,3 +1,4 @@
+// apps/api/src/modules/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -8,6 +9,7 @@ import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
 import { TotpService } from './totp.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { TempTokenGuard } from '../../common/guards/temp-token.guard';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, OtpService, TotpService, JwtStrategy],
+  providers: [AuthService, OtpService, TotpService, JwtStrategy, TempTokenGuard],
   exports: [AuthService, OtpService, TotpService],
 })
 export class AuthModule {}
