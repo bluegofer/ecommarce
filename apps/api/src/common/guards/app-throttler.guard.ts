@@ -1,32 +1,33 @@
 // apps/api/src/common/guards/app-throttler.guard.ts
 //
-// Custom ThrottlerGuard for F-04 (Step 15.8.4).
+// Custom ThrottlerGuard for F-04 (Step 15.8.4) + load-test exemption (Step 15.10).
 //
-// Rationale: the strict @Throttle() overrides added in step-15.8.4
-// (register 5/min, otp/request 3/min, login 5/min, etc.) are correct for
-// production traffic but collide with the E2E test suite, which
-// intentionally registers many users from the same IP within seconds.
-// Result: 27 tests in 7 suites failed with 429 "Too Many Requests".
+// Skips throttling when:
+//   1. NODE_ENV === 'test'           (jest suites)
+//   2. Client IP matches LOAD_TEST_IP env var (Step 15.10 load tests)
 //
-// Fix: skip throttling entirely when NODE_ENV=test. Jest sets
-// NODE_ENV=test automatically, so this covers all unit + e2e + integration
-// suites. Production/staging/dev keep the guard active.
+// Production/staging keep the guard active for real traffic.
 //
-// Safety: this only relaxes rate limiting during automated tests -- the
-// deployed containers run with NODE_ENV=production (set in docker-compose),
-// so real traffic always hits the guard.
-//
-// Reference: docs/security-check-report.md F-04, CI run 35394621365.
+// Set LOAD_TEST_IP in staging .env only during load tests; remove afterward.
+// Reference: docs/security-check-report.md F-04, docs/load-test-report.md
 
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Injectable()
 export class AppThrottlerGuard extends ThrottlerGuard {
-  protected override async shouldSkip(_context: ExecutionContext): Promise<boolean> {
+  protected override async shouldSkip(context: ExecutionContext): Promise<boolean> {
     if (process.env.NODE_ENV === 'test') {
       return true;
     }
-    return super.shouldSkip(_context);
+    const allowedIp = process.env.LOAD_TEST_IP;
+    if (allowedIp) {
+      const req = context.switchToHttp().getRequest();
+      const clientIp = req.ip || req.socket?.remoteAddress;
+      if (clientIp === allowedIp) {
+        return true;
+      }
+    }
+    return super.shouldSkip(context);
   }
 }
