@@ -1197,3 +1197,50 @@ Step 15.12 (Backups) delivered the DR runbook + backup infrastructure. Step 15.1
 Step 15.15 — Acceptance criteria final (~30 min).
 
 ---
+---
+
+## Step 15.15 — Acceptance Checklist Final (2026-09-21)
+
+**Status:** COMPLETE — checklist consolidated from 74-line skeleton to 228-line full coverage.
+
+### Context
+
+Step 15.13 (DR drill) closed Phase C. Step 15.15 is the last Phase D sub-step before launch — it consolidates the full acceptance checklist against TDD §16 + Workflow v2 §10 (Project Done Definition) + Appendix A requirements, so Step 16 UAT can proceed line-by-line.
+
+### Delivered
+
+- `docs/acceptance-checklist.md` expanded:
+  - Part A — Shopper Journeys (A1-A8): 8 sections, 30+ items (was A1-A5)
+  - Part B — Admin Operations (B1-B8): 8 sections, 32+ items
+  - Part C — ERP Modules (NEW): POS / Purchase / Suppliers / Accounting / HR / Attendance / Payroll — 7 sections
+  - Part D — Cross-Module Automation Chains (NEW): all 4 A.5 chains
+  - Part E — Integrations (NEW): Payments / Courier / Messaging / Analytics
+  - Part F — SEO and Performance (6 items, was Part D)
+  - Part G — Infrastructure, Security, DR (G1-G3): with Step 15.13 evidence marked `[x]`
+  - Part H — TDD §16 Deliverables (NEW): 10-item final gate
+- Legend added: `[x]` = verified in Step 15.15, `[ ]` = client verifies at Step 16 UAT
+- Sign-off block updated (client name, UAT env, notes)
+
+### Rationale
+
+The Step 1 skeleton was a placeholder. Full coverage is required before Step 16 because:
+1. Client UAT checklist must mirror TDD §16 acceptance criteria exactly.
+2. Appendix A modules (POS/Purchase/Accounting/HR/etc.) were added AFTER Step 1 — the skeleton had no place to sign them off.
+3. Cross-module chains (A.5) are the strongest evidence of "one system" per TDD §A.1 — they need explicit checkboxes.
+4. `[x]` marks allow Step 15.15 to pre-verify what's already proven (DR drill, load test) so UAT focuses on what's left.
+
+### Pre-verified items (marked `[x]`)
+
+- DR drill result (Step 15.13): RTO ~8 min, RPO met, restore integrity 97/97
+- Temp instance cleanup verified
+
+### Pending client verification (Step 16 UAT)
+
+- All Parts A-H items currently unchecked — 200+ line items
+- Sign-off block signature + date
+
+### Next
+
+Step 16 — Staging UAT + Production Launch + Handover.
+
+---
