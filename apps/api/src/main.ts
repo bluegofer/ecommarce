@@ -14,9 +14,16 @@ async function bootstrap() {
   // signature verification (payment + courier). Needed by /payments/webhook/*.
   const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
 
-  
+  // Trust the first proxy hop (Nginx) so req.ip reflects the real client IP
+  // from X-Forwarded-For. Required for throttler per-IP limits to work behind
+  // Nginx, and for the LOAD_TEST_IP whitelist (Step 15.10).
+  // Note: app is INestApplication; the Express .set() is only on the
+  // underlying http adapter instance, so we obtain it explicitly.
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
+
   app.useGlobalFilters(new SentryExceptionFilter());
-const prefix = process.env.API_GLOBAL_PREFIX ?? 'api/v1';
+  const prefix = process.env.API_GLOBAL_PREFIX ?? 'api/v1';
   app.setGlobalPrefix(prefix);
   app.use(helmet());
   app.use(cookieParser());
