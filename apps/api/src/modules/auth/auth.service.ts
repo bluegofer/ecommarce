@@ -13,6 +13,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { TotpService } from './totp.service';
+import { parseTtlSeconds } from '../../common/util/ttl';
 
 const MAX_FAILED_LOGINS = 5;
 const LOCK_MINUTES = 15;
@@ -238,11 +239,16 @@ export class AuthService {
     userAgent?: string,
     ipAddress?: string,
   ): Promise<AccessTokens> {
-    const accessTtl = Number(
-      this.config.get<number | string>('JWT_ACCESS_TTL') ?? 900,
+    // Parse TTL from env — accepts seconds ("900") or timespan ("15m", "7d").
+    // Previously we used Number() which returns NaN for "15m" and jsonwebtoken
+    // then throws 'expiresIn should be a number of seconds'.
+    const accessTtl = parseTtlSeconds(
+      this.config.get<number | string>('JWT_ACCESS_TTL'),
+      900,
     );
-    const refreshTtl = Number(
-      this.config.get<number | string>('JWT_REFRESH_TTL') ?? 2592000,
+    const refreshTtl = parseTtlSeconds(
+      this.config.get<number | string>('JWT_REFRESH_TTL'),
+      2592000,
     );
 
     const accessToken = await this.jwt.signAsync(
