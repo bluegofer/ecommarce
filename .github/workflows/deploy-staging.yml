@@ -60,6 +60,11 @@ jobs:
           tags: |
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-storefront:latest
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-storefront:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.nolimitshopping.com/api/v1
+            NEXT_PUBLIC_SITE_URL=https://nolimitshopping.com
+            NEXT_PUBLIC_DEFAULT_LOCALE=bn
+            NEXT_PUBLIC_SUPPORTED_LOCALES=bn,en
 
       - name: Build and push Admin image
         uses: docker/build-push-action@v5
@@ -154,6 +159,12 @@ jobs:
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://nolimitshopping.com/bn)
           echo "Storefront (bn locale): HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Check storefront category route
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://nolimitshopping.com/bn/c/electronics)
+          echo "Category page (electronics): HTTP $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
       - name: Check admin
