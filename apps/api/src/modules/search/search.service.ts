@@ -62,8 +62,24 @@ export class SearchService {
     const whereParts: string[] = [`p.status = 'PUBLISHED'`];
 
     if (req.categorySlug) {
+      // Step 16 fix: include this category AND all descendant categories.
+      // Parent categories (e.g., "electronics") have no direct products — the
+      // products live in their children ("smartphones", "headphones"). A plain
+      // `c.slug = $1` would return zero rows for parent category pages. We walk
+      // the tree with a recursive CTE so parent PLP pages show descendant SKUs.
+      // Leaf/subcategory queries remain unchanged (CTE returns just that id).
       params.push(req.categorySlug);
-      whereParts.push(`c.slug = $${params.length}`);
+      whereParts.push(
+        `c.id IN (
+          WITH RECURSIVE cat_tree AS (
+            SELECT id FROM categories WHERE slug = $${params.length}
+            UNION ALL
+            SELECT c2.id FROM categories c2
+            INNER JOIN cat_tree ct ON c2."parentId" = ct.id
+          )
+          SELECT id FROM cat_tree
+        )`,
+      );
     }
     if (req.categoryId) {
       params.push(req.categoryId);
