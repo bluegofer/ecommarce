@@ -29,9 +29,16 @@ import { TempTokenGuard } from '../../common/guards/temp-token.guard';
 
 const REFRESH_COOKIE = 'refresh_token';
 // Same refresh cookie is used by both storefront and admin (same parent domain
-// api.nolimitshopping.com). The admin middleware (apps/admin/src/middleware.ts)
+// nolimitshopping.com). The admin middleware (apps/admin/src/middleware.ts)
 // checks for this exact cookie name. F-11 from step-15.9.
 const REFRESH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// Cookie domain — leading dot makes it visible to ALL subdomains
+// (nolimitshopping.com, admin.nolimitshopping.com, api.nolimitshopping.com).
+// Without this, the cookie defaults to the host that set it (api.nolimitshopping.com)
+// and the admin middleware can never see it → infinite redirect to /login.
+const COOKIE_DOMAIN =
+  process.env.NODE_ENV === 'production' ? '.nolimitshopping.com' : undefined;
 
 // Refresh + logout throttles (F-10 from step-15.9): previously unlimited,
 // which allowed slow-loris style refresh flooding. Now bounded per IP.
@@ -116,6 +123,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       maxAge: result.refreshExpiresIn * 1000,
       path: '/',
+      domain: COOKIE_DOMAIN,
     });
 
     if (result.kind === 'staff-must-enroll-totp') {
@@ -169,6 +177,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       maxAge: REFRESH_COOKIE_MAX_AGE_MS,
       path: '/',
+      domain: COOKIE_DOMAIN,
     });
 
     return {
@@ -238,6 +247,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       maxAge: tokens.refreshExpiresIn * 1000,
       path: '/',
+      domain: COOKIE_DOMAIN,
     });
     return {
       ok: true,
@@ -255,7 +265,10 @@ export class AuthController {
       REFRESH_COOKIE
     ];
     if (token) await this.auth.logout(token);
-    req.res?.clearCookie?.(REFRESH_COOKIE, { path: '/' });
+    req.res?.clearCookie?.(REFRESH_COOKIE, {
+      path: '/',
+      domain: COOKIE_DOMAIN,
+    });
     return { ok: true };
   }
 }
