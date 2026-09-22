@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { RegisterForm, type RegisterLabels } from '@/components/auth';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
@@ -47,6 +48,7 @@ export default function RegisterPage({ params }: { params: { locale: string } })
 
   return (
     <main style={{ padding: '24px 16px', minHeight: '60vh' }}>
+      <GoogleAuthButton label={dict['auth.continue_with_google']} />
       <RegisterForm locale={locale} labels={labels} />
     </main>
   );

@@ -241,6 +241,17 @@ export class AuthService {
   }
 
   /**
+   * Returns the user with roles — used by GET /auth/me so the storefront
+   * can populate the AuthProvider after a Google OAuth callback.
+   */
+  async getUserProfile(userId: string) {
+    return this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { userRoles: { include: { role: true } } },
+    });
+  }
+
+  /**
    * Google OAuth — TDD Appendix C §C.3.
    *
    * Flow:

@@ -61,6 +61,7 @@
   "auth.error.consent_required": "চালিয়ে যেতে শর্তাবলী মেনে নিতে হবে।",
   "auth.success.registered": "অ্যাকাউন্ট তৈরি হয়েছে। স্কাইমার্টে স্বাগতম!",
   "auth.success.signedin": "সফলভাবে সাইন ইন হয়েছে।",
+    "auth.continue_with_google": "গুগল দিয়ে চালিয়ে যান",
   "account.title": "আমার অ্যাকাউন্ট",
   "order.track": "অর্ডার ট্র্যাক করুন",
   "order.confirmed": "অর্ডার নিশ্চিত হয়েছে",

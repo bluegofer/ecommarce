@@ -288,6 +288,18 @@ export class AuthController {
     return { ok: true };
   }
 
+  @Get('me')
+  async me(@CurrentUser() user: AuthUser) {
+    const u = await this.auth.getUserProfile(user.userId);
+    return {
+      id: u.id,
+      phone: u.phone,
+      email: u.email,
+      fullName: u.fullName,
+      roles: u.userRoles.map((ur) => ur.role.code),
+    };
+  }
+
   // ============================================================
   // Google OAuth — TDD Appendix C §C.5
   // ============================================================

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { SignInForm, type SignInLabels } from '@/components/auth';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
@@ -36,6 +37,7 @@ export default function SignInPage({
 
   return (
     <main style={{ padding: '24px 16px', minHeight: '60vh' }}>
+      <GoogleAuthButton label={dict['auth.continue_with_google']} />
       <SignInForm locale={locale} labels={labels} next={searchParams.next} />
     </main>
   );

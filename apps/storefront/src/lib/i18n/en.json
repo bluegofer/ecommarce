@@ -61,6 +61,7 @@
   "auth.error.consent_required": "You must accept the terms to continue.",
   "auth.success.registered": "Account created. Welcome to SkyMart!",
   "auth.success.signedin": "Signed in successfully.",
+    "auth.continue_with_google": "Continue with Google",
   "account.title": "My Account",
   "order.track": "Track Order",
   "order.confirmed": "Order Confirmed",

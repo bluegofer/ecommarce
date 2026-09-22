@@ -69,6 +69,12 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   /** The access token (in-memory); null when anonymous. Pass to api() calls. */
   accessToken: string | null;
+  /**
+   * Complete a Google OAuth sign-in using the access token issued by
+   * the API's /auth/google/callback redirect. Fetches the user profile
+   * via /auth/me and hydrates the provider. (TDD Appendix C §C.5)
+   */
+  completeOAuthLogin: (accessToken: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -161,6 +167,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuthHint();
   }, []);
 
+  /**
+   * Google OAuth — completes sign-in using an access token delivered by the
+   * API's /auth/google/callback redirect. Fetches the profile via /auth/me
+   * with the token as a Bearer, then hydrates local state exactly like a
+   * password login. (TDD Appendix C §C.3 / §C.5)
+   */
+  const completeOAuthLogin = useCallback(async (token: string) => {
+    const profile = await api.get<AuthUser>('/auth/me', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    setAccessToken(token);
+    setUser(profile);
+    writeAuthHint();
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -171,8 +192,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       accessToken,
+      completeOAuthLogin,
     }),
-    [user, loading, login, requestOtp, register, logout, accessToken],
+    [user, loading, login, requestOtp, register, logout, accessToken, completeOAuthLogin],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
