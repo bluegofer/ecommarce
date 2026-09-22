@@ -90,14 +90,14 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Purchases', href: '/purchases', icon: ShoppingCart },
       { label: 'Suppliers', href: '/suppliers', icon: Factory },
       { label: 'HR', href: '/hr', icon: UserCog },
-      { label: 'Attendance', href: '/attendance', icon: Clock },
-      { label: 'Payroll', href: '/payroll', icon: Banknote },
+      { label: 'Attendance', href: '/hr/attendance', icon: Clock },
+      { label: 'Payroll', href: '/hr/payroll', icon: Banknote },
     ],
   },
   {
     title: 'SYSTEM',
     items: [
-      { label: 'Users & Roles', href: '/users', icon: ShieldCheck },
+      { label: 'Users & Roles', href: '/settings/users', icon: ShieldCheck },
     ],
   },
 ];

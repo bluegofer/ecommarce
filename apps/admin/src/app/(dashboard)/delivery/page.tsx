@@ -36,6 +36,10 @@ export default function DeliveryPage() {
   const dispatchQuery = useQuery<DispatchOrder[]>('/api/v1/orders?status=PROCESSING');
   const settlementQuery = useQuery<Settlement[]>('/api/v1/courier/settlements');
 
+  // Defensive: guard against non-array responses (401/404 → null)
+  const dispatchRows = Array.isArray(dispatchQuery.data) ? dispatchQuery.data : [];
+  const settlementRows = Array.isArray(settlementQuery.data) ? settlementQuery.data : [];
+
   const assignMutation = useMutation<{ id: string; courier: string }, unknown>(
     'post',
     (input) => `/api/v1/orders/${(input as { id: string }).id}/dispatch`,
@@ -139,13 +143,13 @@ export default function DeliveryPage() {
             <div className="p-10 text-center text-slate-400">Loading queue…</div>
           ) : dispatchQuery.error ? (
             <div className="p-10 text-center text-danger-700">{dispatchQuery.error.message}</div>
-          ) : !dispatchQuery.data || dispatchQuery.data.length === 0 ? (
+          ) : dispatchRows.length === 0 ? (
             <div className="p-10 text-center text-success-700">
               <CheckCircle2 className="w-8 h-8 mx-auto mb-3 text-success-500" />
               All caught up — no orders waiting for dispatch.
             </div>
           ) : (
-            <DataTable columns={dispatchColumns} rows={dispatchQuery.data} rowKey={(r) => r.id} />
+            <DataTable columns={dispatchColumns} rows={dispatchRows} rowKey={(r) => r.id} />
           )}
         </div>
       ) : (
@@ -154,13 +158,13 @@ export default function DeliveryPage() {
             <div className="p-10 text-center text-slate-400">Loading settlements…</div>
           ) : settlementQuery.error ? (
             <div className="p-10 text-center text-danger-700">{settlementQuery.error.message}</div>
-          ) : !settlementQuery.data || settlementQuery.data.length === 0 ? (
+          ) : settlementRows.length === 0 ? (
             <div className="p-10 text-center text-slate-400">
               <Bike className="w-8 h-8 mx-auto mb-3 text-slate-300" />
               No settlement data yet — courier adapters wired in Step 13.
             </div>
           ) : (
-            <DataTable columns={settlementColumns} rows={settlementQuery.data} rowKey={(r) => r.id} />
+            <DataTable columns={settlementColumns} rows={settlementRows} rowKey={(r) => r.id} />
           )}
         </div>
       )}

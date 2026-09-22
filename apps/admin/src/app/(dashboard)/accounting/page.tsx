@@ -22,6 +22,9 @@ interface JournalLine {
 export default function AccountingPage() {
   const { data, loading, error } = useQuery<JournalLine[]>('/api/v1/accounting/journal');
 
+  // Defensive: guard against non-array responses (401/404 → null)
+  const journalRows = Array.isArray(data) ? data : [];
+
   const columns: Column<JournalLine>[] = [
     { key: 'num', header: 'Entry #', render: (r) => <code className="font-mono text-slate-800">{r.entryNumber}</code> },
     { key: 'date', header: 'Date', render: (r) => <span className="text-[12.5px] text-slate-500">{formatDate(r.entryDate)}</span> },
@@ -75,10 +78,10 @@ export default function AccountingPage() {
           <div className="p-10 text-center text-slate-400">Loading ledger…</div>
         ) : error ? (
           <div className="p-10 text-center text-danger-700">{error.message}</div>
-        ) : !data || data.length === 0 ? (
+        ) : journalRows.length === 0 ? (
           <EmptyState icon={BookOpen} title="No journal entries yet" description="Entries post automatically from sales, purchases, and payroll." />
         ) : (
-          <DataTable columns={columns} rows={data} rowKey={(r) => r.id} />
+          <DataTable columns={columns} rows={journalRows} rowKey={(r) => r.id} />
         )}
       </div>
     </div>

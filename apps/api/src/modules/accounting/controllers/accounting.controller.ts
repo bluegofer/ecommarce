@@ -39,6 +39,11 @@ export class AccountingController {
   @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'FINANCE_READONLY')
   listLedgerAccounts() { return this.coa.listLedgerAccounts(); }
 
+  // Alias kept for the admin console — /accounting/ledger → same list.
+  @Get('ledger')
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'FINANCE_READONLY')
+  listLedgerAlias() { return this.coa.listLedgerAccounts(); }
+
   @Get('ledger-accounts/:id')
   @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'FINANCE_READONLY')
   getLedgerAccount(@Param('id') id: string) { return this.coa.findLedgerAccountById(id); }
@@ -83,6 +88,25 @@ export class AccountingController {
   @Roles('SUPER_ADMIN', 'FINANCE_MANAGER')
   reverseJournal(@Param('id') id: string, @Body() body: { reason: string }) {
     return this.ledger.reverse(id, body.reason ?? 'No reason given');
+  }
+
+  // ---- Income / Expense ----
+  // The admin console's "Income / Expense" link opens /accounting/income-expense.
+  // For now, return the journal entries filtered by income/expense source types
+  // so the page renders real data instead of a 404. A dedicated income_expense
+  // table can replace this in a later batch without changing the endpoint.
+  @Get('income-expense')
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'FINANCE_READONLY')
+  listIncomeExpense(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.ledger.list({
+      from,
+      to,
+      sourceType: 'INCOME_EXPENSE' as never,
+      limit: 200,
+    });
   }
 
   // ---- Reports ----

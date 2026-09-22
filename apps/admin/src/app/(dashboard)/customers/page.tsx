@@ -42,6 +42,12 @@ export default function CustomersPage() {
     `/api/v1/crm/customers?${query.toString()}`,
   );
 
+  // Defensive: even if the API returns a non-array items field, treat as empty
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const total = typeof data?.total === 'number' ? data.total : 0;
+  const dataPage = typeof data?.page === 'number' ? data.page : 1;
+  const dataPageSize = typeof data?.pageSize === 'number' ? data.pageSize : 20;
+
   const columns: Column<CustomerRow>[] = [
     {
       key: 'name',
@@ -91,7 +97,7 @@ export default function CustomersPage() {
       header: 'Segments',
       render: (row) => (
         <div className="flex flex-wrap gap-1">
-          {row.segmentLabels.length === 0 ? (
+          {(!Array.isArray(row.segmentLabels) || row.segmentLabels.length === 0) ? (
             <span className="text-slate-400 text-[12.5px]">—</span>
           ) : (
             row.segmentLabels.slice(0, 2).map((s) => (
@@ -156,7 +162,7 @@ export default function CustomersPage() {
           <div className="p-10 text-center text-slate-400">Loading customers…</div>
         ) : error ? (
           <div className="p-10 text-center text-danger-700">{error.message}</div>
-        ) : !data || data.items.length === 0 ? (
+        ) : items.length === 0 ? (
           <EmptyState
             icon={Users}
             title="No customers yet"
@@ -164,11 +170,11 @@ export default function CustomersPage() {
           />
         ) : (
           <>
-            <DataTable columns={columns} rows={data.items} rowKey={(r) => r.id} />
+            <DataTable columns={columns} rows={items} rowKey={(r) => r.id} />
             <div className="px-4 py-3 border-t border-border flex items-center justify-between text-[12.5px] text-slate-500">
               <span>
-                Showing {(data.page - 1) * data.pageSize + 1}–
-                {Math.min(data.page * data.pageSize, data.total)} of {data.total}
+                Showing {(dataPage - 1) * dataPageSize + 1}–
+                {Math.min(dataPage * dataPageSize, total)} of {total}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -180,12 +186,12 @@ export default function CustomersPage() {
                   Prev
                 </button>
                 <span className="tabular-nums">
-                  Page {page} of {Math.max(1, Math.ceil(data.total / data.pageSize))}
+                  Page {page} of {Math.max(1, Math.ceil(total / dataPageSize))}
                 </span>
                 <button
                   type="button"
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={page * data.pageSize >= data.total}
+                  disabled={page * dataPageSize >= total}
                   className="h-8 px-2.5 rounded border border-border bg-white disabled:opacity-50"
                 >
                   Next

@@ -2,12 +2,15 @@
 // - POST /payments/initiate       (auth: customer OR guest order owner)
 // - POST /payments/webhook/:provider  (public; signature verified inside service)
 // - POST /payments/refund         (admin: FINANCE roles)
+// - GET  /payments/transactions   (admin: FINANCE + ORDER_SUPPORT, list of all payments)
+// - GET  /payments/refunds        (admin: FINANCE, list of refunded payments)
 //
 // Webhook accepts raw body — main.ts enables rawBody globally for this route.
 import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   Param,
@@ -17,6 +20,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { PrismaService } from '../../database/prisma.service';
 import { PaymentsService } from './payments.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -45,7 +49,10 @@ const ALLOWED_PROVIDERS: PaymentProvider[] = ['BKASH', 'NAGAD', 'SSLCOMMERZ', 'C
 @ApiTags('payments')
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly payments: PaymentsService) {}
+  constructor(
+    private readonly payments: PaymentsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post('initiate')
   async initiate(
@@ -112,5 +119,60 @@ export class PaymentsController {
       key,
     );
     return { ok: result.ok, result };
+  }
+
+  /**
+   * List all payments for the admin console (Transactions tab).
+   * Admin-only. Returns a flat shape that the payments page expects:
+   *   { id, orderNumber, gateway, amountPoisha, status, reference, createdAt }
+   */
+  @Get('transactions')
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'FINANCE_READONLY', 'ORDER_SUPPORT')
+  async listTransactions() {
+    const rows = await this.prisma.payment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: { order: { select: { orderNumber: true } } },
+    });
+    return rows.map((p) => {
+      const refunded = p.refundedPoisha ?? 0;
+      const status =
+        refunded > 0
+          ? refunded >= p.amountPoisha
+            ? 'REFUNDED'
+            : 'PARTIAL_REFUND'
+          : p.status;
+      return {
+        id: p.id,
+        orderNumber: p.order?.orderNumber ?? null,
+        gateway: p.method,
+        amountPoisha: p.amountPoisha,
+        status,
+        reference: p.gatewayRef,
+        createdAt: p.createdAt.toISOString(),
+      };
+    });
+  }
+
+  /**
+   * List refunded payments for the admin console (Refunds tab).
+   * Admin-only. Returns only rows where refundedPoisha > 0.
+   */
+  @Get('refunds')
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'FINANCE_READONLY')
+  async listRefunds() {
+    const rows = await this.prisma.payment.findMany({
+      where: { refundedPoisha: { gt: 0 } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: { order: { select: { orderNumber: true } } },
+    });
+    return rows.map((p) => ({
+      id: p.id,
+      orderNumber: p.order?.orderNumber ?? null,
+      amountPoisha: p.refundedPoisha,
+      status: p.refundedPoisha >= p.amountPoisha ? 'COMPLETED' : 'PROCESSING',
+      createdAt: p.createdAt.toISOString(),
+    }));
   }
 }
