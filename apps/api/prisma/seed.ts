@@ -1,17 +1,33 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
-// Runtime-resolve the COA seed so this file works both:
-//   - locally: `tsx prisma/seed.ts` → resolves ../src/.../default-coa.seed.ts
-//   - in production container: dist/apps/api/src/.../default-coa.seed.js
-// A static `import ... from '../src/...'` fails in production because the
-// container only ships `dist/`, not `src/`.
+// Resolve the COA seed module at runtime. Local dev has `src/`, but the
+// production container only ships `dist/`. We try both candidate paths,
+// and if neither resolves (e.g. a partial build) we return null so the
+// rest of the seed still runs (roles, permissions, admin user).
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { seedDefaultCoa } = require('../src/modules/accounting/seeds/default-coa.seed') as {
-  seedDefaultCoa: (
-    prisma: PrismaClient,
-  ) => Promise<{ created: number; skipped: number }>;
-};
+function loadSeedDefaultCoa():
+  | ((prisma: PrismaClient) => Promise<{ created: number; skipped: number }>)
+  | null {
+  const candidates = [
+    '../src/modules/accounting/seeds/default-coa.seed',
+    '../dist/apps/api/src/modules/accounting/seeds/default-coa.seed.js',
+  ];
+  for (const candidate of candidates) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const mod = require(candidate);
+      if (mod && typeof mod.seedDefaultCoa === 'function') {
+        return mod.seedDefaultCoa as (
+          prisma: PrismaClient,
+        ) => Promise<{ created: number; skipped: number }>;
+      }
+    } catch {
+      // Try the next candidate path
+    }
+  }
+  return null;
+}
 
 const prisma = new PrismaClient();
 
@@ -206,7 +222,12 @@ async function seedDemoSupplier() {
 }
 
 async function seedChartOfAccounts() {
-  const result = await seedDefaultCoa(prisma);
+  const seedFn = loadSeedDefaultCoa();
+  if (!seedFn) {
+    console.log('SKIP: default-coa.seed module not found in this build');
+    return;
+  }
+  const result = await seedFn(prisma);
   console.log(`COA seed: created=${result.created}, skipped=${result.skipped}`);
 }
 
