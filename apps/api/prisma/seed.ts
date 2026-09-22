@@ -1,6 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import { seedDefaultCoa } from '../src/modules/accounting/seeds/default-coa.seed';
+
+// Runtime-resolve the COA seed so this file works both:
+//   - locally: `tsx prisma/seed.ts` → resolves ../src/.../default-coa.seed.ts
+//   - in production container: dist/apps/api/src/.../default-coa.seed.js
+// A static `import ... from '../src/...'` fails in production because the
+// container only ships `dist/`, not `src/`.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { seedDefaultCoa } = require('../src/modules/accounting/seeds/default-coa.seed') as {
+  seedDefaultCoa: (
+    prisma: PrismaClient,
+  ) => Promise<{ created: number; skipped: number }>;
+};
 
 const prisma = new PrismaClient();
 
@@ -292,7 +303,13 @@ async function main() {
   await seedPermissions();
   await assignPermissionsToRoles();
   await seedDemoAdmin();
-  await seedChartOfAccounts();
+  // Allow skipping the accounting seed if the environment lacks the
+  // compiled default-coa module (e.g. a partial build).
+  if (process.env.SKIP_ACCOUNTING_SEED !== 'true') {
+    await seedChartOfAccounts();
+  } else {
+    console.log('Skipping COA seed (SKIP_ACCOUNTING_SEED=true)');
+  }
   await seedDefaultBranch();
   await seedDemoSupplier();
   await seedDepartmentsAndDesignations();
@@ -315,14 +332,12 @@ main()
 // Idempotent — safe to re-run.
 // =====================================================================
 async function seedPosDemo(prisma: PrismaClient) {
-  // Marker so we don't duplicate
   const mainBranch = await prisma.branch.findUnique({ where: { code: 'MAIN' } });
   if (!mainBranch) {
     console.log('SKIP: MAIN branch not found; run base seed first');
     return;
   }
 
-  // Ensure 2nd branch exists (Chittagong)
   let ctgBranch = await prisma.branch.findUnique({ where: { code: 'CTG' } });
   if (!ctgBranch) {
     ctgBranch = await prisma.branch.create({
@@ -337,7 +352,6 @@ async function seedPosDemo(prisma: PrismaClient) {
     console.log('Created branch CTG');
   }
 
-  // Registers: one per branch
   for (const branch of [mainBranch, ctgBranch]) {
     const existing = await prisma.register.findFirst({
       where: { branchId: branch.id },
@@ -354,7 +368,6 @@ async function seedPosDemo(prisma: PrismaClient) {
     }
   }
 
-  // Seed branch stock: give every variant 100 units in MAIN, 20 in CTG
   const variants = await prisma.variant.findMany({ select: { id: true } });
   let created = 0;
   for (const v of variants) {
@@ -377,6 +390,4 @@ async function seedPosDemo(prisma: PrismaClient) {
     }
   }
   console.log(`POS demo seed: ${created} branch_stock rows created`);
-
-  // POS_DEMO_SEED_APPLIED
 }
