@@ -1,5 +1,15 @@
 // apps/api/src/modules/hr/hr.controller.ts
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -98,8 +108,25 @@ export class HrController {
   }
 
   @Get('attendance/summary') @Roles('SUPER_ADMIN', 'HR_MANAGER')
-  summary(@Query() q: { employeeId: string; year: string; month: string }) {
-    return this.att.monthlySummary(q.employeeId, parseInt(q.year, 10), parseInt(q.month, 10));
+  summary(@Query() q: { employeeId?: string; year?: string; month: string }) {
+    // Support BOTH `?month=2026-09` (admin console) and `?year=2026&month=9`.
+    let yearNum: number;
+    let monthNum: number;
+    if (q.month && q.month.includes('-')) {
+      const parts = q.month.split('-');
+      yearNum = parseInt(parts[0] ?? '', 10);
+      monthNum = parseInt(parts[1] ?? '', 10);
+    } else {
+      yearNum = parseInt(q.year ?? '', 10);
+      monthNum = parseInt(q.month ?? '', 10);
+    }
+    if (!yearNum || !monthNum) {
+      throw new BadRequestException('month must be YYYY-MM or year+month must be provided');
+    }
+    if (q.employeeId) {
+      return this.att.monthlySummary(q.employeeId, yearNum, monthNum);
+    }
+    return this.att.summaryForMonth(yearNum, monthNum);
   }
 
   @Post('attendance/device-events') @Roles('SUPER_ADMIN', 'HR_MANAGER')

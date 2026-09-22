@@ -104,6 +104,68 @@ export class AttendanceService {
     };
   }
 
+  /**
+   * Summary for all employees in a given month.
+   * Used by the admin attendance page (grid for the whole org).
+   * Returns one row per employee with present/absent/leave/OT counts.
+   */
+  async summaryForMonth(
+    year: number,
+    month: number,
+  ): Promise<
+    Array<{
+      employeeId: string;
+      year: number;
+      month: number;
+      totalDays: number;
+      presentDays: number;
+      absentDays: number;
+      lateDays: number;
+      leaveDays: number;
+      overtimeMinutes: number;
+    }>
+  > {
+    const from = new Date(Date.UTC(year, month - 1, 1));
+    const to = new Date(Date.UTC(year, month, 1));
+    const employees = await this.prisma.employee.findMany({
+      where: { status: 'ACTIVE' },
+      select: { id: true },
+    });
+    const rows = await this.prisma.attendanceRecord.findMany({
+      where: { workDate: { gte: from, lt: to } },
+    });
+
+    const byEmployee = new Map<string, typeof rows>();
+    for (const r of rows) {
+      const list = byEmployee.get(r.employeeId) ?? [];
+      list.push(r);
+      byEmployee.set(r.employeeId, list);
+    }
+
+    return employees.map((emp) => {
+      const list = byEmployee.get(emp.id) ?? [];
+      let present = 0, absent = 0, late = 0, leave = 0, ot = 0;
+      for (const r of list) {
+        if (r.status === 'PRESENT') present++;
+        else if (r.status === 'ABSENT') absent++;
+        else if (r.status === 'LATE') { late++; present++; }
+        else if (r.status === 'LEAVE') leave++;
+        ot += r.overtimeMins;
+      }
+      return {
+        employeeId: emp.id,
+        year,
+        month,
+        totalDays: list.length,
+        presentDays: present,
+        absentDays: absent,
+        lateDays: late,
+        leaveDays: leave,
+        overtimeMinutes: ot,
+      };
+    });
+  }
+
   /** Raw list for a date range (admin grid). */
   listRange(params: { employeeId?: string; from: string; to: string }) {
     const where: Prisma.AttendanceRecordWhereInput = {

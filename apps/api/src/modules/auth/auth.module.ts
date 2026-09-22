@@ -8,6 +8,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
 import { TotpService } from './totp.service';
+import { UsersController } from './users.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TempTokenGuard } from '../../common/guards/temp-token.guard';
 
@@ -23,7 +24,7 @@ import { TempTokenGuard } from '../../common/guards/temp-token.guard';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, UsersController],
   providers: [AuthService, OtpService, TotpService, JwtStrategy, TempTokenGuard],
   exports: [AuthService, OtpService, TotpService],
 })
