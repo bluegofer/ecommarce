@@ -46,9 +46,8 @@ export default function InventoryPage() {
       : null,
   );
 
-  // Phase 3.5 — backend AdjustStockDto expects { variantId, delta, reason }
   const adjustMutation = useMutation<
-    { variantId: string; delta: number; reason: string },
+    { variantId: string; quantity: number; reason: string },
     unknown
   >('post', '/api/v1/inventory/adjust');
 
@@ -222,9 +221,9 @@ function AdjustModal({
 }: {
   row: StockRow | null;
   onClose: () => void;
-  onSubmit: (p: { variantId: string; delta: number; reason: string }) => void;
+  onSubmit: (p: { variantId: string; quantity: number; reason: string }) => void;
 }) {
-  const [delta, setDelta] = useState('0');
+  const [quantity, setQuantity] = useState('0');
   const [reason, setReason] = useState('CORRECTION');
 
   if (!row) return null;
@@ -246,7 +245,7 @@ function AdjustModal({
           </button>
           <button
             type="button"
-            onClick={() => onSubmit({ variantId: row.variantId, delta: parseInt(delta, 10) || 0, reason })}
+            onClick={() => onSubmit({ variantId: row.variantId, quantity: parseInt(quantity, 10) || 0, reason })}
             className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
           >
             Apply
@@ -265,8 +264,8 @@ function AdjustModal({
           </label>
           <input
             type="number"
-            value={delta}
-            onChange={(e) => setDelta(e.target.value)}
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
             className="w-full h-10 px-3 rounded border border-border bg-white text-sm tabular-nums"
           />
         </div>
@@ -283,6 +282,8 @@ function AdjustModal({
             <option value="DAMAGE">Damage</option>
             <option value="RETURN">Return</option>
             <option value="CORRECTION">Correction</option>
+            <option value="TRANSFER_OUT">Transfer out</option>
+            <option value="TRANSFER_IN">Transfer in</option>
           </select>
         </div>
       </div>
