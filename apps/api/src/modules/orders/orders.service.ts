@@ -1,5 +1,9 @@
 // apps/api/src/modules/orders/orders.service.ts
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { assertTransition } from './order-state-machine';
 import { DispatchService } from '../notifications/dispatch.service';
@@ -8,7 +12,6 @@ import type {
   AddOrderNoteDto,
   CancelOrderDto,
   OrderDto,
-  OrderListQueryDto,
   OrderStatus,
   PaginatedOrdersDto,
   PaymentMethod,
@@ -17,6 +20,7 @@ import type {
   UpdateOrderStatusDto,
 } from '@ecommarce/types';
 import type { Prisma } from '@prisma/client';
+import { ListOrdersQueryDto } from './dto/list-orders.dto';
 
 const NOTIFICATION_FOR_STATUS: Partial<Record<OrderStatus, string>> = {
   CONFIRMED: 'order.confirmed',
@@ -70,7 +74,11 @@ export class OrdersService {
     // it would throw a PrismaClientValidationError mapped to HTTP 500.
     // The controller-level LookupOrderQueryDto already rejects this case
     // with HTTP 400; this guard protects any internal caller too.
-    if (!orderNumber || typeof orderNumber !== 'string' || orderNumber.trim() === '') {
+    if (
+      !orderNumber ||
+      typeof orderNumber !== 'string' ||
+      orderNumber.trim() === ''
+    ) {
       return null;
     }
     const row = await this.prisma.order.findUnique({
@@ -86,7 +94,7 @@ export class OrdersService {
     return row ? this.toDto(row) : null;
   }
 
-  async list(query: OrderListQueryDto): Promise<PaginatedOrdersDto> {
+  async list(query: ListOrdersQueryDto): Promise<PaginatedOrdersDto> {
     const page = Math.max(1, query.page ?? 1);
     const pageSize = Math.min(96, Math.max(1, query.pageSize ?? 24));
     const skip = (page - 1) * pageSize;
@@ -128,7 +136,9 @@ export class OrdersService {
         placedAt: r.placedAt.toISOString(),
         itemCount: r.items.reduce((s, i) => s + i.quantity, 0),
         contactPhone: r.contactPhone,
-        shippingCity: String((r.shippingAddressJson as Record<string, unknown>).city ?? ''),
+        shippingCity: String(
+          (r.shippingAddressJson as Record<string, unknown>).city ?? '',
+        ),
       })),
       total,
       page,
@@ -224,7 +234,11 @@ export class OrdersService {
     return this.findOne(orderId);
   }
 
-  async cancel(orderId: string, dto: CancelOrderDto, actorUserId: string | null): Promise<OrderDto> {
+  async cancel(
+    orderId: string,
+    dto: CancelOrderDto,
+    actorUserId: string | null,
+  ): Promise<OrderDto> {
     return this.updateStatus(
       orderId,
       { status: 'CANCELLED', note: dto.reason },
@@ -236,8 +250,14 @@ export class OrdersService {
   // Notes
   // -------------------------------------------------------------------------
 
-  async addNote(orderId: string, dto: AddOrderNoteDto, actorUserId: string | null) {
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+  async addNote(
+    orderId: string,
+    dto: AddOrderNoteDto,
+    actorUserId: string | null,
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('order not found');
     if (!dto.body || dto.body.trim().length === 0) {
       throw new BadRequestException('note body required');
@@ -411,12 +431,18 @@ export class OrdersService {
       })),
     };
   }
+
   // -------------------------------------------------------------------------
   // A.5 chain: Website Orders -> Accounting (revenue posting on delivery)
   // -------------------------------------------------------------------------
   private async postRevenueOnDelivery(
     tx: Prisma.TransactionClient,
-    order: { id: string; orderNumber: string; totalPoisha: number; payments: Array<{ status: string; method: string }> },
+    order: {
+      id: string;
+      orderNumber: string;
+      totalPoisha: number;
+      payments: Array<{ status: string; method: string }>;
+    },
   ): Promise<void> {
     // Idempotency: one ORDER-sourced journal per order
     const existing = await tx.journalEntry.findFirst({
@@ -435,8 +461,12 @@ export class OrdersService {
           ? '1020-MFS'
           : '1010-BANK';
 
-    const debit = await tx.ledgerAccount.findUnique({ where: { code: debitCode } });
-    const sales = await tx.ledgerAccount.findUnique({ where: { code: '4000-SALES' } });
+    const debit = await tx.ledgerAccount.findUnique({
+      where: { code: debitCode },
+    });
+    const sales = await tx.ledgerAccount.findUnique({
+      where: { code: '4000-SALES' },
+    });
     if (!debit || !sales) {
       throw new BadRequestException('Ledger accounts missing for revenue posting');
     }
@@ -448,8 +478,18 @@ export class OrdersService {
         sourceType: 'ORDER',
         sourceId: order.id,
         lines: [
-          { ledgerAccountId: debit.id, debit: order.totalPoisha, credit: 0, description: 'Payment in' },
-          { ledgerAccountId: sales.id, debit: 0, credit: order.totalPoisha, description: 'Sales revenue' },
+          {
+            ledgerAccountId: debit.id,
+            debit: order.totalPoisha,
+            credit: 0,
+            description: 'Payment in',
+          },
+          {
+            ledgerAccountId: sales.id,
+            debit: 0,
+            credit: order.totalPoisha,
+            description: 'Sales revenue',
+          },
         ],
       },
       { tx, status: 'POSTED' },

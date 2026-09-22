@@ -1,5 +1,15 @@
 // apps/api/src/modules/orders/orders.controller.ts
-import { Body, Controller, Get, Headers as NestHeaders, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers as NestHeaders,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { InvoiceService } from './invoice.service';
@@ -10,10 +20,10 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type {
   AddOrderNoteDto,
   CancelOrderDto,
-  OrderListQueryDto,
   UpdateOrderStatusDto,
 } from '@ecommarce/types';
 import { LookupOrderQueryDto } from './dto/lookup-order.dto';
+import { ListOrdersQueryDto } from './dto/list-orders.dto';
 import type { Response } from 'express';
 
 interface RequestUser {
@@ -42,7 +52,7 @@ export class OrdersController {
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')
   @Get()
-  list(@Query() query: OrderListQueryDto) {
+  list(@Query() query: ListOrdersQueryDto) {
     return this.orders.list(query);
   }
 
@@ -95,7 +105,12 @@ export class OrdersController {
       | 'REDX';
     const key = idemKey ?? `dispatch-${id}-${provider}`;
     const result = await this.courier.createForOrder(id, provider, body?.note, key);
-    return { ok: result.ok, provider: result.provider, trackingNumber: result.consignmentId, trackingUrl: result.trackingUrl };
+    return {
+      ok: result.ok,
+      provider: result.provider,
+      trackingNumber: result.consignmentId,
+      trackingUrl: result.trackingUrl,
+    };
   }
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')
