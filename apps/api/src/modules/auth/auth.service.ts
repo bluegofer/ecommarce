@@ -125,6 +125,13 @@ export class AuthService {
       );
     }
 
+    // Google-only users have no password — they must sign in via Google.
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account uses Google sign-in. Please continue with Google.',
+      );
+    }
+
     const passwordOk = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordOk) {
       const failed = user.failedLoginCount + 1;
@@ -231,6 +238,133 @@ export class AuthService {
 
   async disableTotp(userId: string): Promise<void> {
     await this.prisma.totpSecret.deleteMany({ where: { userId } });
+  }
+
+  /**
+   * Google OAuth — TDD Appendix C §C.3.
+   *
+   * Flow:
+   *  1. If the Google account is already linked → return the linked user.
+   *  2. Else if a User row exists with the same email → link Google to it.
+   *  3. Else → create a new User (passwordHash = null) + OAuthAccount link.
+   *
+   * The new Google user has NO phone and NO phoneVerifiedAt — the storefront
+   * prompts for phone post-signup (TDD §C.3 "still require phone number
+   * post-signup for delivery"). Until then, `phone` is a stable placeholder
+   * (`google:<providerAccountId>`) that satisfies the unique constraint.
+   *
+   * Returns freshly-issued access + refresh tokens (same shape as login).
+   */
+  async findOrCreateOAuthUser(
+    profile: {
+      provider: 'google';
+      providerAccountId: string;
+      email: string | null;
+      fullName: string;
+      avatarUrl: string | null;
+    },
+    userAgent?: string,
+    ipAddress?: string,
+  ): Promise<{ isNew: boolean; needsPhone: boolean } & AccessTokens> {
+    // 1) Already linked?
+    const existingLink = await this.prisma.oAuthAccount.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider: profile.provider,
+          providerAccountId: profile.providerAccountId,
+        },
+      },
+      include: { user: true },
+    });
+
+    if (existingLink) {
+      await this.prisma.user.update({
+        where: { id: existingLink.userId },
+        data: { lastLoginAt: new Date() },
+      });
+      const tokens = await this.issueTokens(
+        existingLink.userId,
+        existingLink.user.phone,
+        userAgent,
+        ipAddress,
+      );
+      return {
+        ...tokens,
+        isNew: false,
+        needsPhone: !existingLink.user.phoneVerifiedAt,
+      };
+    }
+
+    // 2) Existing user by email → link.
+    if (profile.email) {
+      const byEmail = await this.prisma.user.findUnique({
+        where: { email: profile.email },
+      });
+
+      if (byEmail) {
+        await this.prisma.oAuthAccount.create({
+          data: {
+            userId: byEmail.id,
+            provider: profile.provider,
+            providerAccountId: profile.providerAccountId,
+            email: profile.email,
+          },
+        });
+        await this.prisma.user.update({
+          where: { id: byEmail.id },
+          data: {
+            lastLoginAt: new Date(),
+            emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(),
+          },
+        });
+        const tokens = await this.issueTokens(
+          byEmail.id,
+          byEmail.phone,
+          userAgent,
+          ipAddress,
+        );
+        return {
+          ...tokens,
+          isNew: false,
+          needsPhone: !byEmail.phoneVerifiedAt,
+        };
+      }
+    }
+
+    // 3) Brand new Google user.
+    const placeholderPhone = `google:${profile.providerAccountId}`;
+
+    const created = await this.prisma.user.create({
+      data: {
+        phone: placeholderPhone,
+        email: profile.email,
+        fullName: profile.fullName,
+        passwordHash: null,
+        phoneVerifiedAt: null,
+        emailVerifiedAt: profile.email ? new Date() : null,
+        status: 'ACTIVE',
+        notificationPrefs: { create: {} },
+        oauthAccounts: {
+          create: {
+            provider: profile.provider,
+            providerAccountId: profile.providerAccountId,
+            email: profile.email,
+          },
+        },
+      },
+    });
+
+    const tokens = await this.issueTokens(
+      created.id,
+      created.phone,
+      userAgent,
+      ipAddress,
+    );
+    return {
+      ...tokens,
+      isNew: true,
+      needsPhone: true,
+    };
   }
 
   private async issueTokens(

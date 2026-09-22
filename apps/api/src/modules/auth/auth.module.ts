@@ -11,6 +11,7 @@ import { TotpService } from './totp.service';
 import { UsersController } from './users.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TempTokenGuard } from '../../common/guards/temp-token.guard';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
@@ -25,7 +26,14 @@ import { TempTokenGuard } from '../../common/guards/temp-token.guard';
     }),
   ],
   controllers: [AuthController, UsersController],
-  providers: [AuthService, OtpService, TotpService, JwtStrategy, TempTokenGuard],
+  providers: [
+    AuthService,
+    OtpService,
+    TotpService,
+    JwtStrategy,
+    TempTokenGuard,
+    GoogleStrategy,
+  ],
   exports: [AuthService, OtpService, TotpService],
 })
 export class AuthModule {}

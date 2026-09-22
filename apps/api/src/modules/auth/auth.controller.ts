@@ -2,16 +2,18 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   Post,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -26,6 +28,8 @@ import {
   type AuthUser,
 } from '../../common/decorators/current-user.decorator';
 import { TempTokenGuard } from '../../common/guards/temp-token.guard';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+import type { GoogleProfileNormalized } from './strategies/google.strategy';
 
 const REFRESH_COOKIE = 'refresh_token';
 // Same refresh cookie is used by both storefront and admin (same parent domain
@@ -282,5 +286,66 @@ export class AuthController {
       domain: COOKIE_DOMAIN,
     });
     return { ok: true };
+  }
+
+  // ============================================================
+  // Google OAuth — TDD Appendix C §C.5
+  // ============================================================
+
+  /**
+   * Step 1: redirect the browser to Google's consent screen.
+   * Passport owns the redirect; no body is returned by NestJS.
+   */
+  @Public()
+  @UseGuards(GoogleOAuthGuard)
+  @Get('google')
+  async googleAuth(): Promise<void> {
+    // Passport handles the redirect to Google.
+  }
+
+  /**
+   * Step 2: Google redirects back with ?code=&state=. Passport exchanges
+   * the code for a profile; we then issue the same access + rotating refresh
+   * tokens as a normal login, set the refresh cookie, and redirect the browser
+   * to the storefront callback route.
+   *
+   * TDD §C.3: new Google users must fill in a phone number post-signup
+   * (`needs_phone=1` tells the storefront to prompt).
+   */
+  @Public()
+  @UseGuards(GoogleOAuthGuard)
+  @Get('google/callback')
+  async googleCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const profile = req.user as GoogleProfileNormalized;
+
+    const result = await this.auth.findOrCreateOAuthUser(
+      profile,
+      req.header('user-agent') ?? undefined,
+      req.ip,
+    );
+
+    res.cookie(REFRESH_COOKIE, result.refreshToken, {
+      httpOnly: true,
+      sameSite: COOKIE_SAME_SITE,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: result.refreshExpiresIn * 1000,
+      path: '/',
+      domain: COOKIE_DOMAIN,
+    });
+
+    const storefrontBase =
+      process.env.APP_BASE_URL ?? 'http://localhost:3000';
+
+    const params = new URLSearchParams({
+      access_token: result.accessToken,
+      needs_phone: result.needsPhone ? '1' : '0',
+      is_new: result.isNew ? '1' : '0',
+    });
+
+    const redirectUrl = `${storefrontBase}/bn/auth/google-callback?${params.toString()}`;
+    res.redirect(redirectUrl);
   }
 }

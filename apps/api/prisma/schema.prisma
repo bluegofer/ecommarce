@@ -25,7 +25,7 @@ model User {
   phone            String     @unique @db.VarChar(20)
   email            String?    @unique @db.VarChar(255)
   fullName         String     @map("full_name") @db.VarChar(120)
-  passwordHash     String     @map("password_hash") @db.VarChar(120)
+  passwordHash     String?    @map("password_hash") @db.VarChar(120)
   phoneVerifiedAt  DateTime?  @map("phone_verified_at")
   emailVerifiedAt  DateTime?  @map("email_verified_at")
   status           UserStatus @default(ACTIVE)
@@ -40,6 +40,7 @@ model User {
   totpSecret        TotpSecret?
   auditLogs         AuditLog[]
   notificationPrefs NotificationPreference?
+  oauthAccounts     OAuthAccount[]
 
   posSessionsOpened           PosSession[]    @relation("PosSessionOpenedBy")
   posSessionsClosed           PosSession[]    @relation("PosSessionClosedBy")
@@ -51,6 +52,24 @@ model User {
   stockTransfersReceived      StockTransfer[] @relation("StockTransferReceivedBy")
 
   @@map("users")
+}
+
+// OAuth identities (Step 16 / Appendix C — Google sign-in).
+// One row per (provider, providerAccountId). Users may have 0..N.
+model OAuthAccount {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  provider          String   @db.VarChar(30)
+  providerAccountId String   @map("provider_account_id") @db.VarChar(255)
+  email             String?  @db.VarChar(255)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
 }
 
 model Role {
