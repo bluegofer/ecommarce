@@ -40,6 +40,18 @@ const REFRESH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const COOKIE_DOMAIN =
   process.env.NODE_ENV === 'production' ? '.nolimitshopping.com' : undefined;
 
+// SameSite policy for the refresh cookie.
+// - 'none' is required because admin.nolimitshopping.com (frontend) and
+//   api.nolimitshopping.com (API) are DIFFERENT origins from the browser's
+//   perspective, even though they share the same parent domain. 'lax' blocks
+//   the cookie on cross-origin XHR/fetch calls like POST /auth/refresh, which
+//   caused every admin page to bounce with 401 after login.
+// - 'none' is only valid with Secure=true, which we set in production.
+// - HttpOnly + Domain=.nolimitshopping.com + Path=/ keep the cookie scoped
+//   to our own subdomains only.
+const COOKIE_SAME_SITE: 'lax' | 'none' | 'strict' =
+  process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+
 // Refresh + logout throttles (F-10 from step-15.9): previously unlimited,
 // which allowed slow-loris style refresh flooding. Now bounded per IP.
 const REFRESH_THROTTLE = { default: { limit: 30, ttl: 60_000 } };
@@ -119,7 +131,7 @@ export class AuthController {
     // rotating refresh cookie. Cookie flags are the current safe defaults.
     req.res?.cookie?.(REFRESH_COOKIE, result.refreshToken, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: COOKIE_SAME_SITE,
       secure: process.env.NODE_ENV === 'production',
       maxAge: result.refreshExpiresIn * 1000,
       path: '/',
@@ -173,7 +185,7 @@ export class AuthController {
 
     req.res?.cookie?.(REFRESH_COOKIE, tokens.refreshToken, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: COOKIE_SAME_SITE,
       secure: process.env.NODE_ENV === 'production',
       maxAge: REFRESH_COOKIE_MAX_AGE_MS,
       path: '/',
@@ -243,7 +255,7 @@ export class AuthController {
     );
     req.res?.cookie?.(REFRESH_COOKIE, tokens.refreshToken, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: COOKIE_SAME_SITE,
       secure: process.env.NODE_ENV === 'production',
       maxAge: tokens.refreshExpiresIn * 1000,
       path: '/',
