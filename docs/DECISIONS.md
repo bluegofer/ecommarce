@@ -1385,3 +1385,59 @@ The `SameSite=None` setting is paired with multiple additional controls so the r
 - **Commits added this session:** TBD (recorded on final push)
 - **Files touched this session:**
   - `docs/DECISIONS.md` — Production Launch SKIPPED entry, F-06 SameSite CLOSED entry, this Final Status Snapshot
+---
+
+## Post-Step-16 — CI git-pull on EC2 (permanent fix) — 2026-09-22
+
+**Status:** COMPLETE
+
+### Context
+EC2's `~/apps/ecommarce` git checkout was found 5+ commits stale during
+recon this session (EC2 at `30f47b4`, origin at `1ea5226`). Root cause:
+the CI deploy pipeline pulls Docker images from ECR (fresh) but never
+syncs the EC2 git checkout. This caused confusing debugging state —
+including a false-alarm "untracked file" diagnosis.
+
+### Fix
+Added a sync step inside the existing SSM deploy command list
+(`.github/workflows/deploy-staging.yml`, deploy job) — runs
+`git fetch origin && git reset --hard origin/staging` immediately after
+`cd /home/ssm-user/apps/ecommarce`, before any Docker operations.
+
+### Rationale
+- EC2's git checkout is a read-only reference (only `docker-compose.prod.yml`
+  and `.env` are actually read by Docker operations).
+- CI never synced it → naturally drifted stale over time.
+- Manual resync was done once in a prior session (per handoff prompt),
+  but was not permanent — this entry makes it permanent.
+
+### TDD/Workflow cite
+Neither TDD §9 (AWS Infra) nor Workflow v2 §15.6 (CI/CD) explicitly
+mandates EC2 git sync. This is "additional work" — logged here per the
+project's DECISIONS.md discipline.
+
+### Auth context (IMPORTANT — future task)
+- Repo `bluegofer/ecommarce` is currently **PUBLIC** (interim decision
+  by client; will be made private after project completion).
+- EC2 `git fetch` works **anonymously** today — verified via SSM recon
+  (no `.git-credentials`, no `.ssh/`, no credential helper; `git fetch`
+  exit 0, `git ls-remote` succeeds).
+- **When repo becomes private:** EC2 `git fetch` will start failing
+  (auth error). At that point CI needs auth injection:
+  - Option A: GitHub PAT via GitHub Actions secret → passed to SSM
+    command via `--parameters` (secrets-in-command-history risk —
+    mitigate by masking in logs)
+  - Option B: GitHub App installation token (short-lived, cleaner —
+    recommended when we get there)
+- **Trigger:** when repo visibility flips to private, this fix breaks.
+  Track in DECISIONS.md at that time.
+
+### Verification
+- Next CI deploy on staging will show `git fetch origin && git reset
+  --hard origin/staging` in the SSM command log.
+- EC2 `git log --oneline -1` should match `origin/staging` after deploy.
+- No user-facing change (containers unchanged — images still come from ECR).
+
+### Files touched
+- `.github/workflows/deploy-staging.yml`
+- `docs/DECISIONS.md` (this entry)
