@@ -262,7 +262,8 @@ export class AuthService {
    * The new Google user has NO phone and NO phoneVerifiedAt — the storefront
    * prompts for phone post-signup (TDD §C.3 "still require phone number
    * post-signup for delivery"). Until then, `phone` is a stable placeholder
-   * (`google:<providerAccountId>`) that satisfies the unique constraint.
+   * that fits the VARCHAR(20) column (Google's providerAccountId is ~21 chars,
+   * so we keep only the trailing 16 digits behind a short `g_` prefix).
    *
    * Returns freshly-issued access + refresh tokens (same shape as login).
    */
@@ -343,7 +344,9 @@ export class AuthService {
     }
 
     // 3) Brand new Google user.
-    const placeholderPhone = `google:${profile.providerAccountId}`;
+    // phone column is VARCHAR(20); use a short deterministic placeholder.
+    // Real phone number is collected post-signup (TDD §C.3).
+    const placeholderPhone = `g_${profile.providerAccountId.slice(-16)}`;
 
     const created = await this.prisma.user.create({
       data: {
