@@ -106,34 +106,52 @@ async function assignPermissionsToRoles() {
   console.log('Assigned permissions to roles');
 }
 
+/**
+ * Seed the demo Super Admin.
+ *
+ * Idempotent on repeated runs:
+ *  - If the user is missing, create it.
+ *  - ALWAYS ensure the SUPER_ADMIN role is attached (fix for the case where
+ *    the user was created without a role, which left every admin page
+ *    returning 403 "Requires one of roles: SUPER_ADMIN, ...").
+ */
 async function seedDemoAdmin() {
   const phone = '+8801700000000';
-  const existing = await prisma.user.findUnique({ where: { phone } });
-  if (existing) {
-    console.log('Demo admin already exists');
-    return;
-  }
-
   const passwordHash = await bcrypt.hash('ChangeMe!2026', 12);
   const superAdminRole = await prisma.role.findUnique({ where: { code: 'SUPER_ADMIN' } });
-
-  // Step 11: POS demo data (branches, registers, branch stock)
-  await seedPosDemo(prisma);
   if (!superAdminRole) throw new Error('SUPER_ADMIN role missing');
 
-  const admin = await prisma.user.create({
-    data: {
-      phone,
-      email: 'admin@bluegofer.local',
-      fullName: 'Demo Super Admin',
-      passwordHash,
-      phoneVerifiedAt: new Date(),
-      notificationPrefs: { create: {} },
-    },
-  });
+  // Step 11: POS demo data (branches, registers, branch stock) — idempotent
+  await seedPosDemo(prisma);
 
-  await prisma.userRole.create({ data: { userId: admin.id, roleId: superAdminRole.id } });
-  console.log(`Demo admin created: ${phone} / ChangeMe!2026`);
+  // Find the admin user by phone OR email (older seeds may have used one or the other).
+  let admin =
+    (await prisma.user.findUnique({ where: { phone } })) ??
+    (await prisma.user.findUnique({ where: { email: 'admin@bluegofer.local' } }));
+
+  if (!admin) {
+    admin = await prisma.user.create({
+      data: {
+        phone,
+        email: 'admin@bluegofer.local',
+        fullName: 'Demo Super Admin',
+        passwordHash,
+        phoneVerifiedAt: new Date(),
+        notificationPrefs: { create: {} },
+      },
+    });
+    console.log(`Demo admin created: ${phone} / ChangeMe!2026`);
+  } else {
+    console.log('Demo admin already exists — ensuring SUPER_ADMIN role is attached');
+  }
+
+  // ALWAYS ensure the role is attached (idempotent upsert).
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: admin.id, roleId: superAdminRole.id } },
+    update: {},
+    create: { userId: admin.id, roleId: superAdminRole.id },
+  });
+  console.log(`Demo admin has SUPER_ADMIN role: ${admin.id}`);
 }
 
 async function seedDefaultBranch() {
@@ -184,10 +202,10 @@ async function seedChartOfAccounts() {
 async function seedDepartmentsAndDesignations() {
   const depts = [
     { code: 'MGMT', name: 'Management', nameBn: 'ব্যবস্থাপনা' },
-    { code: 'OPS',  name: 'Operations', nameBn: 'অপারেশনস' },
-    { code: 'FIN',  name: 'Finance', nameBn: 'অর্থ' },
-    { code: 'HR',   name: 'Human Resources', nameBn: 'এইচআর' },
-    { code: 'SALES',name: 'Sales', nameBn: 'বিক্রয়' },
+    { code: 'OPS', name: 'Operations', nameBn: 'অপারেশনস' },
+    { code: 'FIN', name: 'Finance', nameBn: 'অর্থ' },
+    { code: 'HR', name: 'Human Resources', nameBn: 'এইচআর' },
+    { code: 'SALES', name: 'Sales', nameBn: 'বিক্রয়' },
   ];
   for (const d of depts) {
     await prisma.department.upsert({
@@ -197,12 +215,12 @@ async function seedDepartmentsAndDesignations() {
     });
   }
   const desigs = [
-    { code: 'CEO',      name: 'CEO' },
-    { code: 'MANAGER',  name: 'Manager' },
-    { code: 'EXEC',     name: 'Executive' },
-    { code: 'ACCT',     name: 'Accountant' },
-    { code: 'CASHIER',  name: 'Cashier' },
-    { code: 'RIDER',    name: 'Delivery Rider' },
+    { code: 'CEO', name: 'CEO' },
+    { code: 'MANAGER', name: 'Manager' },
+    { code: 'EXEC', name: 'Executive' },
+    { code: 'ACCT', name: 'Accountant' },
+    { code: 'CASHIER', name: 'Cashier' },
+    { code: 'RIDER', name: 'Delivery Rider' },
   ];
   for (const d of desigs) {
     await prisma.designation.upsert({
@@ -284,8 +302,14 @@ async function main() {
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+
 // =====================================================================
 // STEP 11 — POS demo seed (branches, registers, branch stock)
 // Idempotent — safe to re-run.
@@ -356,6 +380,3 @@ async function seedPosDemo(prisma: PrismaClient) {
 
   // POS_DEMO_SEED_APPLIED
 }
-
-// Hook into main() — call after base seed
-// (add the call in your existing main() function)
