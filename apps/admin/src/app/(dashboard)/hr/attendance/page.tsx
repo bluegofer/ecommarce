@@ -14,15 +14,15 @@ interface Employee {
 
 interface AttendanceRow {
   employeeId: string;
-  days: Record<number, 'P' | 'A' | 'L' | 'OT' | '-'>;
+  days?: Record<number, 'P' | 'A' | 'L' | 'OT' | '-'>;
   presentDays: number;
   absentDays: number;
-  lateCount: number;
+  lateCount?: number;
   overtimeMinutes: number;
   leaveDays: number;
 }
 
-const CYCLE: Array<AttendanceRow['days'][number]> = ['P', 'A', 'L', 'OT', '-'];
+const CYCLE: Array<'P' | 'A' | 'L' | 'OT' | '-'> = ['P', 'A', 'L', 'OT', '-'];
 
 export default function AttendancePage() {
   const toast = useToast();
@@ -32,6 +32,10 @@ export default function AttendancePage() {
   const { data: summary, loading, error, refetch } = useQuery<AttendanceRow[]>(
     `/api/v1/hr/attendance/summary?month=${month}`,
   );
+
+  // Defensive: guard against non-array responses (401/404/null)
+  const summaryRows = Array.isArray(summary) ? summary : [];
+  const employeeRows = Array.isArray(employees) ? employees : [];
 
   const markMutation = useMutation<{ month: string; rows: AttendanceRow[] }, unknown>(
     'post',
@@ -57,8 +61,8 @@ export default function AttendancePage() {
             <button
               type="button"
               onClick={async () => {
-                if (!summary) return;
-                await markMutation.mutate({ month, rows: summary });
+                if (summaryRows.length === 0) return;
+                await markMutation.mutate({ month, rows: summaryRows });
                 toast.success('Attendance saved');
                 void refetch();
               }}
@@ -75,7 +79,7 @@ export default function AttendancePage() {
           <div className="p-10 text-center text-slate-400">Loading attendance…</div>
         ) : error ? (
           <div className="p-10 text-center text-danger-700">{error.message}</div>
-        ) : !summary || summary.length === 0 ? (
+        ) : summaryRows.length === 0 ? (
           <div className="p-10 text-center text-slate-400">
             <Calendar className="w-8 h-8 mx-auto mb-3 text-slate-300" />
             No attendance rows for this month.
@@ -92,8 +96,8 @@ export default function AttendancePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {summary.map((row) => {
-                const emp = employees?.find((e) => e.id === row.employeeId);
+              {summaryRows.map((row) => {
+                const emp = employeeRows.find((e) => e.id === row.employeeId);
                 return (
                   <tr key={row.employeeId}>
                     <td className="px-3 py-2 sticky left-0 bg-white">
@@ -101,7 +105,7 @@ export default function AttendancePage() {
                       <code className="text-[11px] text-slate-400 font-mono">{emp?.code}</code>
                     </td>
                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
-                      const v = row.days[d] ?? '-';
+                      const v = row.days?.[d] ?? '-';
                       return (
                         <td key={d} className="px-1.5 py-2 text-center">
                           <span className={`inline-grid place-items-center w-7 h-7 rounded text-[11px] font-semibold ${
