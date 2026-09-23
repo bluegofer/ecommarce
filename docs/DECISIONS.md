@@ -1441,3 +1441,77 @@ project's DECISIONS.md discipline.
 ### Files touched
 - `.github/workflows/deploy-staging.yml`
 - `docs/DECISIONS.md` (this entry)
+
+
+---
+
+## Step 16 / Appendix C — Google OAuth implementation (2026-09-23)
+
+**Status:** COMPLETE — end-to-end verified on staging.
+
+### Context
+Client requested Google sign-in (TDD Appendix C). Original scope: OAuth 2.0
+Authorization Code flow via `passport-google-oauth20`, no social providers
+beyond Google. Implemented as Phase 1 (backend) + Phase 2 (storefront) +
+Phase 3 (credentials).
+
+### Delivered
+
+**Backend (Phase 1) — commit `6a4c30a`:**
+- Prisma schema: `OAuthAccount` model + `User.passwordHash` nullable
+- Migration `20260922183511_add_oauth_accounts`
+- `passport-google-oauth20` strategy + guard (503 when env not set)
+- `GET /auth/google` + `GET /auth/google/callback` endpoints
+- `AuthService.findOrCreateOAuthUser()` (3 cases: linked / email match / new)
+- `GET /auth/me` extended to return `{id, phone, email, fullName, roles}`
+- `.env.example` updated with `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI`
+
+**Frontend (Phase 2) — commit `7926dfb`:**
+- `GoogleAuthButton` component
+- Buttons on `/signin` + `/register`
+- `/auth/google-callback` route + client handler
+- `AuthProvider.completeOAuthLogin(token)` method
+- i18n keys `auth.continue_with_google` (bn + en)
+
+**Credentials (Phase 3):**
+- Google Cloud Console: OAuth 2.0 Client ID (Web app) on `cloud.bluegofer@gmail.com`
+- Authorized redirect URIs: localhost + staging
+- EC2 staging `.env`: `GOOGLE_CLIENT_ID` (72 char) + `GOOGLE_CLIENT_SECRET` (35 char) loaded via `docker compose --force-recreate`
+
+**Bug fixes:**
+- `f7c79fa`-series: `placeholderPhone` was `google:<21-digit>` = 28 chars > `VARCHAR(20)`. Fixed to `g_<last-16-digits>` = 18 chars
+- `a8c1e10`-series: `/api/v1/me` 401 after OAuth login. Added global token provider (`setAccessTokenProvider`) so `api.*` calls auto-attach `Authorization: Bearer`
+
+### Verification (staging, 2026-09-23)
+- ✅ `/auth/google` → 302 to Google
+- ✅ Google consent → callback → user created in `oauth_accounts` + `users`
+- ✅ New user redirected to `/account/settings?requirePhone=1` (TDD §C.3)
+- ✅ `/account/settings` renders profile (name `Annu`, email, phone placeholder `g_...`)
+- ✅ `/api/v1/me` 200 (no more 401)
+- ✅ Backend logs clean (no PrismaClientKnownRequestError)
+
+### Known follow-up (deferred to next session)
+- **Post-signup phone-fill flow** (TDD §C.3): the `/account/settings?requirePhone=1` page shows the phone input, but the phone + OTP verify flow is not wired for Google-only users yet. Next session task.
+- **Other pages using `/me`** — checkout, orders, wishlist — may have additional issues; will be addressed one-by-one.
+
+### Credentials note
+- JSON client secret file lives only on the developer machine (Windows Desktop). Not committed.
+- Client secret is shown once at OAuth client creation; only a JSON download persists. Keep this file safe — rotation requires re-issuing via Google Console.
+
+### Files touched (this feature)
+- `apps/api/prisma/schema.prisma`
+- `apps/api/prisma/migrations/20260922183511_add_oauth_accounts/`
+- `apps/api/src/modules/auth/strategies/google.strategy.ts`
+- `apps/api/src/modules/auth/guards/google-oauth.guard.ts`
+- `apps/api/src/modules/auth/auth.service.ts`
+- `apps/api/src/modules/auth/auth.controller.ts`
+- `apps/api/src/modules/auth/auth.module.ts`
+- `apps/api/.env.example`
+- `apps/storefront/src/components/auth/GoogleAuthButton.tsx`
+- `apps/storefront/src/app/[locale]/signin/page.tsx`
+- `apps/storefront/src/app/[locale]/register/page.tsx`
+- `apps/storefront/src/app/[locale]/auth/google-callback/`
+- `apps/storefront/src/lib/auth/context.tsx`
+- `apps/storefront/src/lib/api/client.ts`
+- `apps/storefront/src/lib/i18n/bn.json`
+- `apps/storefront/src/lib/i18n/en.json`
