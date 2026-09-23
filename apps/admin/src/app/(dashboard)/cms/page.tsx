@@ -1,22 +1,31 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Eye, EyeOff, GripVertical, LayoutGrid } from 'lucide-react';
-import { PageHeader, StatusChip, useToast } from '@/components/ui';
+import { Eye, EyeOff, GripVertical, LayoutGrid, Plus } from 'lucide-react';
+import { PageHeader, StatusChip, EmptyState, useToast } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
 
 interface Section {
   id: string;
-  type: 'HERO' | 'QUICK_TILES' | 'DEAL_STRIP' | 'CAROUSEL' | 'PROMO_BANNER' | 'WIDE_BANNER' | 'RECOMMENDED' | 'SEO_TEXT';
-  title: string | null;
+  key: string;
+  sectionType:
+    | 'HERO'
+    | 'QUICK_TILES'
+    | 'DEAL_STRIP'
+    | 'CAROUSEL'
+    | 'PROMO_BANNER'
+    | 'WIDE_BANNER'
+    | 'RECOMMENDED'
+    | 'SEO_TEXT';
+  titleEn: string | null;
+  titleBn: string | null;
   position: number;
-  visible: boolean;
-  scheduledFrom: string | null;
-  scheduledTo: string | null;
+  isVisible: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
 }
 
-const TYPE_LABEL: Record<Section['type'], string> = {
+const TYPE_LABEL: Record<Section['sectionType'], string> = {
   HERO: 'Hero carousel',
   QUICK_TILES: 'Quick category tiles',
   DEAL_STRIP: 'Deal strip (countdown)',
@@ -27,15 +36,19 @@ const TYPE_LABEL: Record<Section['type'], string> = {
   SEO_TEXT: 'Collapsible SEO text block',
 };
 
+function sectionLabel(s: Section): string {
+  return s.titleEn ?? s.titleBn ?? TYPE_LABEL[s.sectionType] ?? s.sectionType;
+}
+
 export default function CmsPage() {
   const toast = useToast();
   const { data, loading, error, refetch } = useQuery<Section[]>('/api/v1/cms/sections');
 
-  const toggleMutation = useMutation<{ id: string; visible: boolean }, unknown>(
+  const toggleMutation = useMutation<{ id: string; isVisible: boolean }, unknown>(
     'patch',
     (input) => `/api/v1/cms/sections/${(input as { id: string }).id}`,
   );
-  const reorderMutation = useMutation<{ ids: string[] }, unknown>(
+  const reorderMutation = useMutation<{ orderedIds: string[] }, unknown>(
     'post',
     '/api/v1/cms/sections/reorder',
   );
@@ -52,7 +65,7 @@ export default function CmsPage() {
     next[idx] = b;
     next[newIdx] = a;
     try {
-      await reorderMutation.mutate({ ids: next.map((s) => s.id) });
+      await reorderMutation.mutate({ orderedIds: next.map((s) => s.id) });
       toast.success('Order saved');
       void refetch();
     } catch (e) {
@@ -68,7 +81,13 @@ export default function CmsPage() {
         actions={
           <button
             type="button"
-            onClick={() => toast.push({ tone: 'info', title: 'Add section', description: 'Modal in follow-up.' })}
+            onClick={() =>
+              toast.push({
+                tone: 'info',
+                title: 'Add section',
+                description: 'Modal in follow-up.',
+              })
+            }
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
           >
             <Plus className="w-4 h-4" /> Add section
@@ -77,10 +96,22 @@ export default function CmsPage() {
       />
 
       <div className="text-[12.5px] text-slate-500">
-        Preview: <Link href="/" className="text-sky-700 hover:underline font-medium">Home</Link> ·{' '}
-        <Link href="/cms/pages" className="text-sky-700 hover:underline font-medium">Pages</Link> ·{' '}
-        <Link href="/cms/menus" className="text-sky-700 hover:underline font-medium">Menus</Link> ·{' '}
-        <Link href="/cms/media" className="text-sky-700 hover:underline font-medium">Media</Link>
+        Preview:{' '}
+        <Link href="/" className="text-sky-700 hover:underline font-medium">
+          Home
+        </Link>{' '}
+        ·{' '}
+        <Link href="/cms/pages" className="text-sky-700 hover:underline font-medium">
+          Pages
+        </Link>{' '}
+        ·{' '}
+        <Link href="/cms/menus" className="text-sky-700 hover:underline font-medium">
+          Menus
+        </Link>{' '}
+        ·{' '}
+        <Link href="/cms/media" className="text-sky-700 hover:underline font-medium">
+          Media
+        </Link>
       </div>
 
       <div className="card divide-y divide-border">
@@ -89,21 +120,29 @@ export default function CmsPage() {
         ) : error ? (
           <div className="p-10 text-center text-danger-700">{error.message}</div>
         ) : !data || data.length === 0 ? (
-          <div className="p-10 text-center text-slate-400">
-            <LayoutGrid className="w-8 h-8 mx-auto mb-3 text-slate-300" />
-            No sections yet — add the first one.
-          </div>
+          <EmptyState
+            icon={LayoutGrid}
+            title="No sections yet"
+            description="Add the first homepage section to control the storefront home layout."
+          />
         ) : (
           data.map((s, i) => (
             <div key={s.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
               <GripVertical className="w-4 h-4 text-slate-300 cursor-grab" />
-              <span className="w-8 text-[12px] tabular-nums text-slate-400">{i + 1}</span>
+              <span className="w-8 text-[12px] tabular-nums text-slate-400">
+                {i + 1}
+              </span>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-slate-800">{s.title ?? TYPE_LABEL[s.type]}</div>
-                <div className="text-[12px] text-slate-400">{TYPE_LABEL[s.type]}</div>
+                <div className="font-medium text-slate-800">{sectionLabel(s)}</div>
+                <div className="text-[12px] text-slate-400">
+                  {TYPE_LABEL[s.sectionType] ?? s.sectionType}
+                  <code className="ml-2 font-mono text-[11px] text-slate-400">
+                    {s.key}
+                  </code>
+                </div>
               </div>
-              {!s.visible && <StatusChip label="Hidden" tone="neutral" />}
-              {s.scheduledFrom && <StatusChip label="Scheduled" tone="info" />}
+              {!s.isVisible && <StatusChip label="Hidden" tone="neutral" />}
+              {s.startsAt && <StatusChip label="Scheduled" tone="info" />}
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -126,14 +165,18 @@ export default function CmsPage() {
                 <button
                   type="button"
                   onClick={async () => {
-                    await toggleMutation.mutate({ id: s.id, visible: !s.visible });
-                    toast.success(s.visible ? 'Section hidden' : 'Section visible');
+                    await toggleMutation.mutate({ id: s.id, isVisible: !s.isVisible });
+                    toast.success(s.isVisible ? 'Section hidden' : 'Section visible');
                     void refetch();
                   }}
                   className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
-                  aria-label={s.visible ? 'Hide' : 'Show'}
+                  aria-label={s.isVisible ? 'Hide' : 'Show'}
                 >
-                  {s.visible ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-500" />}
+                  {s.isVisible ? (
+                    <EyeOff className="w-4 h-4 text-slate-500" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-slate-500" />
+                  )}
                 </button>
               </div>
             </div>

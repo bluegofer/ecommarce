@@ -11,8 +11,9 @@ coverage/
 *.log
 
 # Step 3: local media uploads (dev only, Step 12 swaps to S3)
-uploads/
-
+# Scope to a specific path so the new `src/modules/uploads/` source module
+# (Step 17, S3 media upload endpoint) is NOT ignored.
+/apps/api/uploads/
 
 # Temp scratch (Step 9+)
 apps/api/prisma/_step9_parts/
@@ -23,24 +24,8 @@ apps/api/prisma/_step9_parts/
 # ---------------------------------------------------------------------------
 **/.terraform/
 **/.terraform.lock.hcl
-**/*.tfstate
-**/*.tfstate.*
-**/*.tfstate.backup
-**/*.tfplan
-**/tfplan
-**/tfplan_*
-**/.backup-*/
-**/.backup-*
-**/crash.log
-**/crash.*.log
 
-# Backup files created by fix scripts
-*.bak-*
-*.bak
-*.backup
-**/*.bak-*
+# Step 17: never commit Terraform plan files or ad-hoc backup files
+# (per DECISIONS.md handoff rules — tfplan* and *.bak.* are local-only)
+tfplan*
 *.bak.*
-# Terraform plan binaries (never commit)
-infra/terraform/environments/*/tfplan*
-infra/terraform/environments/*/*.tfplan
-

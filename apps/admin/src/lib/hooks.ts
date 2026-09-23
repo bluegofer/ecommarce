@@ -103,3 +103,41 @@ export function useMutation<TInput, TOutput = unknown>(
 
   return { mutate, loading, error };
 }
+
+/**
+ * Upload a single File to a multipart endpoint. Same loading/error shape as
+ * useMutation so admin pages can render consistently.
+ * Added in Step 17 for CMS media upload; reusable for any future file upload
+ * (product images, popups, banners).
+ */
+export function useUpload<T = unknown>(
+  path: string,
+): {
+  upload: (file: File, fieldName?: string) => Promise<T>;
+  loading: boolean;
+  error: ApiError | null;
+} {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<ApiError | null>(null);
+
+  const upload = useCallback(
+    async (file: File, fieldName = 'file'): Promise<T> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fd = new FormData();
+        fd.append(fieldName, file);
+        return await api.upload<T>(path, fd);
+      } catch (e) {
+        const apiErr = e instanceof ApiError ? e : new ApiError(0, 'NETWORK', String(e));
+        setError(apiErr);
+        throw apiErr;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [path],
+  );
+
+  return { upload, loading, error };
+}

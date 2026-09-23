@@ -318,6 +318,220 @@ async function seedDemoEmployee() {
   console.log(`Demo employee created: ${emp.employeeCode}`);
 }
 
+/**
+ * Step 17: CMS demo seed (TDD §6.4).
+ *
+ * Idempotent — safe to re-run. Creates:
+ *  - 6 policy pages (About, Contact, FAQ, Privacy, Terms, Refund) with bn + en copy
+ *  - HEADER + FOOTER menus with basic navigation items
+ *  - Ensures the 3 homepage sections have visible titles + are not hidden
+ *
+ * Required for payment-gateway onboarding (TDD §6.4).
+ */
+async function seedCmsDemo() {
+  // ---- 1. Policy pages ------------------------------------------------
+  const pages = [
+    {
+      slug: 'about-us',
+      titleEn: 'About Us',
+      titleBn: 'আমাদের সম্পর্কে',
+      bodyEn:
+        '<p>[PLACEHOLDER] BlueGofer is a category-agnostic online marketplace. Replace this copy from the admin CMS once approved.</p>',
+      bodyBn:
+        '<p>[PLACEHOLDER] ব্লু-গোফার একটি ক্যাটাগরি-নিরপেক্ষ অনলাইন মার্কেটপ্লেস। অনুমোদিত হলে admin CMS থেকে এই লেখা পরিবর্তন করুন।</p>',
+      metaTitle: 'About Us — BlueGofer',
+      metaDescription: 'Learn about BlueGofer — our story, mission, and team.',
+    },
+    {
+      slug: 'contact',
+      titleEn: 'Contact',
+      titleBn: 'যোগাযোগ',
+      bodyEn:
+        '<p>[PLACEHOLDER] Contact us at support@bluegofer.local — replace with real contact details in the admin CMS.</p>',
+      bodyBn:
+        '<p>[PLACEHOLDER] support@bluegofer.local এ যোগাযোগ করুন — admin CMS-এ আসল তথ্য দিন।</p>',
+      metaTitle: 'Contact — BlueGofer',
+      metaDescription: 'Get in touch with BlueGofer customer support.',
+    },
+    {
+      slug: 'faq',
+      titleEn: 'FAQ',
+      titleBn: 'সাধারণ প্রশ্ন',
+      bodyEn:
+        '<p>[PLACEHOLDER] Frequently asked questions — add/edit Q&amp;A pairs from the admin CMS.</p>',
+      bodyBn:
+        '<p>[PLACEHOLDER] সাধারণ প্রশ্ন — admin CMS থেকে প্রশ্ন-উত্তর যোগ বা সম্পাদনা করুন।</p>',
+      metaTitle: 'FAQ — BlueGofer',
+      metaDescription: 'Answers to frequently asked questions about ordering, delivery, and returns.',
+    },
+    {
+      slug: 'privacy-policy',
+      titleEn: 'Privacy Policy',
+      titleBn: 'গোপনীয়তা নীতি',
+      bodyEn: '<p>[PLACEHOLDER] Privacy policy placeholder — required for payment-gateway onboarding.</p>',
+      bodyBn: '<p>[PLACEHOLDER] গোপনীয়তা নীতি — পেমেন্ট-গেটওয়ে অনবোর্ডিংয়ের জন্য প্রয়োজন।</p>',
+      metaTitle: 'Privacy Policy — BlueGofer',
+      metaDescription: 'How BlueGofer collects, uses, and protects your personal data.',
+    },
+    {
+      slug: 'terms-of-service',
+      titleEn: 'Terms of Service',
+      titleBn: 'সেবার শর্তাবলী',
+      bodyEn: '<p>[PLACEHOLDER] Terms of service placeholder — required for payment-gateway onboarding.</p>',
+      bodyBn: '<p>[PLACEHOLDER] সেবার শর্তাবলী — পেমেন্ট-গেটওয়ে অনবোর্ডিংয়ের জন্য প্রয়োজন।</p>',
+      metaTitle: 'Terms of Service — BlueGofer',
+      metaDescription: 'The terms that govern your use of the BlueGofer platform.',
+    },
+    {
+      slug: 'refund-policy',
+      titleEn: 'Refund & Return Policy',
+      titleBn: 'ফেরত ও রিফান্ড নীতি',
+      bodyEn:
+        '<p>[PLACEHOLDER] 7-day return window per D-14. Details editable from the admin CMS.</p>',
+      bodyBn:
+        '<p>[PLACEHOLDER] D-14 অনুযায়ী ৭ দিনের রিটার্ন উইন্ডো। admin CMS থেকে সম্পাদনাযোগ্য।</p>',
+      metaTitle: 'Refund & Return Policy — BlueGofer',
+      metaDescription: 'Understand our 7-day return and refund process.',
+    },
+  ];
+
+  let pagesCreated = 0;
+  for (const p of pages) {
+    const existing = await prisma.cmsPage.findUnique({ where: { slug: p.slug } });
+    if (existing) continue;
+
+    await prisma.cmsPage.create({
+      data: {
+        slug: p.slug,
+        titleEn: p.titleEn,
+        titleBn: p.titleBn,
+        bodyEn: p.bodyEn,
+        bodyBn: p.bodyBn,
+        status: 'PUBLISHED',
+        publishedAt: new Date(),
+        metaTitle: p.metaTitle,
+        metaDescription: p.metaDescription,
+        currentRevision: 1,
+        revisions: {
+          create: {
+            revisionNumber: 1,
+            titleEn: p.titleEn,
+            titleBn: p.titleBn,
+            bodyEn: p.bodyEn,
+            bodyBn: p.bodyBn,
+          },
+        },
+      },
+    });
+    pagesCreated++;
+  }
+  console.log(`CMS seed: ${pagesCreated} pages created`);
+
+  // ---- 2. HEADER menu + items ----------------------------------------
+  const headerMenu = await prisma.cmsMenu.upsert({
+    where: { location: 'HEADER' },
+    create: { location: 'HEADER', name: 'Main header' },
+    update: {},
+  });
+
+  const headerItems = [
+    { labelEn: 'Home', labelBn: 'হোম', url: '/', sortOrder: 0 },
+    { labelEn: 'Deals', labelBn: 'ডিল', url: '/deals', sortOrder: 1 },
+    { labelEn: 'Contact', labelBn: 'যোগাযোগ', url: '/pages/contact', sortOrder: 2 },
+    { labelEn: 'About', labelBn: 'সম্পর্কে', url: '/pages/about-us', sortOrder: 3 },
+  ];
+
+  let headerItemsCreated = 0;
+  for (const it of headerItems) {
+    const exists = await prisma.cmsMenuItem.findFirst({
+      where: { menuId: headerMenu.id, labelEn: it.labelEn },
+    });
+    if (exists) continue;
+    await prisma.cmsMenuItem.create({
+      data: {
+        menuId: headerMenu.id,
+        parentId: null,
+        labelEn: it.labelEn,
+        labelBn: it.labelBn,
+        url: it.url,
+        sortOrder: it.sortOrder,
+        isActive: true,
+      },
+    });
+    headerItemsCreated++;
+  }
+  console.log(`CMS seed: ${headerItemsCreated} HEADER items created`);
+
+  // ---- 3. FOOTER menu + items ----------------------------------------
+  const footerMenu = await prisma.cmsMenu.upsert({
+    where: { location: 'FOOTER' },
+    create: { location: 'FOOTER', name: 'Footer links' },
+    update: {},
+  });
+
+  const footerItems = [
+    { labelEn: 'About Us', labelBn: 'আমাদের সম্পর্কে', url: '/pages/about-us', sortOrder: 0 },
+    { labelEn: 'Contact', labelBn: 'যোগাযোগ', url: '/pages/contact', sortOrder: 1 },
+    { labelEn: 'FAQ', labelBn: 'সাধারণ প্রশ্ন', url: '/pages/faq', sortOrder: 2 },
+    { labelEn: 'Privacy Policy', labelBn: 'গোপনীয়তা নীতি', url: '/pages/privacy-policy', sortOrder: 3 },
+    { labelEn: 'Terms of Service', labelBn: 'সেবার শর্তাবলী', url: '/pages/terms-of-service', sortOrder: 4 },
+    { labelEn: 'Refund Policy', labelBn: 'ফেরত নীতি', url: '/pages/refund-policy', sortOrder: 5 },
+  ];
+
+  let footerItemsCreated = 0;
+  for (const it of footerItems) {
+    const exists = await prisma.cmsMenuItem.findFirst({
+      where: { menuId: footerMenu.id, labelEn: it.labelEn },
+    });
+    if (exists) continue;
+    await prisma.cmsMenuItem.create({
+      data: {
+        menuId: footerMenu.id,
+        parentId: null,
+        labelEn: it.labelEn,
+        labelBn: it.labelBn,
+        url: it.url,
+        sortOrder: it.sortOrder,
+        isActive: true,
+      },
+    });
+    footerItemsCreated++;
+  }
+  console.log(`CMS seed: ${footerItemsCreated} FOOTER items created`);
+
+  // ---- 4. Ensure the 3 default sections are visible with titles ------
+  const sections = await prisma.cmsSection.findMany({ orderBy: { position: 'asc' } });
+  const TITLES: Record<string, { en: string; bn: string }> = {
+    HERO: { en: 'Hero carousel', bn: 'হিরো ক্যারোসেল' },
+    DEAL_STRIP: { en: 'Deal strip', bn: 'ডিল স্ট্রিপ' },
+    PROMO_TILES: { en: 'Promo tiles', bn: 'প্রমো টাইলস' },
+    QUICK_TILES: { en: 'Quick category tiles', bn: 'কুইক ক্যাটাগরি' },
+    CAROUSEL: { en: 'Featured carousel', bn: 'ফিচার্ড ক্যারোসেল' },
+    PROMO_BANNER: { en: 'Promo banners', bn: 'প্রমো ব্যানার' },
+    WIDE_BANNER: { en: 'Wide banner', bn: 'ওয়াইড ব্যানার' },
+    RECOMMENDED: { en: 'Recommended', bn: 'সুপারিশকৃত' },
+    SEO_TEXT: { en: 'SEO text block', bn: 'এসইও টেক্সট' },
+  };
+
+  let sectionsUpdated = 0;
+  for (const s of sections) {
+    const meta = TITLES[s.sectionType];
+    const needsTitle = !s.titleEn || !s.titleBn;
+    const needsVisible = !s.isVisible;
+    if (!needsTitle && !needsVisible) continue;
+    await prisma.cmsSection.update({
+      where: { id: s.id },
+      data: {
+        titleEn: s.titleEn ?? meta?.en ?? s.sectionType,
+        titleBn: s.titleBn ?? meta?.bn ?? s.sectionType,
+        isVisible: true,
+      },
+    });
+    sectionsUpdated++;
+  }
+  console.log(`CMS seed: ${sectionsUpdated} sections updated`);
+}
+
 async function main() {
   console.log('Seed starting...');
   await seedRoles();
@@ -336,6 +550,7 @@ async function main() {
   await seedDepartmentsAndDesignations();
   await seedShifts();
   await seedDemoEmployee();
+  await seedCmsDemo();
   console.log('Seed complete');
 }
 

@@ -114,6 +114,62 @@ export async function apiFetch<T = unknown>(
   return json as T;
 }
 
+/**
+ * Upload a FormData body (multipart) with the same auth + refresh flow as
+ * apiFetch. Does NOT set Content-Type — the browser sets the multipart
+ * boundary automatically. Added in Step 17 for CMS media upload.
+ */
+export async function apiUpload<T = unknown>(
+  path: string,
+  formData: FormData,
+  options: RequestOptions = {},
+): Promise<T> {
+  const { skipAuth, retryOn401 = true, headers } = options;
+
+  const buildHeaders = (): HeadersInit => {
+    const h: Record<string, string> = {
+      Accept: 'application/json',
+      ...((headers as Record<string, string>) ?? {}),
+    };
+    if (!skipAuth && accessToken) {
+      h.Authorization = `Bearer ${accessToken}`;
+    }
+    return h;
+  };
+
+  const doFetch = async (): Promise<Response> =>
+    fetch(`${env.apiUrl}${path}`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      credentials: 'include',
+      body: formData,
+    });
+
+  let res = await doFetch();
+
+  if (res.status === 401 && !skipAuth && retryOn401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      res = await doFetch();
+    }
+  }
+
+  const text = await res.text();
+  const json = text ? (JSON.parse(text) as unknown) : null;
+
+  if (!res.ok) {
+    const err = json as { message?: string; code?: string; details?: unknown } | null;
+    throw new ApiError(
+      res.status,
+      err?.code ?? 'UNKNOWN',
+      err?.message ?? `Request failed with status ${res.status}`,
+      err?.details,
+    );
+  }
+
+  return json as T;
+}
+
 export const api = {
   get: <T>(path: string, options?: RequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'GET' }),
@@ -125,6 +181,8 @@ export const api = {
     apiFetch<T>(path, { ...options, method: 'PUT', body }),
   delete: <T>(path: string, options?: RequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'DELETE' }),
+  upload: <T>(path: string, formData: FormData, options?: RequestOptions) =>
+    apiUpload<T>(path, formData, options),
 };
 
 export { refreshAccessToken };

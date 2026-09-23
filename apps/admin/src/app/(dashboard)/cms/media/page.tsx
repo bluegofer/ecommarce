@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { UploadCloud, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { PageHeader, Modal, useToast } from '@/components/ui';
-import { useQuery, useMutation } from '@/lib/hooks';
-import { formatDateTime } from '@/lib/utils';
+import { useQuery, useMutation, useUpload } from '@/lib/hooks';
 
 interface Media {
   id: string;
@@ -16,6 +15,14 @@ interface Media {
   uploadedAt: string;
 }
 
+interface UploadResult {
+  url: string;
+  key: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 export default function MediaLibraryPage() {
   const toast = useToast();
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -23,7 +30,11 @@ export default function MediaLibraryPage() {
 
   const { data, loading, error, refetch } = useQuery<Media[]>('/api/v1/cms/media-library');
 
-  const uploadMutation = useMutation<FormData, unknown>('post', '/api/v1/cms/media-library');
+  const uploadMutation = useUpload<UploadResult>('/api/v1/uploads/media');
+  const saveMetadataMutation = useMutation<
+    { url: string; filename: string; mimeType: string; sizeBytes: number },
+    unknown
+  >('post', '/api/v1/cms/media-library');
   const deleteMutation = useMutation<string, unknown>(
     'delete',
     (input) => `/api/v1/cms/media-library/${(input as unknown as string)}`,
@@ -89,27 +100,42 @@ export default function MediaLibraryPage() {
 
       <Modal
         open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
+        onClose={() => {
+          if (uploadMutation.loading) return;
+          setUploadOpen(false);
+          setFile(null);
+        }}
         title="Upload media"
         size="sm"
         footer={
           <>
             <button
               type="button"
-              onClick={() => setUploadOpen(false)}
-              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700"
+              onClick={() => {
+                if (uploadMutation.loading) return;
+                setUploadOpen(false);
+                setFile(null);
+              }}
+              disabled={uploadMutation.loading}
+              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 disabled:opacity-60"
             >
               Cancel
             </button>
             <button
               type="button"
-              disabled={!file}
+              disabled={!file || uploadMutation.loading}
               onClick={async () => {
                 if (!file) return;
-                const fd = new FormData();
-                fd.append('file', file);
                 try {
-                  await uploadMutation.mutate(fd);
+                  // Step 1: file → S3 via /uploads/media
+                  const uploaded = await uploadMutation.upload(file);
+                  // Step 2: metadata → DB via /cms/media-library
+                  await saveMetadataMutation.mutate({
+                    url: uploaded.url,
+                    filename: uploaded.filename,
+                    mimeType: uploaded.mimeType,
+                    sizeBytes: uploaded.sizeBytes,
+                  });
                   toast.success('Uploaded');
                   setUploadOpen(false);
                   setFile(null);
@@ -120,7 +146,7 @@ export default function MediaLibraryPage() {
               }}
               className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60"
             >
-              Upload
+              {uploadMutation.loading ? 'Uploading…' : 'Upload'}
             </button>
           </>
         }
@@ -131,6 +157,7 @@ export default function MediaLibraryPage() {
             accept="image/*"
             className="sr-only"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            disabled={uploadMutation.loading}
           />
           <UploadCloud className="w-8 h-8 mx-auto text-slate-300 mb-2" />
           <p className="text-sm text-slate-700">{file ? file.name : 'Click to select an image'}</p>
