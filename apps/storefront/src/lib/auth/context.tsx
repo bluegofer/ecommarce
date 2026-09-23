@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { api, ApiError } from '@/lib/api/client';
+import { api, ApiError, setAccessTokenProvider } from '@/lib/api/client';
 import { readAuthHint, writeAuthHint, clearAuthHint } from './storage';
 
 // ── DTOs (mirror Step 2 API) ──
@@ -84,6 +84,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const refreshedRef = useRef(false);
+
+  // Wire the global token provider so api.* calls auto-attach Bearer.
+  useEffect(() => {
+    setAccessTokenProvider(() => accessToken);
+    return () => {
+      setAccessTokenProvider(() => null);
+    };
+  }, [accessToken]);
 
   // Silent session restore on mount (only if a hint exists).
   useEffect(() => {

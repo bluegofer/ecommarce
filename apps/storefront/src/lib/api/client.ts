@@ -29,6 +29,18 @@ export class ApiError extends Error {
   }
 }
 
+// ============================================================
+// Global access token holder — set by AuthProvider on login /
+// OAuth completion / logout. All api.* calls auto-attach the
+// current token as a Bearer header unless the caller overrides
+// Authorization explicitly. TDD §10.1 (short-lived JWT).
+// ============================================================
+let accessTokenProvider: () => string | null = () => null;
+
+export function setAccessTokenProvider(fn: () => string | null): void {
+  accessTokenProvider = fn;
+}
+
 export interface RequestOptions {
   /** Extra headers merged over defaults. */
   headers?: Record<string, string>;
@@ -52,6 +64,14 @@ function buildHeaders(options?: RequestOptions): HeadersInit {
   }
   if (options?.idempotencyKey) {
     headers['Idempotency-Key'] = options.idempotencyKey;
+  }
+  // Auto-attach Bearer token if a provider is set and the caller
+  // has not supplied an explicit Authorization header.
+  if (!headers['Authorization']) {
+    const token = accessTokenProvider();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   return headers;
 }
