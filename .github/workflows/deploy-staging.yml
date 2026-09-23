@@ -66,12 +66,19 @@ jobs:
             NEXT_PUBLIC_DEFAULT_LOCALE=bn
             NEXT_PUBLIC_SUPPORTED_LOCALES=bn,en
 
+      # NOTE: no-cache: true + pull: true are REQUIRED here.
+      # Without them, docker/build-push-action reuses the previous .next build
+      # layer, so changes to client code (e.g. src/lib/api.ts) never reach the
+      # runtime bundle, and baked NEXT_PUBLIC_* env vars go stale. This was the
+      # root cause of the media-upload "Failed to fetch" bug (Step 17.1).
       - name: Build and push Admin image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: apps/admin/Dockerfile
           push: true
+          no-cache: true
+          pull: true
           tags: |
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-admin:latest
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-admin:${{ github.sha }}
