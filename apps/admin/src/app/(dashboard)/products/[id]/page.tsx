@@ -18,7 +18,6 @@ interface Variant {
   isActive: boolean;
 }
 
-// Update payload — explicit `string | null | undefined` per exactOptionalPropertyTypes
 interface ProductUpdatePayload {
   titleEn: string | undefined;
   titleBn: string | null | undefined;
@@ -91,7 +90,6 @@ export default function ProductEditorPage() {
     `/api/v1/products/${productId}`,
   );
 
-  // Media library query — enabled only when the picker modal opens (lazy load)
   const mediaQuery = useQuery<MediaLibraryItem[]>(
     mediaPickerOpen ? '/api/v1/cms/media-library' : null,
   );
@@ -100,6 +98,11 @@ export default function ProductEditorPage() {
     { productId: string; url: string; altText?: string },
     unknown
   >('post', `/api/v1/products/${productId}/media`);
+
+  const detachMediaMutation = useMutation<string, unknown>(
+    'delete',
+    (input) => `/api/v1/products/${productId}/media/${(input as unknown as string)}`,
+  );
 
   async function onSave() {
     try {
@@ -142,6 +145,17 @@ export default function ProductEditorPage() {
       void refetch();
     } catch (e) {
       toast.error('Attach failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
+  async function detachMedia(mediaId: string) {
+    if (!confirm('Remove this image from the product?')) return;
+    try {
+      await detachMediaMutation.mutate(mediaId);
+      toast.success('Image removed');
+      void refetch();
+    } catch (e) {
+      toast.error('Remove failed', e instanceof Error ? e.message : 'Unknown');
     }
   }
 
@@ -207,7 +221,6 @@ export default function ProductEditorPage() {
         }
       />
 
-      {/* Tabs */}
       <div className="border-b border-border">
         <nav className="flex gap-1" aria-label="Product sections">
           {TABS.map((t) => (
@@ -404,18 +417,11 @@ export default function ProductEditorPage() {
                   key={m.id}
                   className="group relative aspect-square rounded border border-border bg-slate-50 overflow-hidden"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={m.url} alt={m.altText ?? ''} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        toast.push({
-                          tone: 'info',
-                          title: 'Detach image',
-                          description: 'Wires in the next batch (DELETE /products/{id}/media/{mediaId}).',
-                        })
-                      }
+                      onClick={() => void detachMedia(m.id)}
                       className="p-1.5 rounded bg-danger-600 text-white hover:bg-danger-700"
                       aria-label="Remove"
                     >
@@ -457,7 +463,6 @@ export default function ProductEditorPage() {
         </div>
       )}
 
-      {/* Media picker modal — pick from library */}
       <Modal
         open={mediaPickerOpen}
         onClose={() => setMediaPickerOpen(false)}
@@ -488,7 +493,6 @@ export default function ProductEditorPage() {
                 onClick={() => void attachMedia(m)}
                 className="group relative aspect-square rounded border border-border bg-slate-50 overflow-hidden hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.url} alt={m.altText ?? m.filename} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-sky-600/0 group-hover:bg-sky-600/20 transition-colors" />
                 <span className="absolute inset-x-0 bottom-0 bg-slate-900/70 text-white text-[10.5px] font-mono truncate px-1.5 py-0.5 opacity-0 group-hover:opacity-100">
@@ -500,7 +504,6 @@ export default function ProductEditorPage() {
         )}
       </Modal>
 
-      {/* Delete confirm */}
       <Modal
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
