@@ -14,7 +14,7 @@ import {
 } from '@/components/home';
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 
-export const revalidate = 60; // ISR — refresh every 60s
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -55,31 +55,75 @@ export default async function HomePage({ params }: { params: { locale: string } 
   const locale = params.locale as 'bn' | 'en';
   const t = getDictionary(locale);
 
-  // Parallel fetch — home-feed, category tree, best-sellers, new arrivals
-  const [feed, categories, bestSellers, newArrivals] = await Promise.all([
-    cmsApi.getHomeFeed().catch(() => ({ announcements: [], sections: [], activeFlashSales: [], activePopups: [] })),
-    catalogApi.getCategoryTree().catch(() => [] as CategoryNode[]),
-    catalogApi.listProducts({ status: 'PUBLISHED', sort: 'best_sellers', limit: 10 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 })),
-    catalogApi.listProducts({ status: 'PUBLISHED', sort: 'newest', limit: 10 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 })),
-  ]);
+  const [feed, categories, bestSellers, newArrivals, headerMenu, footerMenu] =
+    await Promise.all([
+      cmsApi.getHomeFeed().catch(() => ({ announcements: [], sections: [], activeFlashSales: [], activePopups: [] })),
+      catalogApi.getCategoryTree().catch(() => [] as CategoryNode[]),
+      catalogApi.listProducts({ status: 'PUBLISHED', sort: 'best_sellers', limit: 10 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 })),
+      catalogApi.listProducts({ status: 'PUBLISHED', sort: 'newest', limit: 10 }).catch(() => ({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 })),
+      cmsApi.getMenu('HEADER').catch(() => null),
+      cmsApi.getMenu('FOOTER').catch(() => null),
+    ]);
 
-  // ── Extract sections from CMS feed ──
   const heroSection = feed.sections.find((s) => s.sectionType === 'HERO_CAROUSEL');
   const dealStripSection = feed.sections.find((s) => s.sectionType === 'DEAL_STRIP');
   const heroSlides: HeroSlide[] = extractHeroSlides(heroSection?.config);
   const dealEndsAt = extractDealEndsAt(dealStripSection?.config) ?? defaultDealEnd();
 
-  // ── Announcement ──
   const activeAnnouncement = feed.announcements[0];
 
-  // ── Header labels ──
-  const navLinks = [
+  const cmsNavLinks =
+    headerMenu && headerMenu.items.length > 0
+      ? headerMenu.items
+          .filter((it) => it.isActive)
+          .map((it) => ({
+            label: locale === 'bn' ? it.labelBn : it.labelEn,
+            href: it.url.startsWith('http') ? it.url : `/${locale}${it.url}`,
+          }))
+      : null;
+
+  const navLinks = cmsNavLinks ?? [
     { label: t['nav.deals'], href: `/${locale}/deals` },
     { label: t['nav.best'], href: `/${locale}/c/electronics` },
     { label: t['nav.new'], href: `/${locale}/c/electronics` },
     { label: 'Electronics', href: `/${locale}/c/electronics` },
     { label: 'Fashion', href: `/${locale}/c/fashion` },
     { label: 'Home & Kitchen', href: `/${locale}/c/home-kitchen` },
+  ];
+
+  const cmsFooterColumns =
+    footerMenu && footerMenu.items.length > 0
+      ? [
+          {
+            heading: locale === 'bn' ? 'দ্রুত লিংক' : 'Quick Links',
+            links: footerMenu.items
+              .filter((it) => it.isActive)
+              .map((it) => ({
+                label: locale === 'bn' ? it.labelBn : it.labelEn,
+                href: it.url.startsWith('http') ? it.url : `/${locale}${it.url}`,
+              })),
+          },
+        ]
+      : null;
+
+  const footerColumns = cmsFooterColumns ?? [
+    { heading: t['footer.about'], links: [
+      { label: 'About', href: `/${locale}/pages/about-us` },
+      { label: 'Careers', href: `/${locale}/pages/about-us` },
+    ]},
+    { heading: 'Help', links: [
+      { label: t['footer.contact'], href: `/${locale}/pages/contact` },
+      { label: t['footer.faq'], href: `/${locale}/pages/faq` },
+    ]},
+    { heading: 'Policies', links: [
+      { label: t['footer.privacy'], href: `/${locale}/pages/privacy-policy` },
+      { label: t['footer.terms'], href: `/${locale}/pages/terms-of-service` },
+      { label: t['footer.returns'], href: `/${locale}/pages/refund-policy` },
+    ]},
+    { heading: 'Account', links: [
+      { label: t['account.title'], href: `/${locale}/account` },
+      { label: t['header.orders'], href: `/${locale}/account/orders` },
+    ]},
   ];
 
   const promoBanners = [
@@ -175,7 +219,6 @@ export default async function HomePage({ params }: { params: { locale: string } 
       <main id="main" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px 48px' }}>
         <Breadcrumbs items={[{ label: 'Home' }]} locale={locale} />
 
-        {/* Visually hidden h1 for a11y + SEO — page has no visible h1 by design (UI Spec C1) */}
         <h1 className="visually-hidden">
           {locale === 'bn' ? 'ব্লু-গোফার — অনলাইনে কেনাকাটা' : 'BlueGofer — Shop Online in Bangladesh'}
         </h1>
@@ -248,25 +291,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
           country: 'Country',
           brand: 'BlueGofer',
         }}
-        columns={[
-          { heading: t['footer.about'], links: [
-            { label: 'About', href: `/${locale}/pages/about` },
-            { label: 'Careers', href: `/${locale}/pages/careers` },
-          ]},
-          { heading: 'Help', links: [
-            { label: t['footer.contact'], href: `/${locale}/pages/contact` },
-            { label: t['footer.faq'], href: `/${locale}/pages/faq` },
-          ]},
-          { heading: 'Policies', links: [
-            { label: t['footer.privacy'], href: `/${locale}/pages/privacy` },
-            { label: t['footer.terms'], href: `/${locale}/pages/terms` },
-            { label: t['footer.returns'], href: `/${locale}/pages/returns` },
-          ]},
-          { heading: 'Account', links: [
-            { label: t['account.title'], href: `/${locale}/account` },
-            { label: t['header.orders'], href: `/${locale}/account/orders` },
-          ]},
-        ]}
+        columns={footerColumns}
       />
     </>
   );

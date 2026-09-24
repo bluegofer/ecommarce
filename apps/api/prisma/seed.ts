@@ -323,7 +323,7 @@ async function seedDemoEmployee() {
  *
  * Idempotent — safe to re-run. Creates:
  *  - 6 policy pages (About, Contact, FAQ, Privacy, Terms, Refund) with bn + en copy
- *  - HEADER + FOOTER menus with basic navigation items
+ *  - HEADER + FOOTER + MOBILE menus with basic navigation items
  *  - Ensures the 3 homepage sections have visible titles + are not hidden
  *
  * Required for payment-gateway onboarding (TDD §6.4).
@@ -499,14 +499,54 @@ async function seedCmsDemo() {
   }
   console.log(`CMS seed: ${footerItemsCreated} FOOTER items created`);
 
+  // ---- 3b. MOBILE menu + items ---------------------------------------
+  const mobileMenu = await prisma.cmsMenu.upsert({
+    where: { location: 'MOBILE' },
+    create: { location: 'MOBILE', name: 'Mobile menu' },
+    update: {},
+  });
+
+  const mobileItems = [
+    { labelEn: 'Home', labelBn: 'হোম', url: '/', sortOrder: 0 },
+    { labelEn: 'Categories', labelBn: 'ক্যাটাগরি', url: '/c', sortOrder: 1 },
+    { labelEn: 'Deals', labelBn: 'ডিল', url: '/deals', sortOrder: 2 },
+    { labelEn: 'My Orders', labelBn: 'আমার অর্ডার', url: '/account/orders', sortOrder: 3 },
+    { labelEn: 'Wishlist', labelBn: 'উইশলিস্ট', url: '/account/wishlist', sortOrder: 4 },
+    { labelEn: 'Contact', labelBn: 'যোগাযোগ', url: '/pages/contact', sortOrder: 5 },
+  ];
+
+  let mobileItemsCreated = 0;
+  for (const it of mobileItems) {
+    const exists = await prisma.cmsMenuItem.findFirst({
+      where: { menuId: mobileMenu.id, labelEn: it.labelEn },
+    });
+    if (exists) continue;
+    await prisma.cmsMenuItem.create({
+      data: {
+        menuId: mobileMenu.id,
+        parentId: null,
+        labelEn: it.labelEn,
+        labelBn: it.labelBn,
+        url: it.url,
+        sortOrder: it.sortOrder,
+        isActive: true,
+      },
+    });
+    mobileItemsCreated++;
+  }
+  console.log(`CMS seed: ${mobileItemsCreated} MOBILE items created`);
+
   // ---- 4. Ensure the 3 default sections are visible with titles ------
   const sections = await prisma.cmsSection.findMany({ orderBy: { position: 'asc' } });
   const TITLES: Record<string, { en: string; bn: string }> = {
     HERO: { en: 'Hero carousel', bn: 'হিরো ক্যারোসেল' },
+    HERO_CAROUSEL: { en: 'Hero carousel', bn: 'হিরো ক্যারোসেল' },
     DEAL_STRIP: { en: 'Deal strip', bn: 'ডিল স্ট্রিপ' },
     PROMO_TILES: { en: 'Promo tiles', bn: 'প্রমো টাইলস' },
     QUICK_TILES: { en: 'Quick category tiles', bn: 'কুইক ক্যাটাগরি' },
+    CATEGORY_TILES: { en: 'Quick category tiles', bn: 'কুইক ক্যাটাগরি' },
     CAROUSEL: { en: 'Featured carousel', bn: 'ফিচার্ড ক্যারোসেল' },
+    PRODUCT_CAROUSEL: { en: 'Featured carousel', bn: 'ফিচার্ড ক্যারোসেল' },
     PROMO_BANNER: { en: 'Promo banners', bn: 'প্রমো ব্যানার' },
     WIDE_BANNER: { en: 'Wide banner', bn: 'ওয়াইড ব্যানার' },
     RECOMMENDED: { en: 'Recommended', bn: 'সুপারিশকৃত' },
