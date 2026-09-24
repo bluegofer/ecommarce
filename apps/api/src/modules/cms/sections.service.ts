@@ -82,10 +82,18 @@ export class SectionsService {
   /**
    * Bulk reorder — single transaction. orderedIds must be a permutation of the
    * current section ids (or a subset; unknown ids are ignored to be forgiving).
+   *
+   * Empty array is treated as a no-op: return the current order unchanged
+   * instead of erroring. This lets the admin UI safely send an empty array
+   * without surfacing a confusing 400.
    */
   async reorder(dto: ReorderSectionsDto): Promise<CmsSectionDto[]> {
-    if (!Array.isArray(dto.orderedIds) || dto.orderedIds.length === 0) {
-      throw new BadRequestException('orderedIds required');
+    if (!Array.isArray(dto.orderedIds)) {
+      throw new BadRequestException('orderedIds must be an array');
+    }
+    if (dto.orderedIds.length === 0) {
+      // No-op — nothing to reorder.
+      return this.list();
     }
     const all = await this.prisma.cmsSection.findMany();
     const known = new Set(all.map((s) => s.id));

@@ -51,12 +51,18 @@ jobs:
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-api:latest
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-api:${{ github.sha }}
 
+      # NOTE: no-cache: true + pull: true are REQUIRED here.
+      # Without them, docker/build-push-action reuses the previous .next build
+      # layer, so changes to client code or baked NEXT_PUBLIC_* env vars go
+      # stale. Same class of bug as the admin image (Step 17.1).
       - name: Build and push Storefront image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: apps/storefront/Dockerfile
           push: true
+          no-cache: true
+          pull: true
           tags: |
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-storefront:latest
             ${{ env.ECR_REGISTRY }}/bluegofer-staging-storefront:${{ github.sha }}

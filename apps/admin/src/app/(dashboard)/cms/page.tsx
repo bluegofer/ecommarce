@@ -5,18 +5,21 @@ import { Eye, EyeOff, GripVertical, LayoutGrid, Plus } from 'lucide-react';
 import { PageHeader, StatusChip, EmptyState, useToast } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
 
+type SectionType =
+  | 'HERO_CAROUSEL'
+  | 'DEAL_STRIP'
+  | 'PROMO_TILES'
+  | 'CATEGORY_TILES'
+  | 'PRODUCT_CAROUSEL'
+  | 'PROMO_BANNER'
+  | 'WIDE_BANNER'
+  | 'RECOMMENDED'
+  | 'SEO_TEXT';
+
 interface Section {
   id: string;
   key: string;
-  sectionType:
-    | 'HERO'
-    | 'QUICK_TILES'
-    | 'DEAL_STRIP'
-    | 'CAROUSEL'
-    | 'PROMO_BANNER'
-    | 'WIDE_BANNER'
-    | 'RECOMMENDED'
-    | 'SEO_TEXT';
+  sectionType: SectionType;
   titleEn: string | null;
   titleBn: string | null;
   position: number;
@@ -25,12 +28,13 @@ interface Section {
   endsAt: string | null;
 }
 
-const TYPE_LABEL: Record<Section['sectionType'], string> = {
-  HERO: 'Hero carousel',
-  QUICK_TILES: 'Quick category tiles',
+const TYPE_LABEL: Record<SectionType, string> = {
+  HERO_CAROUSEL: 'Hero carousel',
   DEAL_STRIP: 'Deal strip (countdown)',
-  CAROUSEL: "Today's Deals / Best Sellers carousel",
-  PROMO_BANNER: 'Promo 2×2 banners',
+  PROMO_TILES: 'Promo tiles (2×2 banners)',
+  CATEGORY_TILES: 'Quick category tiles',
+  PRODUCT_CAROUSEL: "Today's Deals / Best Sellers carousel",
+  PROMO_BANNER: 'Promo banners',
   WIDE_BANNER: 'Wide campaign banner',
   RECOMMENDED: 'Recommended for you grid',
   SEO_TEXT: 'Collapsible SEO text block',
