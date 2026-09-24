@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, GripVertical, LayoutGrid, Plus } from 'lucide-react';
-import { PageHeader, StatusChip, EmptyState, useToast } from '@/components/ui';
+import { Eye, EyeOff, GripVertical, LayoutGrid, Plus, Trash2 } from 'lucide-react';
+import { PageHeader, StatusChip, EmptyState, Modal, useToast } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
 
 type SectionType =
@@ -40,13 +41,46 @@ const TYPE_LABEL: Record<SectionType, string> = {
   SEO_TEXT: 'Collapsible SEO text block',
 };
 
+const ALL_TYPES: SectionType[] = [
+  'HERO_CAROUSEL',
+  'DEAL_STRIP',
+  'PROMO_TILES',
+  'CATEGORY_TILES',
+  'PRODUCT_CAROUSEL',
+  'PROMO_BANNER',
+  'WIDE_BANNER',
+  'RECOMMENDED',
+  'SEO_TEXT',
+];
+
 function sectionLabel(s: Section): string {
   return s.titleEn ?? s.titleBn ?? TYPE_LABEL[s.sectionType] ?? s.sectionType;
 }
 
+interface AddFormState {
+  key: string;
+  sectionType: SectionType;
+  titleEn: string;
+  titleBn: string;
+  position: number;
+  isVisible: boolean;
+}
+
+const EMPTY_FORM: AddFormState = {
+  key: '',
+  sectionType: 'HERO_CAROUSEL',
+  titleEn: '',
+  titleBn: '',
+  position: 0,
+  isVisible: true,
+};
+
 export default function CmsPage() {
   const toast = useToast();
   const { data, loading, error, refetch } = useQuery<Section[]>('/api/v1/cms/sections');
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [form, setForm] = useState<AddFormState>({ ...EMPTY_FORM });
 
   const toggleMutation = useMutation<{ id: string; isVisible: boolean }, unknown>(
     'patch',
@@ -55,6 +89,11 @@ export default function CmsPage() {
   const reorderMutation = useMutation<{ orderedIds: string[] }, unknown>(
     'post',
     '/api/v1/cms/sections/reorder',
+  );
+  const createMutation = useMutation<AddFormState, unknown>('post', '/api/v1/cms/sections');
+  const deleteMutation = useMutation<string, unknown>(
+    'delete',
+    (input) => `/api/v1/cms/sections/${(input as unknown as string)}`,
   );
 
   async function move(id: string, dir: -1 | 1) {
@@ -77,6 +116,49 @@ export default function CmsPage() {
     }
   }
 
+  function openAdd() {
+    const nextPos = data && data.length > 0 ? Math.max(...data.map((s) => s.position)) + 1 : 0;
+    setForm({ ...EMPTY_FORM, position: nextPos });
+    setAddOpen(true);
+  }
+
+  async function handleCreate() {
+    const key = form.key.trim();
+    const titleEn = form.titleEn.trim();
+    const titleBn = form.titleBn.trim();
+    if (!key) {
+      toast.error('Missing key', 'Provide a unique key (e.g. home-hero-2)');
+      return;
+    }
+    try {
+      await createMutation.mutate({
+        key,
+        sectionType: form.sectionType,
+        titleEn,
+        titleBn,
+        position: form.position,
+        isVisible: form.isVisible,
+      });
+      toast.success('Section created');
+      setAddOpen(false);
+      setForm({ ...EMPTY_FORM });
+      void refetch();
+    } catch (e) {
+      toast.error('Create failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
+  async function handleDelete(s: Section) {
+    if (!confirm(`Delete section "${sectionLabel(s)}"?`)) return;
+    try {
+      await deleteMutation.mutate(s.id);
+      toast.success('Section deleted');
+      void refetch();
+    } catch (e) {
+      toast.error('Delete failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -85,13 +167,7 @@ export default function CmsPage() {
         actions={
           <button
             type="button"
-            onClick={() =>
-              toast.push({
-                tone: 'info',
-                title: 'Add section',
-                description: 'Modal in follow-up.',
-              })
-            }
+            onClick={openAdd}
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
           >
             <Plus className="w-4 h-4" /> Add section
@@ -182,11 +258,124 @@ export default function CmsPage() {
                     <Eye className="w-4 h-4 text-slate-500" />
                   )}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(s)}
+                  className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
+                  aria-label="Delete"
+                >
+                  <Trash2 className="w-4 h-4 text-danger-600" />
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* ── Add Section modal ── */}
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="Add homepage section"
+        size="md"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setAddOpen(false)}
+              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleCreate}
+              disabled={createMutation.loading || !form.key.trim()}
+              className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60"
+            >
+              {createMutation.loading ? 'Creating…' : 'Create'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <label className="block">
+            <span className="text-[12.5px] font-medium text-slate-700">
+              Section type
+            </span>
+            <select
+              value={form.sectionType}
+              onChange={(e) =>
+                setForm({ ...form, sectionType: e.target.value as SectionType })
+              }
+              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+            >
+              {ALL_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {TYPE_LABEL[t]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-medium text-slate-700">
+              Key (unique)
+            </span>
+            <input
+              type="text"
+              value={form.key}
+              onChange={(e) => setForm({ ...form, key: e.target.value })}
+              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm font-mono"
+              placeholder="e.g. home-hero-2"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-medium text-slate-700">
+              English title
+            </span>
+            <input
+              type="text"
+              value={form.titleEn}
+              onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
+              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+              placeholder="e.g. Hero carousel"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-medium text-slate-700">
+              Bangla title
+            </span>
+            <input
+              type="text"
+              value={form.titleBn}
+              onChange={(e) => setForm({ ...form, titleBn: e.target.value })}
+              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+              placeholder="e.g. হিরো ক্যারোসেল"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-medium text-slate-700">Position</span>
+            <input
+              type="number"
+              value={form.position}
+              onChange={(e) =>
+                setForm({ ...form, position: Number(e.target.value) || 0 })
+              }
+              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm tabular-nums"
+            />
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.isVisible}
+              onChange={(e) =>
+                setForm({ ...form, isVisible: e.target.checked })
+              }
+            />
+            <span className="text-sm text-slate-700">Visible on storefront</span>
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 }

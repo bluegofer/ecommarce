@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Menu as MenuIcon, Plus, Trash2, Pencil, Link2 } from 'lucide-react';
 import {
   PageHeader,
@@ -153,6 +154,12 @@ export default function CmsMenusPage() {
 
   return (
     <div className="space-y-5">
+      <div className="text-[12.5px] text-slate-500">
+        <Link href="/cms" className="text-sky-700 hover:underline font-medium">
+          ← CMS Home
+        </Link>
+      </div>
+
       <PageHeader
         title="CMS · Menus"
         subtitle="Header menus, footer links, and mobile navigation"
@@ -325,7 +332,7 @@ export default function CmsMenusPage() {
                 onChange={(e) =>
                   setItemForm({ ...itemForm, labelBn: e.target.value })
                 }
-                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+                className="mt-1 w-full h-9 rounded border border-border text-sm"
                 placeholder="e.g. শপ"
               />
             </label>
