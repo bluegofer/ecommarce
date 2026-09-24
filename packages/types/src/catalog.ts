@@ -248,6 +248,18 @@ export interface ProductMediaDto {
   height: number | null;
 }
 
+export interface CreateProductMediaDto {
+  url: string;
+  altText?: string;
+  sortOrder?: number;
+  type?: MediaType;
+  width?: number;
+  height?: number;
+  variantId?: string | null;
+}
+
+export type UpdateProductMediaDto = Partial<CreateProductMediaDto>;
+
 // ---------------------------------------------------------------------------
 // Slug redirect
 // ---------------------------------------------------------------------------

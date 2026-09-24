@@ -5,7 +5,11 @@ import { ProductsService } from './products.service';
 import { Public } from '../../../common/decorators/public.decorator';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { SlugRedirectsService } from '../slug-redirects/slug-redirects.service';
-import type { CreateProductDto, UpdateProductDto } from '@ecommarce/types';
+import type {
+  CreateProductDto,
+  UpdateProductDto,
+  CreateProductMediaDto,
+} from '@ecommarce/types';
 
 @ApiTags('catalog')
 @Controller('products')
@@ -97,5 +101,24 @@ export class ProductsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.products.remove(id);
+  }
+
+  /**
+   * Step 17.6 — attach an image (from CMS media library) to a product.
+   * Idempotent on (productId + url) — re-attaching the same URL is a no-op.
+   */
+  @Roles('SUPER_ADMIN', 'CATALOG_MANAGER')
+  @Post(':id/media')
+  attachMedia(@Param('id') id: string, @Body() dto: CreateProductMediaDto) {
+    return this.products.attachMedia(id, dto);
+  }
+
+  /**
+   * Step 17.6 — detach a media row from a product.
+   */
+  @Roles('SUPER_ADMIN', 'CATALOG_MANAGER')
+  @Delete(':id/media/:mediaId')
+  detachMedia(@Param('id') id: string, @Param('mediaId') mediaId: string) {
+    return this.products.detachMedia(id, mediaId);
   }
 }

@@ -5,9 +5,11 @@ import { slugify } from '../../../common/utils/slugify';
 import { SlugRedirectsService } from '../slug-redirects/slug-redirects.service';
 import type {
   CreateProductDto,
+  CreateProductMediaDto,
   PaginatedProductsDto,
   ProductDto,
   ProductListQueryDto,
+  ProductMediaDto,
   ProductStatus,
   UpdateProductDto,
 } from '@ecommarce/types';
@@ -191,6 +193,94 @@ export class ProductsService {
     return { ok: true };
   }
 
+  /**
+   * Step 17.6 — attach a media row to a product (from the CMS media library).
+   * Idempotent on (productId + url): re-attaching the same URL is a no-op.
+   * Auto-assigns the next sortOrder if none provided.
+   */
+  async attachMedia(productId: string, dto: CreateProductMediaDto): Promise<ProductMediaDto> {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+    if (!product) throw new NotFoundException(`product not found: ${productId}`);
+
+    // Idempotent: if this URL is already attached to this product, return it.
+    const existing = await this.prisma.productMedia.findFirst({
+      where: { productId, url: dto.url },
+    });
+    if (existing) {
+      return this.mediaToDto(existing);
+    }
+
+    // Default sortOrder = next slot after current max.
+    let sortOrder = dto.sortOrder;
+    if (sortOrder === undefined) {
+      const last = await this.prisma.productMedia.findFirst({
+        where: { productId },
+        orderBy: { sortOrder: 'desc' },
+        select: { sortOrder: true },
+      });
+      sortOrder = (last?.sortOrder ?? -1) + 1;
+    }
+
+    const created = await this.prisma.productMedia.create({
+      data: {
+        productId,
+        variantId: dto.variantId ?? null,
+        type: (dto.type ?? 'IMAGE') as never,
+        url: dto.url,
+        altText: dto.altText ?? null,
+        sortOrder,
+        width: dto.width ?? null,
+        height: dto.height ?? null,
+      },
+    });
+    return this.mediaToDto(created);
+  }
+
+  /**
+   * Step 17.6 — detach a media row from a product. Verifies ownership.
+   */
+  async detachMedia(productId: string, mediaId: string): Promise<{ ok: true }> {
+    const media = await this.prisma.productMedia.findUnique({
+      where: { id: mediaId },
+      select: { id: true, productId: true },
+    });
+    if (!media) throw new NotFoundException(`media not found: ${mediaId}`);
+    if (media.productId !== productId) {
+      throw new NotFoundException(
+        `media ${mediaId} does not belong to product ${productId}`,
+      );
+    }
+    await this.prisma.productMedia.delete({ where: { id: mediaId } });
+    return { ok: true };
+  }
+
+  private mediaToDto(m: {
+    id: string;
+    productId: string | null;
+    variantId: string | null;
+    type: string;
+    url: string;
+    altText: string | null;
+    sortOrder: number;
+    width: number | null;
+    height: number | null;
+  }): ProductMediaDto {
+    return {
+      id: m.id,
+      productId: m.productId,
+      variantId: m.variantId,
+      type: m.type as ProductMediaDto['type'],
+      url: m.url,
+      altText: m.altText,
+      sortOrder: m.sortOrder,
+      width: m.width,
+      height: m.height,
+    };
+  }
+
   private async upsertAttributeValues(
     productId: string,
     values: Array<{
@@ -368,5 +458,4 @@ export class ProductsService {
       primaryImageUrl: r.media[0]?.url ?? null,
     }));
   }
-
 }
