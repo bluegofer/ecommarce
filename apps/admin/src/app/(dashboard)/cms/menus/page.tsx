@@ -89,6 +89,13 @@ export default function CmsMenusPage() {
     (input) => `/api/v1/cms/menus/items/${(input as unknown as string)}`,
   );
 
+  // Standalone mutation for the up/down reorder buttons — the main
+  // saveItemMutation is coupled to itemForm which is null on the list view.
+  const moveMutation = useMutation<{ id: string; sortOrder: number }, unknown>(
+    'patch',
+    (input) => `/api/v1/cms/menus/items/${(input as { id: string }).id}`,
+  );
+
   // Flatten items (including children) for display — mock shows a flat table.
   const flatItems = useMemo<CmsMenuItem[]>(() => {
     if (!menu) return [];
@@ -149,6 +156,18 @@ export default function CmsMenusPage() {
       void menuQuery.refetch();
     } catch (e) {
       toast.error('Delete failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
+  async function handleMove(item: CmsMenuItem, dir: -1 | 1) {
+    const newOrder = item.sortOrder + dir;
+    if (newOrder < 0) return;
+    try {
+      await moveMutation.mutate({ id: item.id, sortOrder: newOrder });
+      toast.success('Order updated');
+      void menuQuery.refetch();
+    } catch (e) {
+      toast.error('Move failed', e instanceof Error ? e.message : 'Unknown');
     }
   }
 
@@ -249,6 +268,23 @@ export default function CmsMenusPage() {
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
+                    onClick={() => void handleMove(item, -1)}
+                    disabled={item.sortOrder === 0}
+                    className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100 disabled:opacity-30"
+                    aria-label="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleMove(item, 1)}
+                    className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
+                    aria-label="Move down"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
                     onClick={() =>
                       setItemForm({
                         id: item.id,
@@ -332,7 +368,7 @@ export default function CmsMenusPage() {
                 onChange={(e) =>
                   setItemForm({ ...itemForm, labelBn: e.target.value })
                 }
-                className="mt-1 w-full h-9 rounded border border-border text-sm"
+                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
                 placeholder="e.g. শপ"
               />
             </label>

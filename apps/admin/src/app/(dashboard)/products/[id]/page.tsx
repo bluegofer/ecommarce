@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Plus, Image as ImageIcon, X } from 'lucide-react';
 import { PageHeader, StatusChip, Modal, useToast } from '@/components/ui';
 import { useMutation, useQuery } from '@/lib/hooks';
 import { formatPoisha } from '@/lib/utils';
@@ -46,6 +46,19 @@ interface ProductDetail {
   variants: Variant[];
   createdAt: string;
   updatedAt: string;
+  media?: Array<{ id: string; url: string; altText: string | null }>;
+}
+
+interface MediaLibraryItem {
+  id: string;
+  url: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  altText: string | null;
+  createdAt: string;
 }
 
 const TABS = ['Details', 'Variants', 'Media', 'SEO'] as const;
@@ -57,6 +70,7 @@ export default function ProductEditorPage() {
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('Details');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
 
   const productId = params?.id;
   const { data, loading, error, refetch } = useQuery<ProductDetail>(
@@ -76,6 +90,16 @@ export default function ProductEditorPage() {
     'delete',
     `/api/v1/products/${productId}`,
   );
+
+  // Media library query — enabled only when the picker modal opens (lazy load)
+  const mediaQuery = useQuery<MediaLibraryItem[]>(
+    mediaPickerOpen ? '/api/v1/cms/media-library' : null,
+  );
+
+  const attachMediaMutation = useMutation<
+    { productId: string; url: string; altText?: string },
+    unknown
+  >('post', `/api/v1/products/${productId}/media`);
 
   async function onSave() {
     try {
@@ -106,6 +130,21 @@ export default function ProductEditorPage() {
     }
   }
 
+  async function attachMedia(item: MediaLibraryItem) {
+    try {
+      await attachMediaMutation.mutate({
+        productId: productId!,
+        url: item.url,
+        altText: item.altText ?? item.filename,
+      });
+      toast.success('Image attached');
+      setMediaPickerOpen(false);
+      void refetch();
+    } catch (e) {
+      toast.error('Attach failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
   if (loading && !data) {
     return <div className="p-10 text-center text-slate-400">Loading product…</div>;
   }
@@ -120,6 +159,8 @@ export default function ProductEditorPage() {
       </div>
     );
   }
+
+  const productMedia = data.media ?? [];
 
   return (
     <div className="space-y-5">
@@ -329,21 +370,70 @@ export default function ProductEditorPage() {
 
       {tab === 'Media' && (
         <div className="card p-5">
-          <h3 className="font-semibold text-slate-900 mb-1">Media gallery</h3>
-          <p className="text-[12.5px] text-slate-500 mb-4">Drag to reorder · first image is the PDP main image · auto-converted to WebP.</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-square rounded border border-dashed border-border bg-slate-50 grid place-items-center text-slate-300">
-                <ImageIcon className="w-6 h-6" />
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-semibold text-slate-900">Media gallery</h3>
+              <p className="text-[12.5px] text-slate-500">
+                Pick from Media Library · first image is the PDP main image · auto-WebP on upload.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMediaPickerOpen(true)}
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+            >
+              <Plus className="w-4 h-4" /> Add from library
+            </button>
           </div>
-          <button
-            type="button"
-            className="mt-4 inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <Plus className="w-4 h-4" /> Upload images
-          </button>
+
+          {productMedia.length === 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="aspect-square rounded border border-dashed border-border bg-slate-50 grid place-items-center text-slate-300"
+                >
+                  <ImageIcon className="w-6 h-6" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {productMedia.map((m) => (
+                <div
+                  key={m.id}
+                  className="group relative aspect-square rounded border border-border bg-slate-50 overflow-hidden"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={m.url} alt={m.altText ?? ''} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toast.push({
+                          tone: 'info',
+                          title: 'Detach image',
+                          description: 'Wires in the next batch (DELETE /products/{id}/media/{mediaId}).',
+                        })
+                      }
+                      className="p-1.5 rounded bg-danger-600 text-white hover:bg-danger-700"
+                      aria-label="Remove"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setMediaPickerOpen(true)}
+                className="aspect-square rounded border border-dashed border-sky-300 bg-sky-50 grid place-items-center text-sky-500 hover:bg-sky-100"
+                aria-label="Add more"
+              >
+                <Plus className="w-6 h-6" />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -367,6 +457,50 @@ export default function ProductEditorPage() {
         </div>
       )}
 
+      {/* Media picker modal — pick from library */}
+      <Modal
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        title="Pick from Media Library"
+        size="lg"
+      >
+        {mediaQuery.loading && !mediaQuery.data ? (
+          <p className="text-center text-slate-400 py-6">Loading media…</p>
+        ) : mediaQuery.error ? (
+          <p className="text-center text-danger-700 py-6">{mediaQuery.error.message}</p>
+        ) : !mediaQuery.data || mediaQuery.data.length === 0 ? (
+          <div className="text-center py-8">
+            <ImageIcon className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+            <p className="text-sm text-slate-500">
+              Media library is empty. Upload images in{' '}
+              <Link href="/cms/media" className="text-sky-700 underline">
+                CMS → Media
+              </Link>
+              .
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto">
+            {mediaQuery.data.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => void attachMedia(m)}
+                className="group relative aspect-square rounded border border-border bg-slate-50 overflow-hidden hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={m.url} alt={m.altText ?? m.filename} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-sky-600/0 group-hover:bg-sky-600/20 transition-colors" />
+                <span className="absolute inset-x-0 bottom-0 bg-slate-900/70 text-white text-[10.5px] font-mono truncate px-1.5 py-0.5 opacity-0 group-hover:opacity-100">
+                  {m.filename}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete confirm */}
       <Modal
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
