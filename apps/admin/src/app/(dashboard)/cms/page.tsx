@@ -23,6 +23,8 @@ type SectionType =
   | 'DEAL_STRIP'
   | 'PROMO_TILES'
   | 'CATEGORY_TILES'
+  | 'CATEGORY_CAROUSEL'
+  | 'CATEGORY_GRID'
   | 'PRODUCT_CAROUSEL'
   | 'PROMO_BANNER'
   | 'WIDE_BANNER'
@@ -95,6 +97,8 @@ const TYPE_LABEL: Record<SectionType, string> = {
   DEAL_STRIP: 'Deal strip (countdown)',
   PROMO_TILES: 'Promo tiles (2×2 banners)',
   CATEGORY_TILES: 'Quick category tiles',
+  CATEGORY_CAROUSEL: 'Category products carousel (single)',
+  CATEGORY_GRID: 'Category products grid (multiple)',
   PRODUCT_CAROUSEL: "Today's Deals / Best Sellers carousel",
   PROMO_BANNER: 'Promo banners',
   WIDE_BANNER: 'Wide campaign banner',
@@ -107,6 +111,8 @@ const ALL_TYPES: SectionType[] = [
   'DEAL_STRIP',
   'PROMO_TILES',
   'CATEGORY_TILES',
+  'CATEGORY_CAROUSEL',
+  'CATEGORY_GRID',
   'PRODUCT_CAROUSEL',
   'PROMO_BANNER',
   'WIDE_BANNER',
@@ -135,6 +141,9 @@ interface AddFormState {
   paragraphs: string[];
   dealEndsAt: string;
   productIds: string[];
+  singleCategoryId: string;
+  multiCategoryIds: string[];
+  productsPerCategory: number;
 }
 
 const EMPTY_SLIDE: HeroSlideConfig = {
@@ -164,6 +173,9 @@ const EMPTY_FORM: AddFormState = {
   paragraphs: [],
   dealEndsAt: '',
   productIds: [],
+  singleCategoryId: '',
+  multiCategoryIds: [],
+  productsPerCategory: 8,
 };
 
 function sectionLabel(s: Section): string {
@@ -279,6 +291,24 @@ export default function CmsPage() {
         return;
       }
       config = { categoryIds: form.categoryIds };
+    } else if (form.sectionType === 'CATEGORY_CAROUSEL') {
+      if (!form.singleCategoryId) {
+        toast.error('Missing category', 'Select a category');
+        return;
+      }
+      config = {
+        categoryId: form.singleCategoryId,
+        limit: form.productsPerCategory || 8,
+      };
+    } else if (form.sectionType === 'CATEGORY_GRID') {
+      if (form.multiCategoryIds.length === 0) {
+        toast.error('Missing categories', 'Select at least 1 category');
+        return;
+      }
+      config = {
+        categoryIds: form.multiCategoryIds,
+        perCategoryLimit: form.productsPerCategory || 4,
+      };
     } else if (
       form.sectionType === 'PROMO_TILES' ||
       form.sectionType === 'PROMO_BANNER' ||
@@ -396,6 +426,18 @@ export default function CmsPage() {
     });
   }
 
+  function toggleMultiCategory(id: string) {
+    setForm((f) => {
+      const has = f.multiCategoryIds.includes(id);
+      return {
+        ...f,
+        multiCategoryIds: has
+          ? f.multiCategoryIds.filter((c) => c !== id)
+          : [...f.multiCategoryIds, id],
+      };
+    });
+  }
+
   function addBanner() {
     const max = BANNER_MAX[form.sectionType] ?? 4;
     setForm((f) => {
@@ -449,6 +491,8 @@ export default function CmsPage() {
     form.sectionType === 'PROMO_BANNER' ||
     form.sectionType === 'WIDE_BANNER';
   const isProductPickerType = PRODUCT_PICKER_TYPES.includes(form.sectionType);
+  const isCategoryCarousel = form.sectionType === 'CATEGORY_CAROUSEL';
+  const isCategoryGrid = form.sectionType === 'CATEGORY_GRID';
 
   return (
     <div className="space-y-5">
@@ -618,6 +662,12 @@ export default function CmsPage() {
                     f.banners.length === 0
                       ? [{ ...EMPTY_BANNER }]
                       : f.banners,
+                  productsPerCategory:
+                    st === 'CATEGORY_CAROUSEL'
+                      ? 8
+                      : st === 'CATEGORY_GRID'
+                        ? 4
+                        : f.productsPerCategory,
                 }));
                 setProductSearch('');
               }}
@@ -802,7 +852,104 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* PROMO_TILES / PROMO_BANNER / WIDE_BANNER — image + link only */}
+          {/* CATEGORY_CAROUSEL (single category → products) */}
+          {isCategoryCarousel && (
+            <div className="border-t border-border pt-3 mt-3 space-y-3">
+              <label className="block">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Category (single select)
+                </span>
+                <select
+                  value={form.singleCategoryId}
+                  onChange={(e) => setForm({ ...form, singleCategoryId: e.target.value })}
+                  className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+                >
+                  <option value="">— Select a category —</option>
+                  {flatCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-[12.5px] font-medium text-slate-700">
+                  Products to show (2-12)
+                </span>
+                <input
+                  type="number"
+                  min={2}
+                  max={12}
+                  value={form.productsPerCategory}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      productsPerCategory: Math.max(2, Math.min(12, Number(e.target.value) || 8)),
+                    })
+                  }
+                  className="mt-1 w-full h-9 px-3 rounded border border-border text-sm tabular-nums"
+                />
+              </label>
+              <p className="text-[11.5px] text-slate-400">
+                Storefront shows a horizontal carousel of N products from this category.
+              </p>
+            </div>
+          )}
+
+          {/* CATEGORY_GRID (multi category → stacked sections) */}
+          {isCategoryGrid && (
+            <div className="border-t border-border pt-3 mt-3 space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Categories ({form.multiCategoryIds.length} selected)
+                </span>
+              </div>
+              {flatCategories.length === 0 ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  No categories found.
+                </p>
+              ) : (
+                <div className="max-h-[240px] overflow-y-auto border border-border rounded bg-slate-50 p-2 space-y-1">
+                  {flatCategories.map((c) => (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 p-1.5 rounded hover:bg-white cursor-pointer text-[12.5px] text-slate-700"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.multiCategoryIds.includes(c.id)}
+                        onChange={() => toggleMultiCategory(c.id)}
+                      />
+                      <span className="truncate">{c.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <label className="block">
+                <span className="text-[12.5px] font-medium text-slate-700">
+                  Products per category (2-12)
+                </span>
+                <input
+                  type="number"
+                  min={2}
+                  max={12}
+                  value={form.productsPerCategory}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      productsPerCategory: Math.max(2, Math.min(12, Number(e.target.value) || 4)),
+                    })
+                  }
+                  className="mt-1 w-full h-9 px-3 rounded border border-border text-sm tabular-nums"
+                />
+              </label>
+              <p className="text-[11.5px] text-slate-400">
+                Storefront renders each selected category as its own row (heading + N products + See-all link).
+              </p>
+            </div>
+          )}
+
+          {/* PROMO_TILES / PROMO_BANNER / WIDE_BANNER */}
           {isBannerType && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -967,7 +1114,7 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* PRODUCT_CAROUSEL / RECOMMENDED — product picker */}
+          {/* PRODUCT_CAROUSEL / RECOMMENDED */}
           {isProductPickerType && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -1043,6 +1190,8 @@ export default function CmsPage() {
           {/* Other — placeholder */}
           {form.sectionType !== 'HERO_CAROUSEL' &&
             form.sectionType !== 'CATEGORY_TILES' &&
+            form.sectionType !== 'CATEGORY_CAROUSEL' &&
+            form.sectionType !== 'CATEGORY_GRID' &&
             form.sectionType !== 'SEO_TEXT' &&
             form.sectionType !== 'DEAL_STRIP' &&
             !isBannerType &&

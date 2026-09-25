@@ -66,15 +66,22 @@ export default async function HomePage({ params }: { params: { locale: string } 
       cmsApi.getMenu('FOOTER').catch(() => null),
     ]);
 
-  // ── Product picker support: collect all productIds referenced by sections ──
+  // ── Product picker support ──
   const allPickedProductIds = new Set<string>();
+  // ── Category-carousel support ──
+  const allCategoryIds = new Set<string>();
+
   for (const s of feed.sections) {
     if (s.sectionType === 'PRODUCT_CAROUSEL' || s.sectionType === 'RECOMMENDED') {
       for (const id of extractProductIds(s.config)) allPickedProductIds.add(id);
+    } else if (s.sectionType === 'CATEGORY_CAROUSEL') {
+      const cid = extractSingleCategoryId(s.config);
+      if (cid) allCategoryIds.add(cid);
+    } else if (s.sectionType === 'CATEGORY_GRID') {
+      for (const id of extractMultiCategoryIds(s.config)) allCategoryIds.add(id);
     }
   }
 
-  // Fetch all published products once (single request), index by id.
   const pickedProductsMap = new Map<string, ProductSummary>();
   if (allPickedProductIds.size > 0) {
     const allProducts = await catalogApi
@@ -83,6 +90,21 @@ export default async function HomePage({ params }: { params: { locale: string } 
     for (const p of allProducts.items) {
       if (allPickedProductIds.has(p.id)) pickedProductsMap.set(p.id, p);
     }
+  }
+
+  // Fetch products per referenced category (parallel). Key = categoryId.
+  const categoryProductsMap = new Map<string, ProductSummary[]>();
+  if (allCategoryIds.size > 0) {
+    const ids = Array.from(allCategoryIds);
+    const results = await Promise.all(
+      ids.map((cid) =>
+        catalogApi
+          .listProducts({ status: 'PUBLISHED', categoryId: cid, limit: 12 })
+          .then((r) => ({ cid, items: r.items }))
+          .catch(() => ({ cid, items: [] as ProductSummary[] })),
+      ),
+    );
+    for (const r of results) categoryProductsMap.set(r.cid, r.items);
   }
 
   const sortedSections = [...feed.sections].sort((a, b) => a.position - b.position);
@@ -214,6 +236,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
           newArrivals: newArrivals.items,
           recommended: recommended.items,
           pickedProductsMap,
+          categoryProductsMap,
           dict: t,
         }))}
       </main>
@@ -257,6 +280,7 @@ interface RenderSectionArgs {
   newArrivals: ProductSummary[];
   recommended: ProductSummary[];
   pickedProductsMap: Map<string, ProductSummary>;
+  categoryProductsMap: Map<string, ProductSummary[]>;
   dict: ReturnType<typeof getDictionary>;
 }
 
@@ -267,6 +291,7 @@ function renderSection({
   bestSellers,
   recommended,
   pickedProductsMap,
+  categoryProductsMap,
   dict,
 }: RenderSectionArgs) {
   const title = locale === 'bn'
@@ -313,6 +338,53 @@ function renderSection({
           limit={4}
         />
       );
+    }
+    case 'CATEGORY_CAROUSEL': {
+      const categoryId = extractSingleCategoryId(section.config);
+      if (!categoryId) return null;
+      const products = categoryProductsMap.get(categoryId) ?? [];
+      if (products.length === 0) return null;
+      const category = categories.find((c) => c.id === categoryId);
+      const categoryName = category
+        ? locale === 'bn'
+          ? category.nameBn
+          : category.nameEn
+        : undefined;
+      return (
+        <ProductCarousel
+          key={section.id}
+          title={title ?? categoryName ?? (locale === 'bn' ? 'বিশেষ পণ্য' : 'Featured products')}
+          seeAllHref={category ? `/${locale}/c/${category.slug}` : undefined}
+          seeAllLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all →'}
+          products={products}
+          locale={locale}
+          dict={dict}
+        />
+      );
+    }
+    case 'CATEGORY_GRID': {
+      const categoryIds = extractMultiCategoryIds(section.config);
+      if (categoryIds.length === 0) return null;
+      const rendered = categoryIds.map((cid) => {
+        const products = categoryProductsMap.get(cid) ?? [];
+        if (products.length === 0) return null;
+        const category = categories.find((c) => c.id === cid);
+        if (!category) return null;
+        const categoryName = locale === 'bn' ? category.nameBn : category.nameEn;
+        return (
+          <ProductCarousel
+            key={`${section.id}-${cid}`}
+            title={categoryName}
+            seeAllHref={`/${locale}/c/${category.slug}`}
+            seeAllLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all →'}
+            products={products}
+            locale={locale}
+            dict={dict}
+          />
+        );
+      });
+      if (rendered.every((r) => r === null)) return null;
+      return <div key={section.id} className="space-y-8">{rendered}</div>;
     }
     case 'PRODUCT_CAROUSEL': {
       const pickedIds = extractProductIds(section.config);
@@ -414,6 +486,24 @@ function extractProductIds(
     return [];
   }
   return (config.productIds as unknown[]).filter(
+    (id): id is string => typeof id === 'string' && id.length > 0,
+  );
+}
+
+function extractSingleCategoryId(
+  config: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!config || typeof config.categoryId !== 'string') return null;
+  return config.categoryId.length > 0 ? config.categoryId : null;
+}
+
+function extractMultiCategoryIds(
+  config: Record<string, unknown> | null | undefined,
+): string[] {
+  if (!config || !('categoryIds' in config) || !Array.isArray(config.categoryIds)) {
+    return [];
+  }
+  return (config.categoryIds as unknown[]).filter(
     (id): id is string => typeof id === 'string' && id.length > 0,
   );
 }
