@@ -11,6 +11,7 @@ import {
   Trash2,
   UploadCloud,
   X,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { PageHeader, StatusChip, EmptyState, Modal, useToast } from '@/components/ui';
 import { useQuery, useMutation, useUpload } from '@/lib/hooks';
@@ -35,6 +36,15 @@ interface HeroSlideConfig {
   ctaLabelBn: string;
 }
 
+interface BannerConfig {
+  imageUrl: string;
+  titleEn: string;
+  titleBn: string;
+  ctaHref: string;
+  ctaLabelEn: string;
+  ctaLabelBn: string;
+}
+
 interface Section {
   id: string;
   key: string;
@@ -46,6 +56,24 @@ interface Section {
   isVisible: boolean;
   startsAt: string | null;
   endsAt: string | null;
+}
+
+interface CategoryNode {
+  id: string;
+  nameEn: string;
+  nameBn: string;
+  slug: string;
+  isActive: boolean;
+  sortOrder: number;
+  children?: CategoryNode[];
+}
+
+interface UploadResult {
+  url: string;
+  key: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
 }
 
 const TYPE_LABEL: Record<SectionType, string> = {
@@ -72,6 +100,12 @@ const ALL_TYPES: SectionType[] = [
   'SEO_TEXT',
 ];
 
+const BANNER_MAX: Partial<Record<SectionType, number>> = {
+  PROMO_TILES: 4,
+  PROMO_BANNER: 4,
+  WIDE_BANNER: 1,
+};
+
 interface AddFormState {
   key: string;
   sectionType: SectionType;
@@ -80,9 +114,20 @@ interface AddFormState {
   position: number;
   isVisible: boolean;
   heroSlides: HeroSlideConfig[];
+  categoryIds: string[];
+  banners: BannerConfig[];
 }
 
 const EMPTY_SLIDE: HeroSlideConfig = {
+  imageUrl: '',
+  titleEn: '',
+  titleBn: '',
+  ctaHref: '',
+  ctaLabelEn: '',
+  ctaLabelBn: '',
+};
+
+const EMPTY_BANNER: BannerConfig = {
   imageUrl: '',
   titleEn: '',
   titleBn: '',
@@ -99,15 +144,27 @@ const EMPTY_FORM: AddFormState = {
   position: 0,
   isVisible: true,
   heroSlides: [],
+  categoryIds: [],
+  banners: [],
 };
 
 function sectionLabel(s: Section): string {
   return s.titleEn ?? s.titleBn ?? TYPE_LABEL[s.sectionType] ?? s.sectionType;
 }
 
+function flattenCategories(nodes: CategoryNode[], depth = 0): Array<{ id: string; name: string; depth: number }> {
+  const out: Array<{ id: string; name: string; depth: number }> = [];
+  for (const n of nodes) {
+    out.push({ id: n.id, name: `${'— '.repeat(depth)}${n.nameEn}`, depth });
+    if (n.children?.length) out.push(...flattenCategories(n.children, depth + 1));
+  }
+  return out;
+}
+
 export default function CmsPage() {
   const toast = useToast();
   const { data, loading, error, refetch } = useQuery<Section[]>('/api/v1/cms/sections');
+  const categoriesQuery = useQuery<CategoryNode[]>('/api/v1/categories/tree');
 
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState<AddFormState>({ ...EMPTY_FORM });
@@ -137,14 +194,7 @@ export default function CmsPage() {
     (input) => `/api/v1/cms/sections/${(input as unknown as string)}`,
   );
 
-  // Inline media upload for hero slides
-  const uploadMutation = useUpload<{
-    url: string;
-    key: string;
-    filename: string;
-    mimeType: string;
-    sizeBytes: number;
-  }>('/api/v1/uploads/media');
+  const uploadMutation = useUpload<UploadResult>('/api/v1/uploads/media');
 
   const saveMediaLibraryMutation = useMutation<
     { url: string; filename: string; mimeType: string; sizeBytes: number; altText?: string },
@@ -188,6 +238,7 @@ export default function CmsPage() {
 
     // Build config based on sectionType
     let config: Record<string, unknown> | undefined = undefined;
+
     if (form.sectionType === 'HERO_CAROUSEL') {
       const validSlides = form.heroSlides.filter(
         (s) => s.imageUrl.trim() && s.titleEn.trim() && s.ctaHref.trim(),
@@ -197,6 +248,26 @@ export default function CmsPage() {
         return;
       }
       config = { slides: validSlides };
+    } else if (form.sectionType === 'CATEGORY_TILES') {
+      if (form.categoryIds.length === 0) {
+        toast.error('Missing categories', 'Select at least 1 category');
+        return;
+      }
+      config = { categoryIds: form.categoryIds };
+    } else if (
+      form.sectionType === 'PROMO_TILES' ||
+      form.sectionType === 'PROMO_BANNER' ||
+      form.sectionType === 'WIDE_BANNER'
+    ) {
+      const max = BANNER_MAX[form.sectionType] ?? 4;
+      const validBanners = form.banners
+        .filter((b) => b.imageUrl.trim() && b.titleEn.trim() && b.ctaHref.trim())
+        .slice(0, max);
+      if (validBanners.length === 0) {
+        toast.error('Missing banners', 'Add at least 1 complete banner tile');
+        return;
+      }
+      config = { banners: validBanners };
     }
 
     try {
@@ -239,11 +310,10 @@ export default function CmsPage() {
     }
   }
 
-  // Slide helpers
+  // Hero slide helpers
   function addSlide() {
     setForm((f) => ({ ...f, heroSlides: [...f.heroSlides, { ...EMPTY_SLIDE }] }));
   }
-
   function updateSlide(idx: number, patch: Partial<HeroSlideConfig>) {
     setForm((f) => {
       const slides = [...f.heroSlides];
@@ -251,15 +321,12 @@ export default function CmsPage() {
       return { ...f, heroSlides: slides };
     });
   }
-
   function removeSlide(idx: number) {
     setForm((f) => ({ ...f, heroSlides: f.heroSlides.filter((_, i) => i !== idx) }));
   }
-
   async function uploadSlideImage(idx: number, file: File) {
     try {
       const uploaded = await uploadMutation.upload(file);
-      // register in media library too
       await saveMediaLibraryMutation.mutate({
         url: uploaded.url,
         filename: uploaded.filename,
@@ -273,6 +340,61 @@ export default function CmsPage() {
       toast.error('Upload failed', e instanceof Error ? e.message : 'Unknown');
     }
   }
+
+  // Category toggle
+  function toggleCategory(id: string) {
+    setForm((f) => {
+      const has = f.categoryIds.includes(id);
+      return {
+        ...f,
+        categoryIds: has
+          ? f.categoryIds.filter((c) => c !== id)
+          : [...f.categoryIds, id],
+      };
+    });
+  }
+
+  // Banner helpers
+  function addBanner() {
+    const max = BANNER_MAX[form.sectionType] ?? 4;
+    setForm((f) => {
+      if (f.banners.length >= max) return f;
+      return { ...f, banners: [...f.banners, { ...EMPTY_BANNER }] };
+    });
+  }
+  function updateBanner(idx: number, patch: Partial<BannerConfig>) {
+    setForm((f) => {
+      const banners = [...f.banners];
+      banners[idx] = { ...banners[idx]!, ...patch };
+      return { ...f, banners };
+    });
+  }
+  function removeBanner(idx: number) {
+    setForm((f) => ({ ...f, banners: f.banners.filter((_, i) => i !== idx) }));
+  }
+  async function uploadBannerImage(idx: number, file: File) {
+    try {
+      const uploaded = await uploadMutation.upload(file);
+      await saveMediaLibraryMutation.mutate({
+        url: uploaded.url,
+        filename: uploaded.filename,
+        mimeType: uploaded.mimeType,
+        sizeBytes: uploaded.sizeBytes,
+        altText: uploaded.filename,
+      });
+      updateBanner(idx, { imageUrl: uploaded.url });
+      toast.success('Image uploaded');
+    } catch (e) {
+      toast.error('Upload failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
+  const flatCategories = categoriesQuery.data ? flattenCategories(categoriesQuery.data) : [];
+  const bannerMax = BANNER_MAX[form.sectionType] ?? 4;
+  const isBannerType =
+    form.sectionType === 'PROMO_TILES' ||
+    form.sectionType === 'PROMO_BANNER' ||
+    form.sectionType === 'WIDE_BANNER';
 
   return (
     <div className="space-y-5">
@@ -437,6 +559,11 @@ export default function CmsPage() {
                   heroSlides: st === 'HERO_CAROUSEL' && f.heroSlides.length === 0
                     ? [{ ...EMPTY_SLIDE }]
                     : f.heroSlides,
+                  banners:
+                    (st === 'PROMO_TILES' || st === 'PROMO_BANNER' || st === 'WIDE_BANNER') &&
+                    f.banners.length === 0
+                      ? [{ ...EMPTY_BANNER }]
+                      : f.banners,
                 }));
               }}
               className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
@@ -466,7 +593,6 @@ export default function CmsPage() {
                 value={form.titleEn}
                 onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
                 className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-                placeholder="e.g. Hero carousel"
               />
             </label>
             <label className="block">
@@ -476,7 +602,6 @@ export default function CmsPage() {
                 value={form.titleBn}
                 onChange={(e) => setForm({ ...form, titleBn: e.target.value })}
                 className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-                placeholder="e.g. হিরো ক্যারোসেল"
               />
             </label>
           </div>
@@ -500,7 +625,7 @@ export default function CmsPage() {
             <span className="text-sm text-slate-700">Visible on storefront</span>
           </label>
 
-          {/* Hero slides editor — only for HERO_CAROUSEL */}
+          {/* ── HERO_CAROUSEL: slides editor ── */}
           {form.sectionType === 'HERO_CAROUSEL' && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -515,18 +640,14 @@ export default function CmsPage() {
                   <Plus className="w-3.5 h-3.5" /> Add slide
                 </button>
               </div>
-
               {form.heroSlides.length === 0 ? (
                 <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
-                  No slides yet — click “Add slide” to create one.
+                  No slides yet — click “Add slide”.
                 </p>
               ) : (
                 <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
                   {form.heroSlides.map((slide, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded border border-border bg-slate-50 p-3 space-y-2"
-                    >
+                    <div key={idx} className="rounded border border-border bg-slate-50 p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[11.5px] font-semibold text-slate-600">
                           Slide #{idx + 1}
@@ -540,17 +661,11 @@ export default function CmsPage() {
                           <X className="w-3.5 h-3.5 text-danger-600" />
                         </button>
                       </div>
-
                       <div className="flex items-start gap-3">
-                        {/* Image upload / preview */}
                         <div className="w-24 h-24 shrink-0">
                           {slide.imageUrl ? (
                             <div className="relative w-24 h-24 rounded overflow-hidden border border-border">
-                              <img
-                                src={slide.imageUrl}
-                                alt={`Slide ${idx + 1}`}
-                                className="w-full h-full object-cover"
-                              />
+                              <img src={slide.imageUrl} alt="" className="w-full h-full object-cover" />
                               <button
                                 type="button"
                                 onClick={() => updateSlide(idx, { imageUrl: '' })}
@@ -561,11 +676,7 @@ export default function CmsPage() {
                               </button>
                             </div>
                           ) : (
-                            <label
-                              className={`w-24 h-24 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium ${
-                                uploadMutation.loading ? 'opacity-60' : ''
-                              }`}
-                            >
+                            <label className="w-24 h-24 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium">
                               <UploadCloud className="w-5 h-5" />
                               <span>Upload</span>
                               <input
@@ -582,43 +693,12 @@ export default function CmsPage() {
                             </label>
                           )}
                         </div>
-
                         <div className="flex-1 grid grid-cols-2 gap-2 min-w-0">
-                          <input
-                            type="text"
-                            value={slide.titleEn}
-                            onChange={(e) => updateSlide(idx, { titleEn: e.target.value })}
-                            className="h-8 px-2 rounded border border-border text-[12px]"
-                            placeholder="Title (English)"
-                          />
-                          <input
-                            type="text"
-                            value={slide.titleBn}
-                            onChange={(e) => updateSlide(idx, { titleBn: e.target.value })}
-                            className="h-8 px-2 rounded border border-border text-[12px]"
-                            placeholder="Title (বাংলা)"
-                          />
-                          <input
-                            type="text"
-                            value={slide.ctaLabelEn}
-                            onChange={(e) => updateSlide(idx, { ctaLabelEn: e.target.value })}
-                            className="h-8 px-2 rounded border border-border text-[12px]"
-                            placeholder="CTA (English)"
-                          />
-                          <input
-                            type="text"
-                            value={slide.ctaLabelBn}
-                            onChange={(e) => updateSlide(idx, { ctaLabelBn: e.target.value })}
-                            className="h-8 px-2 rounded border border-border text-[12px]"
-                            placeholder="CTA (বাংলা)"
-                          />
-                          <input
-                            type="text"
-                            value={slide.ctaHref}
-                            onChange={(e) => updateSlide(idx, { ctaHref: e.target.value })}
-                            className="h-8 px-2 rounded border border-border text-[12px] font-mono col-span-2"
-                            placeholder="Link URL (e.g. /c/smartphones)"
-                          />
+                          <input type="text" value={slide.titleEn} onChange={(e) => updateSlide(idx, { titleEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Title (EN)" />
+                          <input type="text" value={slide.titleBn} onChange={(e) => updateSlide(idx, { titleBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Title (BN)" />
+                          <input type="text" value={slide.ctaLabelEn} onChange={(e) => updateSlide(idx, { ctaLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (EN)" />
+                          <input type="text" value={slide.ctaLabelBn} onChange={(e) => updateSlide(idx, { ctaLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (BN)" />
+                          <input type="text" value={slide.ctaHref} onChange={(e) => updateSlide(idx, { ctaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono col-span-2" placeholder="Link URL" />
                         </div>
                       </div>
                     </div>
@@ -628,11 +708,140 @@ export default function CmsPage() {
             </div>
           )}
 
-          {form.sectionType !== 'HERO_CAROUSEL' && (
-            <p className="text-[11.5px] text-slate-400 bg-slate-50 rounded p-2">
-              Config editor for <strong>{TYPE_LABEL[form.sectionType]}</strong> will arrive in a follow-up. For now this section uses default storefront content.
-            </p>
+          {/* ── CATEGORY_TILES: category multi-select ── */}
+          {form.sectionType === 'CATEGORY_TILES' && (
+            <div className="border-t border-border pt-3 mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Categories ({form.categoryIds.length} selected)
+                </span>
+                {categoriesQuery.loading && (
+                  <span className="text-[11px] text-slate-400">Loading…</span>
+                )}
+              </div>
+              {categoriesQuery.error ? (
+                <p className="text-[12px] text-danger-600 py-2">
+                  Failed to load categories: {categoriesQuery.error.message}
+                </p>
+              ) : flatCategories.length === 0 ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  No categories found.
+                </p>
+              ) : (
+                <div className="max-h-[280px] overflow-y-auto border border-border rounded bg-slate-50 p-2 space-y-1">
+                  {flatCategories.map((c) => (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 p-1.5 rounded hover:bg-white cursor-pointer text-[12.5px] text-slate-700"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.categoryIds.includes(c.id)}
+                        onChange={() => toggleCategory(c.id)}
+                      />
+                      <span className="truncate">{c.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11.5px] text-slate-400 mt-1">
+                Selected categories show as quick tiles (max 4).
+              </p>
+            </div>
           )}
+
+          {/* ── PROMO_TILES / PROMO_BANNER / WIDE_BANNER: banners editor ── */}
+          {isBannerType && (
+            <div className="border-t border-border pt-3 mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Banner tiles ({form.banners.length}/{bannerMax})
+                </span>
+                <button
+                  type="button"
+                  onClick={addBanner}
+                  disabled={form.banners.length >= bannerMax}
+                  className="inline-flex items-center gap-1 h-8 px-2.5 rounded bg-sky-600 text-white text-[12.5px] font-medium hover:bg-sky-700 disabled:opacity-50"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add tile
+                </button>
+              </div>
+              {form.banners.length === 0 ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  No banners yet — click “Add tile”.
+                </p>
+              ) : (
+                <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+                  {form.banners.map((banner, idx) => (
+                    <div key={idx} className="rounded border border-border bg-slate-50 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11.5px] font-semibold text-slate-600">
+                          Tile #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeBanner(idx)}
+                          className="h-7 w-7 grid place-items-center rounded hover:bg-slate-200"
+                          aria-label="Remove tile"
+                        >
+                          <X className="w-3.5 h-3.5 text-danger-600" />
+                        </button>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-24 h-24 shrink-0">
+                          {banner.imageUrl ? (
+                            <div className="relative w-24 h-24 rounded overflow-hidden border border-border">
+                              <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => updateBanner(idx, { imageUrl: '' })}
+                                className="absolute top-0.5 right-0.5 p-1 rounded bg-danger-600 text-white hover:bg-danger-700"
+                                aria-label="Remove image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="w-24 h-24 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium">
+                              <ImageIcon className="w-5 h-5" />
+                              <span>Upload</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                disabled={uploadMutation.loading}
+                                className="sr-only"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) void uploadBannerImage(idx, f);
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                        <div className="flex-1 grid grid-cols-2 gap-2 min-w-0">
+                          <input type="text" value={banner.titleEn} onChange={(e) => updateBanner(idx, { titleEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Title (EN)" />
+                          <input type="text" value={banner.titleBn} onChange={(e) => updateBanner(idx, { titleBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Title (BN)" />
+                          <input type="text" value={banner.ctaLabelEn} onChange={(e) => updateBanner(idx, { ctaLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (EN)" />
+                          <input type="text" value={banner.ctaLabelBn} onChange={(e) => updateBanner(idx, { ctaLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (BN)" />
+                          <input type="text" value={banner.ctaHref} onChange={(e) => updateBanner(idx, { ctaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono col-span-2" placeholder="Link URL" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Other types — placeholder ── */}
+          {form.sectionType !== 'HERO_CAROUSEL' &&
+            form.sectionType !== 'CATEGORY_TILES' &&
+            !isBannerType && (
+              <p className="text-[11.5px] text-slate-400 bg-slate-50 rounded p-2">
+                Config editor for <strong>{TYPE_LABEL[form.sectionType]}</strong> will arrive in a follow-up. For now this section uses default storefront content.
+              </p>
+            )}
         </div>
       </Modal>
     </div>
