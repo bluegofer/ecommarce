@@ -1,30 +1,37 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import styles from './MegaMenu.module.css';
+import type { CmsMenuDto, CmsMenuItemDto } from '@ecommarce/types';
+
+// ─────────────────────────────────────────────────────────────────────
+// Public types — backward compatible with existing pages
+// ─────────────────────────────────────────────────────────────────────
 
 export interface MegaMenuCategory {
-  id: string;
-  label: string;
-  href: string;
-  /** Second-level children. */
+  slug?: string;
+  name?: string;
+  nameBn?: string;
+  id?: string;
+  label?: string;
+  href?: string;
   children?: MegaMenuCategory[];
 }
 
 export interface MegaMenuLabels {
-  greeting: string;
-  trending: string;
-  bestSellers: string;
-  newReleases: string;
-  todayDeals: string;
-  shopByCategory: string;
-  helpServices: string;
-  customerService: string;
-  languageSwitch: string;
-  empty: string;
-  back: string;
   mainMenu: string;
+  trending?: string;
+  shopByCategory?: string;
+  helpAndServices?: string;
+  customerService?: string;
+  bestSellers?: string;
+  newArrivals?: string;
+  todaysDeals?: string;
+  signIn?: string;
+  hello?: string;
+  greeting?: string;
+  orders?: string;
+  [key: string]: string | undefined;
 }
 
 export interface MegaMenuProps {
@@ -33,208 +40,353 @@ export interface MegaMenuProps {
   locale: 'bn' | 'en';
   categories: MegaMenuCategory[];
   labels: MegaMenuLabels;
-  /** Whether the user is signed in (shows greeting vs Sign In link). */
   signedIn?: boolean;
   userName?: string;
 }
 
-/**
- * Mega-menu drawer (UI Spec B2).
- * Slides from the left; 3-level navigation; focus-trapped via Drawer primitives.
- * The drawer chrome (scrim, focus, scroll lock) is inline here to avoid a
- * second layer of portal composition — behavior matches Modal/Drawer.
- */
+// ─────────────────────────────────────────────────────────────────────
+// Inline SVG icons
+// ─────────────────────────────────────────────────────────────────────
+
+function XIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline
+        points="9 18 15 12 9 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline
+        points="6 9 12 15 18 9"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+
+interface NormalizedCategory {
+  slug: string;
+  label: string;
+  children: NormalizedCategory[];
+}
+
+function normalizeCategory(c: MegaMenuCategory): NormalizedCategory {
+  const slugFromHref: string = c.href
+    ? c.href.replace(/^\/?(?:bn|en)?\/c\//, '')
+    : '';
+  const slug: string = (c.slug ?? slugFromHref) || c.id || '';
+  const label: string = c.name ?? c.label ?? c.id ?? '';
+  return {
+    slug,
+    label,
+    children: (c.children ?? []).map(normalizeCategory),
+  };
+}
+
+function cmsToCategory(item: CmsMenuItemDto): NormalizedCategory {
+  const slugFromUrl = deriveSlugFromUrl(item.url);
+  const slug: string = slugFromUrl || item.id;
+  const label: string = item.labelEn;
+  return {
+    slug,
+    label,
+    children: (item.children ?? []).map(cmsToCategory),
+  };
+}
+
+function deriveSlugFromUrl(url: string): string {
+  if (!url) return '';
+  const catMatch = url.match(/\/c\/([^/?#]+)/);
+  if (catMatch && catMatch[1]) return catMatch[1];
+  const clean = url.replace(/^\/+/, '').replace(/\//g, '-');
+  return clean;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+
 export function MegaMenu({
   open,
   onClose,
   locale,
   categories,
   labels,
-  signedIn = false,
+  signedIn,
   userName,
 }: MegaMenuProps) {
-  // Track the currently-open level-2 panel by parent id.
-  const [openParentId, setOpenParentId] = useState<string | null>(null);
+  const [cmsMenu, setCmsMenu] = useState<CmsMenuDto | null>(null);
+  const [cmsError, setCmsError] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  // Reset the level-2 panel when the menu closes.
-  useEffect(() => {
-    if (!open) setOpenParentId(null);
-  }, [open]);
-
-  // Lock body scroll while open.
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [open]);
+    let cancelled = false;
+    setCmsError(false);
 
-  // Esc closes (or backs out of level-2 first).
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      if (openParentId) {
-        e.stopPropagation();
-        setOpenParentId(null);
-      } else {
-        e.stopPropagation();
-        onClose();
-      }
+    fetch('/api/v1/cms/menus/mobile', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: CmsMenuDto | null) => {
+        if (cancelled) return;
+        if (data && data.items && data.items.length > 0) {
+          setCmsMenu(data);
+        } else {
+          setCmsError(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCmsError(true);
+      });
+
+    return () => {
+      cancelled = true;
     };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, openParentId, onClose]);
+  }, [open]);
 
-  if (!open || typeof document === 'undefined') return null;
+  useEffect(() => {
+    if (!open) setExpanded(new Set());
+  }, [open]);
 
-  const openParent = categories.find((c) => c.id === openParentId) ?? null;
-  const isEmpty = categories.length === 0;
+  const shopByCategoryItems = useMemo<NormalizedCategory[]>(() => {
+    if (!cmsError && cmsMenu && cmsMenu.items && cmsMenu.items.length > 0) {
+      return cmsMenu.items.map(cmsToCategory);
+    }
+    return categories.map(normalizeCategory);
+  }, [cmsMenu, cmsError, categories]);
+
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  if (!open) return null;
 
   return (
     <div
-      className={styles.scrim}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      role="presentation"
+      className="fixed inset-0 z-50 flex"
+      role="dialog"
+      aria-modal="true"
+      aria-label={labels.mainMenu}
     >
       <div
-        className={styles.drawer}
-        role="dialog"
-        aria-modal="true"
-        aria-label={labels.mainMenu}
-      >
-        {/* Header row */}
-        <div className={styles.header}>
-          {openParent ? (
-            <button
-              type="button"
-              className={styles.backBtn}
-              onClick={() => setOpenParentId(null)}
-            >
-              <ChevronLeft />
-              <span>{labels.back}</span>
-            </button>
-          ) : (
-            <span className={styles.greeting}>
-              {signedIn && userName ? `Hello, ${userName}` : labels.greeting}
-            </span>
-          )}
-          <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+        className="absolute inset-0 bg-slate-900/50"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside className="relative w-full max-w-[380px] h-full bg-white shadow-xl flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
+          <div className="text-base font-semibold text-slate-900">{labels.mainMenu}</div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded hover:bg-slate-100 text-slate-600"
+            aria-label="Close menu"
+          >
+            <XIcon />
           </button>
         </div>
 
-        {/* Level-2 panel or root */}
-        {openParent ? (
-          <div className={styles.panel}>
-            <div className={styles.panelTitle}>{openParent.label}</div>
-            <ul className={styles.rows}>
-              <li>
-                <Link href={openParent.href} className={styles.row} onClick={onClose}>
-                  <span>{openParent.label}</span>
-                </Link>
-              </li>
-              {openParent.children?.map((child) => (
-                <li key={child.id}>
-                  <Link href={child.href} className={styles.row} onClick={onClose}>
-                    <span>{child.label}</span>
-                  </Link>
-                </li>
-              ))}
-              {!openParent.children || openParent.children.length === 0 ? (
-                <li className={styles.emptySmall}>—</li>
-              ) : null}
-            </ul>
-          </div>
-        ) : (
-          <div className={styles.body}>
-            <Section title={labels.trending}>
-              <MenuLink href={`/${locale}/deals`} onClick={onClose}>{labels.bestSellers}</MenuLink>
-              <MenuLink href={`/${locale}/deals`} onClick={onClose}>{labels.newReleases}</MenuLink>
-              <MenuLink href={`/${locale}/deals`} onClick={onClose}>{labels.todayDeals}</MenuLink>
-            </Section>
-
-            <Section title={labels.shopByCategory}>
-              {isEmpty ? (
-                <div className={styles.empty}>{labels.empty}</div>
-              ) : (
-                <ul className={styles.rows}>
-                  {categories.map((cat) => (
-                    <li key={cat.id}>
-                      {cat.children && cat.children.length > 0 ? (
-                        <button
-                          type="button"
-                          className={styles.row}
-                          onClick={() => setOpenParentId(cat.id)}
-                        >
-                          <span>{cat.label}</span>
-                          <ChevronRight />
-                        </button>
-                      ) : (
-                        <Link href={cat.href} className={styles.row} onClick={onClose}>
-                          <span>{cat.label}</span>
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Section>
-
-            <Section title={labels.helpServices}>
-              <MenuLink href={`/${locale}/pages/contact`} onClick={onClose}>
-                {labels.customerService}
-              </MenuLink>
-              <MenuLink href={locale === 'bn' ? `/${'en'}` : `/${'bn'}`} onClick={onClose}>
-                {labels.languageSwitch}
-              </MenuLink>
-            </Section>
+        {signedIn && (
+          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 text-[13px] text-slate-700">
+            {labels.greeting ?? labels.hello ?? 'Hello'}
+            {userName ? (
+              <>
+                , <span className="font-semibold">{userName}</span>
+              </>
+            ) : null}
           </div>
         )}
-      </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {labels.trending && (
+            <Section title={labels.trending}>
+              <SimpleLink
+                href={`/${locale}/deals`}
+                label={labels.todaysDeals ?? "Today's Deals"}
+              />
+              <SimpleLink
+                href={`/${locale}/s?sort=best-sellers`}
+                label={labels.bestSellers ?? 'Best Sellers'}
+              />
+              <SimpleLink
+                href={`/${locale}/s?sort=newest`}
+                label={labels.newArrivals ?? 'New Arrivals'}
+              />
+            </Section>
+          )}
+
+          {labels.shopByCategory && (
+            <Section title={labels.shopByCategory}>
+              {shopByCategoryItems.length === 0 ? (
+                <p className="text-[12.5px] text-slate-400 py-1">No categories yet.</p>
+              ) : (
+                shopByCategoryItems.map((cat) => (
+                  <CategoryAccordion
+                    key={cat.slug}
+                    category={cat}
+                    locale={locale}
+                    expanded={expanded}
+                    onToggle={toggle}
+                    level={0}
+                  />
+                ))
+              )}
+            </Section>
+          )}
+
+          {labels.helpAndServices && (
+            <Section title={labels.helpAndServices}>
+              {labels.customerService && (
+                <SimpleLink
+                  href={`/${locale}/pages/contact`}
+                  label={labels.customerService}
+                />
+              )}
+              <SimpleLink
+                href={`/${locale}/account/orders`}
+                label={labels.orders ?? 'Your Orders'}
+              />
+              <SimpleLink href={`/${locale}/pages/faq`} label="FAQ" />
+            </Section>
+          )}
+        </div>
+
+        <div className="border-t border-slate-200 px-4 py-3 shrink-0">
+          {signedIn ? (
+            <Link
+              href={`/${locale}/account`}
+              className="block w-full text-center py-2.5 rounded bg-slate-100 text-slate-800 text-sm font-medium hover:bg-slate-200"
+              onClick={onClose}
+            >
+              My Account
+            </Link>
+          ) : (
+            <Link
+              href={`/${locale}/signin`}
+              className="block w-full text-center py-2.5 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+              onClick={onClose}
+            >
+              {labels.signIn ?? 'Sign In'}
+            </Link>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{title}</h3>
-      {children}
-    </div>
-  );
-}
+// ─────────────────────────────────────────────────────────────────────
 
-function MenuLink({
-  href,
-  onClick,
+function Section({
+  title,
   children,
 }: {
-  href: string;
-  onClick: () => void;
+  title: string;
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} className={styles.row} onClick={onClick}>
-      <span>{children}</span>
+    <div className="px-4 py-3 border-b border-slate-100 last:border-b-0">
+      <div className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase mb-2">
+        {title}
+      </div>
+      <div className="space-y-0.5">{children}</div>
+    </div>
+  );
+}
+
+function SimpleLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="block py-2 text-[14px] text-slate-700 hover:text-sky-700">
+      {label}
     </Link>
   );
 }
 
-function ChevronRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <polyline points="9 6 15 12 9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+function CategoryAccordion({
+  category,
+  locale,
+  expanded,
+  onToggle,
+  level,
+}: {
+  category: NormalizedCategory;
+  locale: 'bn' | 'en';
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+  level: number;
+}) {
+  const hasChildren = category.children.length > 0;
+  const isOpen = expanded.has(category.slug);
 
-function ChevronLeft() {
+  if (!hasChildren) {
+    return (
+      <Link
+        href={`/${locale}/c/${category.slug}`}
+        className="block py-2 text-[14px] text-slate-700 hover:text-sky-700"
+        style={{ paddingLeft: level * 14 }}
+      >
+        {category.label}
+      </Link>
+    );
+  }
+
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <polyline points="15 6 9 12 15 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div>
+      <div
+        className="flex items-center justify-between py-2 text-[14px] text-slate-700 hover:text-sky-700"
+        style={{ paddingLeft: level * 14 }}
+      >
+        <Link href={`/${locale}/c/${category.slug}`} className="flex-1 truncate">
+          {category.label}
+        </Link>
+        <button
+          type="button"
+          onClick={() => onToggle(category.slug)}
+          className="p-1 rounded hover:bg-slate-100 text-slate-500"
+          aria-label={isOpen ? 'Collapse' : 'Expand'}
+        >
+          {isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        </button>
+      </div>
+      {isOpen && (
+        <div className="border-l border-slate-100 ml-3">
+          {category.children.map((child) => (
+            <CategoryAccordion
+              key={child.slug}
+              category={child}
+              locale={locale}
+              expanded={expanded}
+              onToggle={onToggle}
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,218 +1,77 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { Menu as MenuIcon, Plus, Trash2, Pencil, Link2 } from 'lucide-react';
+import { useState } from 'react';
 import {
-  PageHeader,
-  Modal,
-  EmptyState,
-  StatusChip,
-  useToast,
-} from '@/components/ui';
+  Menu as MenuIcon,
+  Plus,
+  ChevronRight,
+  ChevronDown,
+  Edit,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
+import { PageHeader, StatusChip, useToast } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
+import { MenuItemModal } from '@/components/catalog/menu-item-modal';
+import type { CmsMenuDto, CmsMenuItemDto, CmsMenuLocation } from '@ecommarce/types';
 
-type MenuLocation = 'HEADER' | 'FOOTER' | 'MOBILE';
-
-interface CmsMenuItem {
-  id: string;
-  menuId: string;
-  parentId: string | null;
-  labelEn: string;
-  labelBn: string;
-  url: string;
-  sortOrder: number;
-  isActive: boolean;
-  children?: CmsMenuItem[];
-}
-
-interface CmsMenu {
-  id: string;
-  location: MenuLocation;
-  name: string;
-  items: CmsMenuItem[];
-}
-
-interface MenuItemFormState {
-  id: string | null;
-  parentId: string | null;
-  labelEn: string;
-  labelBn: string;
-  url: string;
-  sortOrder: number;
-  isActive: boolean;
-}
-
-const LOCATIONS: Array<{ key: MenuLocation; label: string }> = [
-  { key: 'HEADER', label: 'Header menu' },
-  { key: 'FOOTER', label: 'Footer links' },
-  { key: 'MOBILE', label: 'Mobile menu' },
+const LOCATIONS: Array<{ key: CmsMenuLocation; label: string; hint: string }> = [
+  { key: 'HEADER', label: 'Header', hint: 'Top navigation bar + drawer menu' },
+  { key: 'FOOTER', label: 'Footer', hint: 'Footer columns' },
+  { key: 'MOBILE', label: 'Mobile', hint: 'Mobile drawer (hamburger) menu' },
 ];
 
-const EMPTY_FORM: MenuItemFormState = {
-  id: null,
-  parentId: null,
-  labelEn: '',
-  labelBn: '',
-  url: '',
-  sortOrder: 0,
-  isActive: true,
-};
-
-export default function CmsMenusPage() {
+export default function MenusPage() {
   const toast = useToast();
-  const [activeLocation, setActiveLocation] = useState<MenuLocation>('HEADER');
-  const [itemForm, setItemForm] = useState<MenuItemFormState | null>(null);
-  const [creatingMenu, setCreatingMenu] = useState(false);
-  const [newMenuName, setNewMenuName] = useState('');
+  const [activeLoc, setActiveLoc] = useState<CmsMenuLocation>('HEADER');
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<CmsMenuItemDto | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CmsMenuItemDto | null>(null);
 
-  const menuQuery = useQuery<CmsMenu | null>(
-    `/api/v1/cms/menus/${activeLocation.toLowerCase()}`,
+  const menuQuery = useQuery<CmsMenuDto>(
+    `/api/v1/cms/menus/${activeLoc.toLowerCase()}`,
   );
 
-  const menu = menuQuery.data;
+  const items = menuQuery.data?.items ?? [];
 
-  const upsertMenuMutation = useMutation<{ name: string }, unknown>(
-    'post',
-    `/api/v1/cms/menus/${activeLocation.toLowerCase()}`,
-  );
-
-  const saveItemMutation = useMutation<unknown, unknown>(
-    itemForm?.id ? 'patch' : 'post',
-    itemForm?.id
-      ? `/api/v1/cms/menus/items/${itemForm.id}`
-      : `/api/v1/cms/menus/${activeLocation.toLowerCase()}/items`,
-  );
-
-  const deleteItemMutation = useMutation<string, unknown>(
-    'delete',
-    (input) => `/api/v1/cms/menus/items/${(input as unknown as string)}`,
-  );
-
-  const moveMutation = useMutation<{ id: string; sortOrder: number }, unknown>(
-    'patch',
-    (input) => `/api/v1/cms/menus/items/${(input as { id: string }).id}`,
-  );
-
-  const flatItems = useMemo<CmsMenuItem[]>(() => {
-    if (!menu) return [];
-    const out: CmsMenuItem[] = [];
-    const walk = (nodes: CmsMenuItem[], depth: number) => {
-      for (const n of nodes) {
-        out.push({ ...n, _depth: depth } as CmsMenuItem & { _depth: number });
-        if (n.children && n.children.length) walk(n.children, depth + 1);
-      }
-    };
-    walk(menu.items, 0);
-    return out;
-  }, [menu]);
-
-  const parentOptions = useMemo(() => {
-    if (!menu) return [];
-    return menu.items;
-  }, [menu]);
-
-  async function handleCreateMenu() {
-    if (!newMenuName.trim()) return;
-    try {
-      await upsertMenuMutation.mutate({ name: newMenuName.trim() });
-      toast.success('Menu created');
-      setCreatingMenu(false);
-      setNewMenuName('');
-      void menuQuery.refetch();
-    } catch (e) {
-      toast.error('Create failed', e instanceof Error ? e.message : 'Unknown');
-    }
-  }
-
-  async function handleSaveItem() {
-    if (!itemForm) return;
-    if (!itemForm.labelEn.trim() || !itemForm.labelBn.trim() || !itemForm.url.trim()) {
-      toast.error('Missing fields', 'English label, Bangla label, and URL are required');
-      return;
-    }
-    const payload = {
-      labelEn: itemForm.labelEn.trim(),
-      labelBn: itemForm.labelBn.trim(),
-      url: itemForm.url.trim(),
-      parentId: itemForm.parentId,
-      sortOrder: itemForm.sortOrder,
-      isActive: itemForm.isActive,
-    };
-    try {
-      await saveItemMutation.mutate(payload);
-      toast.success(itemForm.id ? 'Item updated' : 'Item added');
-      setItemForm(null);
-      void menuQuery.refetch();
-    } catch (e) {
-      toast.error('Save failed', e instanceof Error ? e.message : 'Unknown');
-    }
-  }
-
-  async function handleDeleteItem(item: CmsMenuItem) {
-    if (!confirm(`Delete "${item.labelEn}"?`)) return;
-    try {
-      await deleteItemMutation.mutate(item.id);
-      toast.success('Item deleted');
-      void menuQuery.refetch();
-    } catch (e) {
-      toast.error('Delete failed', e instanceof Error ? e.message : 'Unknown');
-    }
-  }
-
-  async function handleMove(item: CmsMenuItem, dir: -1 | 1) {
-    const newOrder = item.sortOrder + dir;
-    if (newOrder < 0) return;
-    try {
-      await moveMutation.mutate({ id: item.id, sortOrder: newOrder });
-      toast.success('Order updated');
-      void menuQuery.refetch();
-    } catch (e) {
-      toast.error('Move failed', e instanceof Error ? e.message : 'Unknown');
-    }
-  }
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-5">
-      <div className="text-[12.5px] text-slate-500">
-        <Link href="/cms" className="text-sky-700 hover:underline font-medium">
-          ← CMS Home
-        </Link>
-      </div>
-
       <PageHeader
-        title="CMS · Menus"
-        subtitle="Header menus, footer links, and mobile navigation"
+        title="Menus"
+        subtitle="Manage header, footer and mobile navigation. Items flow into the storefront automatically."
         actions={
-          menu ? (
-            <button
-              type="button"
-              onClick={() => setItemForm({ ...EMPTY_FORM })}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
-            >
-              <Plus className="w-4 h-4" /> Add item
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setCreatingMenu(true)}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
-            >
-              <Plus className="w-4 h-4" /> Create menu
-            </button>
-          )
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            disabled={!menuQuery.data}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4" /> New item
+          </button>
         }
       />
 
+      {/* Location tabs */}
       <div className="flex items-center gap-1 border-b border-border">
         {LOCATIONS.map((loc) => (
           <button
             key={loc.key}
             type="button"
-            onClick={() => setActiveLocation(loc.key)}
+            onClick={() => setActiveLoc(loc.key)}
             className={
-              'h-10 px-3 text-sm font-medium border-b-2 -mb-px transition-colors ' +
-              (activeLocation === loc.key
+              'px-4 py-2 text-sm font-medium border-b-2 -mb-px ' +
+              (activeLoc === loc.key
                 ? 'border-sky-600 text-sky-700'
                 : 'border-transparent text-slate-500 hover:text-slate-700')
             }
@@ -220,268 +79,319 @@ export default function CmsMenusPage() {
             {loc.label}
           </button>
         ))}
+        <div className="ml-auto text-[12px] text-slate-500 pr-2">
+          {LOCATIONS.find((l) => l.key === activeLoc)?.hint}
+        </div>
       </div>
 
-      <div className="card overflow-hidden">
-        {menuQuery.loading && !menuQuery.data ? (
-          <div className="p-10 text-center text-slate-400">Loading menu…</div>
-        ) : menuQuery.error ? (
-          <div className="p-10 text-center text-danger-700">{menuQuery.error.message}</div>
-        ) : !menu ? (
-          <EmptyState
-            icon={MenuIcon}
-            title={`No ${activeLocation.toLowerCase()} menu yet`}
-            description="Create a menu to add navigation links — required for header/footer navigation."
-          />
-        ) : flatItems.length === 0 ? (
-          <EmptyState
-            icon={Link2}
-            title="No items in this menu"
-            description="Use “Add item” to add the first link."
-          />
-        ) : (
-          <ul className="divide-y divide-border">
-            {flatItems.map((item) => {
-              const depth = (item as CmsMenuItem & { _depth?: number })._depth ?? 0;
-              return (
-                <li
-                  key={item.id}
-                  className="flex items-center gap-3 p-4 hover:bg-slate-50"
-                >
-                  <span className="w-10 text-[12px] tabular-nums text-slate-400">
-                    {item.sortOrder}
-                  </span>
-                  <div
-                    className="flex-1 min-w-0"
-                    style={{ paddingLeft: depth * 20 }}
-                  >
-                    <div className="flex items-center gap-2">
-                      {depth > 0 && (
-                        <span className="text-slate-300 text-[14px]">↳</span>
-                      )}
-                      <span className="font-medium text-slate-800 truncate">
-                        {item.labelEn}
-                      </span>
-                      {item.labelBn && (
-                        <span className="text-[12px] text-slate-500 truncate">
-                          / {item.labelBn}
-                        </span>
-                      )}
-                      {!item.isActive && <StatusChip label="Hidden" tone="neutral" />}
-                    </div>
-                    <code className="text-[12px] text-slate-400 font-mono truncate">
-                      {item.url}
-                    </code>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => void handleMove(item, -1)}
-                      disabled={item.sortOrder === 0}
-                      className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100 disabled:opacity-30"
-                      aria-label="Move up"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleMove(item, 1)}
-                      className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
-                      aria-label="Move down"
-                    >
-                      ↓
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setItemForm({
-                          id: item.id,
-                          parentId: item.parentId,
-                          labelEn: item.labelEn,
-                          labelBn: item.labelBn,
-                          url: item.url,
-                          sortOrder: item.sortOrder,
-                          isActive: item.isActive,
-                        })
-                      }
-                      className="h-8 w-8 grid place-items-center rounded hover:bg-slate-100"
-                      aria-label="Edit"
-                    >
-                      <Pencil className="w-4 h-4 text-slate-500" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleDeleteItem(item)}
-                      className="h-8 w-8 grid place-items-center rounded hover:bg-slate-100"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="w-4 h-4 text-danger-600" />
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      {/* Content */}
+      {menuQuery.loading && !menuQuery.data ? (
+        <div className="card p-10 text-center text-slate-400">Loading menu…</div>
+      ) : menuQuery.error ? (
+        <div className="card p-10 text-center text-danger-700">
+          {menuQuery.error.message}
+        </div>
+      ) : !menuQuery.data ? (
+        <div className="card p-10 text-center text-slate-400">
+          <MenuIcon className="w-8 h-8 mx-auto mb-3 text-slate-300" />
+          Menu not initialized. Use API to create the {activeLoc} menu first.
+        </div>
+      ) : items.length === 0 ? (
+        <div className="card p-10 text-center text-slate-400">
+          <MenuIcon className="w-8 h-8 mx-auto mb-3 text-slate-300" />
+          No menu items yet. Click &quot;New item&quot; to start building {activeLoc.toLowerCase()} navigation.
+        </div>
+      ) : (
+        <div className="card overflow-hidden">
+          <div className="p-2">
+            {items.map((node, idx) => (
+              <MenuItemRow
+                key={node.id}
+                node={node}
+                depth={0}
+                isFirst={idx === 0}
+                isLast={idx === items.length - 1}
+                expanded={expanded}
+                onToggle={toggle}
+                onEdit={(n) => setEditTarget(n)}
+                onDelete={(n) => setDeleteTarget(n)}
+                location={activeLoc}
+                siblings={items}
+                onReordered={() => void menuQuery.refetch()}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="text-[12px] text-slate-400">
+        Tip: pick &quot;Category&quot; as link type to place a category or sub-category directly in the menu.
       </div>
 
-      <Modal
-        open={!!itemForm}
-        onClose={() => setItemForm(null)}
-        title={itemForm?.id ? 'Edit menu item' : 'Add menu item'}
-        size="md"
-        footer={
-          <>
-            <button
-              type="button"
-              onClick={() => setItemForm(null)}
-              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveItem}
-              disabled={saveItemMutation.loading}
-              className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60"
-            >
-              {saveItemMutation.loading ? 'Saving…' : 'Save'}
-            </button>
-          </>
-        }
+      <MenuItemModal
+        mode="create"
+        location={activeLoc}
+        item={null}
+        siblings={items}
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={() => {
+          setCreateOpen(false);
+          void menuQuery.refetch();
+        }}
+      />
+
+      <MenuItemModal
+        mode="edit"
+        location={activeLoc}
+        item={editTarget}
+        siblings={items}
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        onSuccess={() => {
+          setEditTarget(null);
+          void menuQuery.refetch();
+        }}
+      />
+
+      <DeleteItemDialog
+        item={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onSuccess={() => {
+          setDeleteTarget(null);
+          void menuQuery.refetch();
+        }}
+      />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+
+function MenuItemRow({
+  node,
+  depth,
+  isFirst,
+  isLast,
+  expanded,
+  onToggle,
+  onEdit,
+  onDelete,
+  location,
+  siblings,
+  onReordered,
+}: {
+  node: CmsMenuItemDto;
+  depth: number;
+  isFirst: boolean;
+  isLast: boolean;
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+  onEdit: (n: CmsMenuItemDto) => void;
+  onDelete: (n: CmsMenuItemDto) => void;
+  location: CmsMenuLocation;
+  siblings: CmsMenuItemDto[];
+  onReordered: () => void;
+}) {
+  const hasChildren = !!node.children?.length;
+  const isOpen = expanded.has(node.id);
+
+  return (
+    <>
+      <div
+        className="flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-50 group"
+        style={{ paddingLeft: 12 + depth * 20 }}
       >
-        {itemForm && (
-          <div className="space-y-3">
-            <label className="block">
-              <span className="text-[12.5px] font-medium text-slate-700">
-                English label
-              </span>
-              <input
-                type="text"
-                value={itemForm.labelEn}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, labelEn: e.target.value })
-                }
-                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-                placeholder="e.g. Shop"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[12.5px] font-medium text-slate-700">
-                Bangla label
-              </span>
-              <input
-                type="text"
-                value={itemForm.labelBn}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, labelBn: e.target.value })
-                }
-                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-                placeholder="e.g. শপ"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[12.5px] font-medium text-slate-700">URL</span>
-              <input
-                type="text"
-                value={itemForm.url}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, url: e.target.value })
-                }
-                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm font-mono"
-                placeholder="/shop or https://example.com"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[12.5px] font-medium text-slate-700">
-                Parent item (optional)
-              </span>
-              <select
-                value={itemForm.parentId ?? ''}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, parentId: e.target.value || null })
-                }
-                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-              >
-                <option value="">— Top level —</option>
-                {parentOptions
-                  .filter((it) => it.id !== itemForm.id)
-                  .map((it) => (
-                    <option key={it.id} value={it.id}>
-                      {it.labelEn}
-                    </option>
-                  ))}
-              </select>
-              <span className="text-[11.5px] text-slate-400 mt-1 block">
-                Select to make this item a submenu of another.
-              </span>
-            </label>
-            <label className="block">
-              <span className="text-[12.5px] font-medium text-slate-700">
-                Sort order
-              </span>
-              <input
-                type="number"
-                value={itemForm.sortOrder}
-                onChange={(e) =>
-                  setItemForm({
-                    ...itemForm,
-                    sortOrder: Number(e.target.value) || 0,
-                  })
-                }
-                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm tabular-nums"
-              />
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={itemForm.isActive}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, isActive: e.target.checked })
-                }
-              />
-              <span className="text-sm text-slate-700">Visible on storefront</span>
-            </label>
+        <button
+          type="button"
+          onClick={() => hasChildren && onToggle(node.id)}
+          className={
+            'w-5 h-5 grid place-items-center rounded ' +
+            (hasChildren ? 'text-slate-500 hover:bg-slate-100' : 'text-transparent')
+          }
+          aria-label={isOpen ? 'Collapse' : 'Expand'}
+        >
+          {hasChildren &&
+            (isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />)}
+        </button>
+        <span className="font-medium text-slate-800 text-sm">{node.labelEn}</span>
+        <span className="text-[12.5px] text-slate-400">{node.labelBn}</span>
+        <code className="text-[11.5px] text-slate-400 font-mono truncate max-w-[220px]">{node.url}</code>
+        {!node.isActive && <StatusChip label="Inactive" tone="neutral" />}
+        <span className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <ReorderButtons
+            node={node}
+            siblings={siblings}
+            isFirst={isFirst}
+            isLast={isLast}
+            onDone={onReordered}
+          />
+          <button
+            type="button"
+            onClick={() => onEdit(node)}
+            className="p-1.5 rounded hover:bg-slate-100 text-slate-500"
+            aria-label="Edit"
+          >
+            <Edit className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(node)}
+            className="p-1.5 rounded hover:bg-danger-50 text-danger-600"
+            aria-label="Delete"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </span>
+      </div>
+      {hasChildren &&
+        isOpen &&
+        node.children!.map((child, i, arr) => (
+          <MenuItemRow
+            key={child.id}
+            node={child}
+            depth={depth + 1}
+            isFirst={i === 0}
+            isLast={i === arr.length - 1}
+            expanded={expanded}
+            onToggle={onToggle}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            location={location}
+            siblings={node.children!}
+            onReordered={onReordered}
+          />
+        ))}
+    </>
+  );
+}
+
+function ReorderButtons({
+  node,
+  siblings,
+  isFirst,
+  isLast,
+  onDone,
+}: {
+  node: CmsMenuItemDto;
+  siblings: CmsMenuItemDto[];
+  isFirst: boolean;
+  isLast: boolean;
+  onDone: () => void;
+}) {
+  const move = useMutation<Record<string, unknown>>(
+    'patch',
+    `/api/v1/cms/menus/items/${node.id}`,
+  );
+
+  const swap = async (dir: -1 | 1) => {
+    const idx = siblings.findIndex((s) => s.id === node.id);
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= siblings.length) return;
+    const other = siblings[swapIdx];
+    if (!other) return;
+
+    try {
+      await move.mutate({ sortOrder: other.sortOrder } as Record<string, unknown>);
+      await fetch(`/api/v1/cms/menus/items/${other.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sortOrder: node.sortOrder }),
+      });
+      onDone();
+    } catch {
+      // silent — user will see no change
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void swap(-1)}
+        disabled={isFirst}
+        className="p-1.5 rounded hover:bg-slate-100 text-slate-500 disabled:opacity-30"
+        aria-label="Move up"
+      >
+        <ArrowUp className="w-3.5 h-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => void swap(1)}
+        disabled={isLast}
+        className="p-1.5 rounded hover:bg-slate-100 text-slate-500 disabled:opacity-30"
+        aria-label="Move down"
+      >
+        <ArrowDown className="w-3.5 h-3.5" />
+      </button>
+    </>
+  );
+}
+
+function DeleteItemDialog({
+  item,
+  onClose,
+  onSuccess,
+}: {
+  item: CmsMenuItemDto | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const toast = useToast();
+  const del = useMutation<void, { ok: true }>(
+    'delete',
+    item ? `/api/v1/cms/menus/items/${item.id}` : '/api/v1/cms/menus/items/0',
+  );
+
+  if (!item) return null;
+
+  const handleDelete = async () => {
+    try {
+      await del.mutate(undefined as unknown as void);
+      toast.push({ tone: 'success', title: 'Item deleted', description: `${item.labelEn} removed.` });
+      onSuccess();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message: string }).message)
+          : 'Delete failed';
+      toast.push({ tone: 'error', title: 'Delete failed', description: msg });
+    }
+  };
+
+  const hasChildren = !!item.children?.length;
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} aria-hidden="true" />
+      <div className="relative w-full max-w-[420px] bg-surface rounded shadow-md border border-border p-5 space-y-3">
+        <div className="text-base font-semibold text-slate-900">Delete menu item?</div>
+        <p className="text-[13px] text-slate-600">
+          <span className="font-semibold">{item.labelEn}</span> — this cannot be undone.
+        </p>
+        {hasChildren && (
+          <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800">
+            This item has sub-items. Delete or move them first.
           </div>
         )}
-      </Modal>
-
-      <Modal
-        open={creatingMenu}
-        onClose={() => setCreatingMenu(false)}
-        title={`Create ${activeLocation.toLowerCase()} menu`}
-        size="sm"
-        footer={
-          <>
-            <button
-              type="button"
-              onClick={() => setCreatingMenu(false)}
-              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleCreateMenu}
-              disabled={upsertMenuMutation.loading || !newMenuName.trim()}
-              className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60"
-            >
-              {upsertMenuMutation.loading ? 'Creating…' : 'Create'}
-            </button>
-          </>
-        }
-      >
-        <label className="block">
-          <span className="text-[12.5px] font-medium text-slate-700">Menu name</span>
-          <input
-            type="text"
-            value={newMenuName}
-            onChange={(e) => setNewMenuName(e.target.value)}
-            className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-            placeholder="e.g. Main header"
-          />
-        </label>
-      </Modal>
+        <div className="flex items-center justify-end gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-9 px-3 rounded border border-border text-sm text-slate-700 hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleDelete()}
+            disabled={hasChildren || del.loading}
+            className="h-9 px-4 rounded bg-danger-600 text-white text-sm font-medium hover:bg-danger-700 disabled:opacity-60"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
