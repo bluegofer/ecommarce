@@ -9,8 +9,14 @@ import {
   PasswordStrength,
   PhoneInput,
   OtpBoxes,
-  isValidBdPhone,
 } from './index';
+import { CountrySelector } from './CountrySelector';
+import {
+  getCountry,
+  isValidNational,
+  toE164,
+  type Country,
+} from '@ecommarce/types';
 import styles from './RegisterForm.module.css';
 
 export interface RegisterLabels {
@@ -54,6 +60,7 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
   const [step, setStep] = useState<Step>('form');
 
   const [fullName, setFullName] = useState('');
+  const [country, setCountry] = useState<Country>(() => getCountry('BD'));
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,6 +73,14 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  // Extract national (local) digits from E.164 using the selected country
+  const nationalOf = (): string => {
+    const digits = phone.replace(/\D/g, '');
+    return digits.startsWith(country.dialCode)
+      ? digits.slice(country.dialCode.length)
+      : digits;
+  };
+
   // Countdown while on OTP step
   useState(() => {
     if (step !== 'otp') return;
@@ -77,7 +92,7 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
     const e: typeof errors = {};
     if (!fullName.trim()) e.fullName = labels.errors.required;
     if (!phone.trim()) e.phone = labels.errors.required;
-    else if (!isValidBdPhone(phone)) e.phone = labels.errors.invalidPhone;
+    else if (!isValidNational(country, nationalOf())) e.phone = labels.errors.invalidPhone;
     if (!password) e.password = labels.errors.required;
     else if (password.length < 8) e.password = labels.errors.weakPassword;
     if (confirm !== password) e.confirm = labels.errors.passwordMismatch;
@@ -93,7 +108,8 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
     setSubmitting(true);
     setErrors({});
     try {
-      const res = await requestOtp(phone.trim());
+      const e164 = toE164(country, nationalOf());
+      const res = await requestOtp(e164);
       if (res.resendAfterSeconds) setResendIn(res.resendAfterSeconds);
       else setResendIn(60);
       setStep('otp');
@@ -118,9 +134,10 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
     setSubmitting(true);
     setErrors({});
     try {
+      const e164 = toE164(country, nationalOf());
       await register({
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: e164,
         email: email.trim() || undefined,
         password,
         otp,
@@ -141,7 +158,8 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
     if (resendIn > 0 || submitting) return;
     setSubmitting(true);
     try {
-      const res = await requestOtp(phone.trim());
+      const e164 = toE164(country, nationalOf());
+      const res = await requestOtp(e164);
       setResendIn(res.resendAfterSeconds ?? 60);
       setOtp('');
       setErrors({});
@@ -228,10 +246,24 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
         ) : null}
       </div>
 
+      <CountrySelector
+        id="reg-country"
+        locale={locale}
+        value={country}
+        onChange={(c) => {
+          setCountry(c);
+          setPhone('');
+          if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }));
+        }}
+        label={locale === 'bn' ? 'দেশ' : 'Country'}
+        required
+      />
+
       <PhoneInput
         id="reg-phone"
         label={labels.phone}
         value={phone}
+        country={country}
         onChange={(v) => { setPhone(v); if (errors.phone) setErrors((p) => ({ ...p, phone: undefined })); }}
         error={errors.phone}
         required

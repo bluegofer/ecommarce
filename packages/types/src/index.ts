@@ -16,3 +16,4 @@ export * from './hr';
 export * from './payments';
 export * from './courier';
 export * from './messaging';
+export * from './countries';
