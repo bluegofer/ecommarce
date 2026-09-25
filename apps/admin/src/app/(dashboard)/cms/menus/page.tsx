@@ -89,26 +89,27 @@ export default function CmsMenusPage() {
     (input) => `/api/v1/cms/menus/items/${(input as unknown as string)}`,
   );
 
-  // Standalone mutation for the up/down reorder buttons — the main
-  // saveItemMutation is coupled to itemForm which is null on the list view.
   const moveMutation = useMutation<{ id: string; sortOrder: number }, unknown>(
     'patch',
     (input) => `/api/v1/cms/menus/items/${(input as { id: string }).id}`,
   );
 
-  // Flatten items (including children) for display — mock shows a flat table.
   const flatItems = useMemo<CmsMenuItem[]>(() => {
     if (!menu) return [];
     const out: CmsMenuItem[] = [];
-    const walk = (nodes: CmsMenuItem[]) => {
+    const walk = (nodes: CmsMenuItem[], depth: number) => {
       for (const n of nodes) {
-        const { children, ...rest } = n;
-        out.push(rest);
-        if (children && children.length) walk(children);
+        out.push({ ...n, _depth: depth } as CmsMenuItem & { _depth: number });
+        if (n.children && n.children.length) walk(n.children, depth + 1);
       }
     };
-    walk(menu.items);
+    walk(menu.items, 0);
     return out;
+  }, [menu]);
+
+  const parentOptions = useMemo(() => {
+    if (!menu) return [];
+    return menu.items;
   }, [menu]);
 
   async function handleCreateMenu() {
@@ -203,7 +204,6 @@ export default function CmsMenusPage() {
         }
       />
 
-      {/* Location tabs */}
       <div className="flex items-center gap-1 border-b border-border">
         {LOCATIONS.map((loc) => (
           <button
@@ -241,82 +241,90 @@ export default function CmsMenusPage() {
           />
         ) : (
           <ul className="divide-y divide-border">
-            {flatItems.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center gap-3 p-4 hover:bg-slate-50"
-              >
-                <span className="w-10 text-[12px] tabular-nums text-slate-400">
-                  {item.sortOrder}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-800 truncate">
-                      {item.labelEn}
-                    </span>
-                    {item.labelBn && (
-                      <span className="text-[12px] text-slate-500 truncate">
-                        / {item.labelBn}
+            {flatItems.map((item) => {
+              const depth = (item as CmsMenuItem & { _depth?: number })._depth ?? 0;
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-center gap-3 p-4 hover:bg-slate-50"
+                >
+                  <span className="w-10 text-[12px] tabular-nums text-slate-400">
+                    {item.sortOrder}
+                  </span>
+                  <div
+                    className="flex-1 min-w-0"
+                    style={{ paddingLeft: depth * 20 }}
+                  >
+                    <div className="flex items-center gap-2">
+                      {depth > 0 && (
+                        <span className="text-slate-300 text-[14px]">↳</span>
+                      )}
+                      <span className="font-medium text-slate-800 truncate">
+                        {item.labelEn}
                       </span>
-                    )}
-                    {!item.isActive && <StatusChip label="Hidden" tone="neutral" />}
+                      {item.labelBn && (
+                        <span className="text-[12px] text-slate-500 truncate">
+                          / {item.labelBn}
+                        </span>
+                      )}
+                      {!item.isActive && <StatusChip label="Hidden" tone="neutral" />}
+                    </div>
+                    <code className="text-[12px] text-slate-400 font-mono truncate">
+                      {item.url}
+                    </code>
                   </div>
-                  <code className="text-[12px] text-slate-400 font-mono truncate">
-                    {item.url}
-                  </code>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => void handleMove(item, -1)}
-                    disabled={item.sortOrder === 0}
-                    className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100 disabled:opacity-30"
-                    aria-label="Move up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleMove(item, 1)}
-                    className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
-                    aria-label="Move down"
-                  >
-                    ↓
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setItemForm({
-                        id: item.id,
-                        parentId: item.parentId,
-                        labelEn: item.labelEn,
-                        labelBn: item.labelBn,
-                        url: item.url,
-                        sortOrder: item.sortOrder,
-                        isActive: item.isActive,
-                      })
-                    }
-                    className="h-8 w-8 grid place-items-center rounded hover:bg-slate-100"
-                    aria-label="Edit"
-                  >
-                    <Pencil className="w-4 h-4 text-slate-500" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleDeleteItem(item)}
-                    className="h-8 w-8 grid place-items-center rounded hover:bg-slate-100"
-                    aria-label="Delete"
-                  >
-                    <Trash2 className="w-4 h-4 text-danger-600" />
-                  </button>
-                </div>
-              </li>
-            ))}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => void handleMove(item, -1)}
+                      disabled={item.sortOrder === 0}
+                      className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100 disabled:opacity-30"
+                      aria-label="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleMove(item, 1)}
+                      className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
+                      aria-label="Move down"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItemForm({
+                          id: item.id,
+                          parentId: item.parentId,
+                          labelEn: item.labelEn,
+                          labelBn: item.labelBn,
+                          url: item.url,
+                          sortOrder: item.sortOrder,
+                          isActive: item.isActive,
+                        })
+                      }
+                      className="h-8 w-8 grid place-items-center rounded hover:bg-slate-100"
+                      aria-label="Edit"
+                    >
+                      <Pencil className="w-4 h-4 text-slate-500" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteItem(item)}
+                      className="h-8 w-8 grid place-items-center rounded hover:bg-slate-100"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="w-4 h-4 text-danger-600" />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
 
-      {/* Add/Edit item modal */}
       <Modal
         open={!!itemForm}
         onClose={() => setItemForm(null)}
@@ -386,6 +394,30 @@ export default function CmsMenusPage() {
             </label>
             <label className="block">
               <span className="text-[12.5px] font-medium text-slate-700">
+                Parent item (optional)
+              </span>
+              <select
+                value={itemForm.parentId ?? ''}
+                onChange={(e) =>
+                  setItemForm({ ...itemForm, parentId: e.target.value || null })
+                }
+                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+              >
+                <option value="">— Top level —</option>
+                {parentOptions
+                  .filter((it) => it.id !== itemForm.id)
+                  .map((it) => (
+                    <option key={it.id} value={it.id}>
+                      {it.labelEn}
+                    </option>
+                  ))}
+              </select>
+              <span className="text-[11.5px] text-slate-400 mt-1 block">
+                Select to make this item a submenu of another.
+              </span>
+            </label>
+            <label className="block">
+              <span className="text-[12.5px] font-medium text-slate-700">
                 Sort order
               </span>
               <input
@@ -414,7 +446,6 @@ export default function CmsMenusPage() {
         )}
       </Modal>
 
-      {/* Create menu modal */}
       <Modal
         open={creatingMenu}
         onClose={() => setCreatingMenu(false)}

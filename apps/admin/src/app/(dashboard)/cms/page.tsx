@@ -191,6 +191,18 @@ export default function CmsPage() {
         ·{' '}
         <Link href="/cms/media" className="text-sky-700 hover:underline font-medium">
           Media
+        </Link>{' '}
+        ·{' '}
+        <Link href="/cms/announcements" className="text-sky-700 hover:underline font-medium">
+          Announcements
+        </Link>{' '}
+        ·{' '}
+        <Link href="/cms/popups" className="text-sky-700 hover:underline font-medium">
+          Popups
+        </Link>{' '}
+        ·{' '}
+        <Link href="/cms/contact" className="text-sky-700 hover:underline font-medium">
+          Contact
         </Link>
       </div>
 
@@ -272,7 +284,6 @@ export default function CmsPage() {
         )}
       </div>
 
-      {/* ── Add Section modal ── */}
       <Modal
         open={addOpen}
         onClose={() => setAddOpen(false)}
@@ -300,9 +311,7 @@ export default function CmsPage() {
       >
         <div className="space-y-3">
           <label className="block">
-            <span className="text-[12.5px] font-medium text-slate-700">
-              Section type
-            </span>
+            <span className="text-[12.5px] font-medium text-slate-700">Section type</span>
             <select
               value={form.sectionType}
               onChange={(e) =>
@@ -318,9 +327,7 @@ export default function CmsPage() {
             </select>
           </label>
           <label className="block">
-            <span className="text-[12.5px] font-medium text-slate-700">
-              Key (unique)
-            </span>
+            <span className="text-[12.5px] font-medium text-slate-700">Key (unique)</span>
             <input
               type="text"
               value={form.key}
@@ -330,9 +337,7 @@ export default function CmsPage() {
             />
           </label>
           <label className="block">
-            <span className="text-[12.5px] font-medium text-slate-700">
-              English title
-            </span>
+            <span className="text-[12.5px] font-medium text-slate-700">English title</span>
             <input
               type="text"
               value={form.titleEn}
@@ -342,9 +347,7 @@ export default function CmsPage() {
             />
           </label>
           <label className="block">
-            <span className="text-[12.5px] font-medium text-slate-700">
-              Bangla title
-            </span>
+            <span className="text-[12.5px] font-medium text-slate-700">Bangla title</span>
             <input
               type="text"
               value={form.titleBn}
@@ -368,9 +371,7 @@ export default function CmsPage() {
             <input
               type="checkbox"
               checked={form.isVisible}
-              onChange={(e) =>
-                setForm({ ...form, isVisible: e.target.checked })
-              }
+              onChange={(e) => setForm({ ...form, isVisible: e.target.checked })}
             />
             <span className="text-sm text-slate-700">Visible on storefront</span>
           </label>

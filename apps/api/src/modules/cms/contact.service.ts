@@ -45,9 +45,12 @@ export class ContactService {
   async reply(id: string, replyBody: string): Promise<ContactMessageDto> {
     const m = await this.prisma.contactMessage.findUnique({ where: { id } });
     if (!m) throw new NotFoundException('contact message not found');
+    // Reply saved but status moves to IN_PROGRESS, not RESOLVED.
+    // RESOLVED only when the customer explicitly confirms or after
+    // the outbound email is delivered (email wiring = Phase 3.3).
     const updated = await this.prisma.contactMessage.update({
       where: { id },
-      data: { replyBody, repliedAt: new Date(), status: 'RESOLVED' },
+      data: { replyBody, repliedAt: new Date(), status: 'IN_PROGRESS' },
     });
     return this.toDto(updated);
   }
