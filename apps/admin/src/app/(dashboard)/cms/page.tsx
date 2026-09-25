@@ -116,6 +116,8 @@ interface AddFormState {
   heroSlides: HeroSlideConfig[];
   categoryIds: string[];
   banners: BannerConfig[];
+  paragraphs: string[];
+  dealEndsAt: string;
 }
 
 const EMPTY_SLIDE: HeroSlideConfig = {
@@ -146,6 +148,8 @@ const EMPTY_FORM: AddFormState = {
   heroSlides: [],
   categoryIds: [],
   banners: [],
+  paragraphs: [],
+  dealEndsAt: '',
 };
 
 function sectionLabel(s: Section): string {
@@ -236,7 +240,6 @@ export default function CmsPage() {
       return;
     }
 
-    // Build config based on sectionType
     let config: Record<string, unknown> | undefined = undefined;
 
     if (form.sectionType === 'HERO_CAROUSEL') {
@@ -268,6 +271,19 @@ export default function CmsPage() {
         return;
       }
       config = { banners: validBanners };
+    } else if (form.sectionType === 'SEO_TEXT') {
+      const validParagraphs = form.paragraphs
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
+      if (validParagraphs.length === 0) {
+        toast.error('Missing paragraphs', 'Add at least 1 paragraph');
+        return;
+      }
+      config = { paragraphs: validParagraphs };
+    } else if (form.sectionType === 'DEAL_STRIP') {
+      if (form.dealEndsAt) {
+        config = { endsAt: new Date(form.dealEndsAt).toISOString() };
+      }
     }
 
     try {
@@ -310,7 +326,6 @@ export default function CmsPage() {
     }
   }
 
-  // Hero slide helpers
   function addSlide() {
     setForm((f) => ({ ...f, heroSlides: [...f.heroSlides, { ...EMPTY_SLIDE }] }));
   }
@@ -341,7 +356,6 @@ export default function CmsPage() {
     }
   }
 
-  // Category toggle
   function toggleCategory(id: string) {
     setForm((f) => {
       const has = f.categoryIds.includes(id);
@@ -354,7 +368,6 @@ export default function CmsPage() {
     });
   }
 
-  // Banner helpers
   function addBanner() {
     const max = BANNER_MAX[form.sectionType] ?? 4;
     setForm((f) => {
@@ -625,7 +638,7 @@ export default function CmsPage() {
             <span className="text-sm text-slate-700">Visible on storefront</span>
           </label>
 
-          {/* ── HERO_CAROUSEL: slides editor ── */}
+          {/* HERO_CAROUSEL */}
           {form.sectionType === 'HERO_CAROUSEL' && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -708,7 +721,7 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* ── CATEGORY_TILES: category multi-select ── */}
+          {/* CATEGORY_TILES */}
           {form.sectionType === 'CATEGORY_TILES' && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -750,7 +763,7 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* ── PROMO_TILES / PROMO_BANNER / WIDE_BANNER: banners editor ── */}
+          {/* PROMO_TILES / PROMO_BANNER / WIDE_BANNER */}
           {isBannerType && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -834,9 +847,87 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* ── Other types — placeholder ── */}
+          {/* SEO_TEXT: paragraphs editor */}
+          {form.sectionType === 'SEO_TEXT' && (
+            <div className="border-t border-border pt-3 mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Paragraphs ({form.paragraphs.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, paragraphs: [...f.paragraphs, ''] }))
+                  }
+                  className="inline-flex items-center gap-1 h-8 px-2.5 rounded bg-sky-600 text-white text-[12.5px] font-medium hover:bg-sky-700"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add paragraph
+                </button>
+              </div>
+              {form.paragraphs.length === 0 ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  No paragraphs yet — click “Add paragraph”.
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+                  {form.paragraphs.map((para, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <textarea
+                        value={para}
+                        onChange={(e) => {
+                          const next = [...form.paragraphs];
+                          next[idx] = e.target.value;
+                          setForm((f) => ({ ...f, paragraphs: next }));
+                        }}
+                        rows={3}
+                        className="flex-1 px-2 py-1.5 rounded border border-border text-[12px]"
+                        placeholder={`Paragraph #${idx + 1}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            paragraphs: f.paragraphs.filter((_, i) => i !== idx),
+                          }))
+                        }
+                        className="h-7 w-7 grid place-items-center rounded hover:bg-slate-200 mt-1"
+                        aria-label="Remove paragraph"
+                      >
+                        <X className="w-3.5 h-3.5 text-danger-600" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* DEAL_STRIP: end datetime picker */}
+          {form.sectionType === 'DEAL_STRIP' && (
+            <div className="border-t border-border pt-3 mt-3">
+              <label className="block">
+                <span className="text-[12.5px] font-medium text-slate-700">
+                  Deal ends at (optional)
+                </span>
+                <input
+                  type="datetime-local"
+                  value={form.dealEndsAt}
+                  onChange={(e) => setForm({ ...form, dealEndsAt: e.target.value })}
+                  className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+                />
+                <span className="text-[11.5px] text-slate-400 mt-1 block">
+                  Leave empty to use the default rolling 6-hour countdown on the storefront.
+                </span>
+              </label>
+            </div>
+          )}
+
+          {/* Other types — placeholder */}
           {form.sectionType !== 'HERO_CAROUSEL' &&
             form.sectionType !== 'CATEGORY_TILES' &&
+            form.sectionType !== 'SEO_TEXT' &&
+            form.sectionType !== 'DEAL_STRIP' &&
             !isBannerType && (
               <p className="text-[11.5px] text-slate-400 bg-slate-50 rounded p-2">
                 Config editor for <strong>{TYPE_LABEL[form.sectionType]}</strong> will arrive in a follow-up. For now this section uses default storefront content.

@@ -219,7 +219,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
   );
 }
 
-// ── Section renderer — every CMS sectionType maps to a component ──
+// ── Section renderer ──
 interface RenderSectionArgs {
   section: {
     id: string;
@@ -277,8 +277,20 @@ function renderSection({
       return <PromoBanners key={section.id} banners={banners} locale={locale} />;
     }
     case 'CATEGORY_TILES': {
-      if (categories.length === 0) return null;
-      return <CategoryTiles key={section.id} categories={categories} locale={locale} limit={4} />;
+      const selectedIds = extractCategoryIds(section.config);
+      const shownCategories =
+        selectedIds.length > 0
+          ? categories.filter((c) => selectedIds.includes(c.id))
+          : categories;
+      if (shownCategories.length === 0) return null;
+      return (
+        <CategoryTiles
+          key={section.id}
+          categories={shownCategories}
+          locale={locale}
+          limit={4}
+        />
+      );
     }
     case 'PRODUCT_CAROUSEL': {
       if (bestSellers.length === 0) return null;
@@ -331,7 +343,7 @@ function renderSection({
   }
 }
 
-// ── Extractors ──────────────────────────────────────
+// ── Extractors ──
 
 function extractHeroSlides(config: Record<string, unknown> | null | undefined): HeroSlide[] {
   if (!config || !('slides' in config) || !Array.isArray(config.slides)) return [];
@@ -350,6 +362,17 @@ function extractHeroSlides(config: Record<string, unknown> | null | undefined): 
 function extractDealEndsAt(config: Record<string, unknown> | null | undefined): string | null {
   if (!config || typeof config.endsAt !== 'string') return null;
   return config.endsAt;
+}
+
+function extractCategoryIds(
+  config: Record<string, unknown> | null | undefined,
+): string[] {
+  if (!config || !('categoryIds' in config) || !Array.isArray(config.categoryIds)) {
+    return [];
+  }
+  return (config.categoryIds as unknown[]).filter(
+    (id): id is string => typeof id === 'string' && id.length > 0,
+  );
 }
 
 function extractPromoBanners(
