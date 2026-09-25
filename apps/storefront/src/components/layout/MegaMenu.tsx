@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { CmsMenuDto, CmsMenuItemDto } from '@ecommarce/types';
+import styles from './MegaMenu.module.css';
 
 // ─────────────────────────────────────────────────────────────────────
 // Public types — backward compatible with existing pages
@@ -45,12 +46,12 @@ export interface MegaMenuProps {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Inline SVG icons
+// Icons (inline SVG — storefront has no lucide-react)
 // ─────────────────────────────────────────────────────────────────────
 
 function XIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
@@ -85,6 +86,8 @@ function ChevronDownIcon() {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// Normalization — legacy + new category shapes → uniform tree
+// ─────────────────────────────────────────────────────────────────────
 
 interface NormalizedCategory {
   slug: string;
@@ -107,11 +110,9 @@ function normalizeCategory(c: MegaMenuCategory): NormalizedCategory {
 
 function cmsToCategory(item: CmsMenuItemDto): NormalizedCategory {
   const slugFromUrl = deriveSlugFromUrl(item.url);
-  const slug: string = slugFromUrl || item.id;
-  const label: string = item.labelEn;
   return {
-    slug,
-    label,
+    slug: slugFromUrl || item.id,
+    label: item.labelEn,
     children: (item.children ?? []).map(cmsToCategory),
   };
 }
@@ -120,10 +121,11 @@ function deriveSlugFromUrl(url: string): string {
   if (!url) return '';
   const catMatch = url.match(/\/c\/([^/?#]+)/);
   if (catMatch && catMatch[1]) return catMatch[1];
-  const clean = url.replace(/^\/+/, '').replace(/\//g, '-');
-  return clean;
+  return url.replace(/^\/+/, '').replace(/\//g, '-');
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Main component
 // ─────────────────────────────────────────────────────────────────────
 
 export function MegaMenu({
@@ -167,6 +169,20 @@ export function MegaMenu({
     if (!open) setExpanded(new Set());
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
   const shopByCategoryItems = useMemo<NormalizedCategory[]>(() => {
     if (!cmsError && cmsMenu && cmsMenu.items && cmsMenu.items.length > 0) {
       return cmsMenu.items.map(cmsToCategory);
@@ -186,25 +202,21 @@ export function MegaMenu({
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex"
-      role="dialog"
-      aria-modal="true"
-      aria-label={labels.mainMenu}
-    >
-      <div
-        className="absolute inset-0 bg-slate-900/50"
+    <>
+      <button
+        type="button"
+        className={styles.scrim}
         onClick={onClose}
-        aria-hidden="true"
+        aria-label="Close menu"
       />
 
-      <aside className="relative w-full max-w-[380px] h-full bg-white shadow-xl flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
-          <div className="text-base font-semibold text-slate-900">{labels.mainMenu}</div>
+      <div className={styles.drawer} role="dialog" aria-modal="true" aria-label={labels.mainMenu}>
+        <div className={styles.header}>
+          <div className={styles.greeting}>{labels.mainMenu}</div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded hover:bg-slate-100 text-slate-600"
+            className={styles.close}
             aria-label="Close menu"
           >
             <XIcon />
@@ -212,75 +224,91 @@ export function MegaMenu({
         </div>
 
         {signedIn && (
-          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 text-[13px] text-slate-700">
-            {labels.greeting ?? labels.hello ?? 'Hello'}
-            {userName ? (
-              <>
-                , <span className="font-semibold">{userName}</span>
-              </>
-            ) : null}
+          <div className={styles.section}>
+            <div className={styles.greeting}>
+              {(labels.greeting ?? labels.hello ?? 'Hello') +
+                (userName ? `, ${userName}` : '')}
+            </div>
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto">
+        <div className={styles.body}>
           {labels.trending && (
-            <Section title={labels.trending}>
-              <SimpleLink
-                href={`/${locale}/deals`}
-                label={labels.todaysDeals ?? "Today's Deals"}
-              />
-              <SimpleLink
-                href={`/${locale}/s?sort=best-sellers`}
-                label={labels.bestSellers ?? 'Best Sellers'}
-              />
-              <SimpleLink
-                href={`/${locale}/s?sort=newest`}
-                label={labels.newArrivals ?? 'New Arrivals'}
-              />
-            </Section>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>{labels.trending}</h3>
+              <ul className={styles.rows}>
+                <li>
+                  <Link href={`/${locale}/deals`} className={styles.row}>
+                    <span className={styles.rowLabel}>{labels.todaysDeals ?? "Today's Deals"}</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/s?sort=best-sellers`} className={styles.row}>
+                    <span className={styles.rowLabel}>{labels.bestSellers ?? 'Best Sellers'}</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/s?sort=newest`} className={styles.row}>
+                    <span className={styles.rowLabel}>{labels.newArrivals ?? 'New Arrivals'}</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
           )}
 
           {labels.shopByCategory && (
-            <Section title={labels.shopByCategory}>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>{labels.shopByCategory}</h3>
               {shopByCategoryItems.length === 0 ? (
-                <p className="text-[12.5px] text-slate-400 py-1">No categories yet.</p>
+                <p className={styles.emptySmall}>No categories yet.</p>
               ) : (
-                shopByCategoryItems.map((cat) => (
-                  <CategoryAccordion
-                    key={cat.slug}
-                    category={cat}
-                    locale={locale}
-                    expanded={expanded}
-                    onToggle={toggle}
-                    level={0}
-                  />
-                ))
+                <ul className={styles.rows}>
+                  {shopByCategoryItems.map((cat) => (
+                    <CategoryAccordion
+                      key={cat.slug}
+                      category={cat}
+                      locale={locale}
+                      expanded={expanded}
+                      onToggle={toggle}
+                      level={0}
+                    />
+                  ))}
+                </ul>
               )}
-            </Section>
+            </div>
           )}
 
           {labels.helpAndServices && (
-            <Section title={labels.helpAndServices}>
-              {labels.customerService && (
-                <SimpleLink
-                  href={`/${locale}/pages/contact`}
-                  label={labels.customerService}
-                />
-              )}
-              <SimpleLink
-                href={`/${locale}/account/orders`}
-                label={labels.orders ?? 'Your Orders'}
-              />
-              <SimpleLink href={`/${locale}/pages/faq`} label="FAQ" />
-            </Section>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>{labels.helpAndServices}</h3>
+              <ul className={styles.rows}>
+                {labels.customerService && (
+                  <li>
+                    <Link href={`/${locale}/pages/contact`} className={styles.row}>
+                      <span className={styles.rowLabel}>{labels.customerService}</span>
+                    </Link>
+                  </li>
+                )}
+                <li>
+                  <Link href={`/${locale}/account/orders`} className={styles.row}>
+                    <span className={styles.rowLabel}>{labels.orders ?? 'Your Orders'}</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/pages/faq`} className={styles.row}>
+                    <span className={styles.rowLabel}>FAQ</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
           )}
         </div>
 
-        <div className="border-t border-slate-200 px-4 py-3 shrink-0">
+        <div className={styles.section}>
           {signedIn ? (
             <Link
               href={`/${locale}/account`}
-              className="block w-full text-center py-2.5 rounded bg-slate-100 text-slate-800 text-sm font-medium hover:bg-slate-200"
+              className={`${styles.footerAction} ${styles.footerActionSecondary}`}
               onClick={onClose}
             >
               My Account
@@ -288,44 +316,21 @@ export function MegaMenu({
           ) : (
             <Link
               href={`/${locale}/signin`}
-              className="block w-full text-center py-2.5 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+              className={`${styles.footerAction} ${styles.footerActionPrimary}`}
               onClick={onClose}
             >
               {labels.signIn ?? 'Sign In'}
             </Link>
           )}
         </div>
-      </aside>
-    </div>
+      </div>
+    </>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="px-4 py-3 border-b border-slate-100 last:border-b-0">
-      <div className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase mb-2">
-        {title}
-      </div>
-      <div className="space-y-0.5">{children}</div>
-    </div>
-  );
-}
-
-function SimpleLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link href={href} className="block py-2 text-[14px] text-slate-700 hover:text-sky-700">
-      {label}
-    </Link>
-  );
-}
+// Category accordion (recursive)
+// ─────────────────────────────────────────────────────────────────────
 
 function CategoryAccordion({
   category,
@@ -345,36 +350,39 @@ function CategoryAccordion({
 
   if (!hasChildren) {
     return (
-      <Link
-        href={`/${locale}/c/${category.slug}`}
-        className="block py-2 text-[14px] text-slate-700 hover:text-sky-700"
-        style={{ paddingLeft: level * 14 }}
-      >
-        {category.label}
-      </Link>
+      <li>
+        <Link
+          href={`/${locale}/c/${category.slug}`}
+          className={styles.accordionLink}
+          style={{ paddingLeft: 4 + level * 14 }}
+        >
+          {category.label}
+        </Link>
+      </li>
     );
   }
 
   return (
-    <div>
-      <div
-        className="flex items-center justify-between py-2 text-[14px] text-slate-700 hover:text-sky-700"
-        style={{ paddingLeft: level * 14 }}
-      >
-        <Link href={`/${locale}/c/${category.slug}`} className="flex-1 truncate">
+    <li>
+      <div className={styles.accordionHeader}>
+        <Link
+          href={`/${locale}/c/${category.slug}`}
+          className={styles.accordionLink}
+          style={{ paddingLeft: 4 + level * 14 }}
+        >
           {category.label}
         </Link>
         <button
           type="button"
           onClick={() => onToggle(category.slug)}
-          className="p-1 rounded hover:bg-slate-100 text-slate-500"
+          className={styles.chevronBtn}
           aria-label={isOpen ? 'Collapse' : 'Expand'}
         >
           {isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
         </button>
       </div>
       {isOpen && (
-        <div className="border-l border-slate-100 ml-3">
+        <ul className={`${styles.rows} ${styles.nested}`}>
           {category.children.map((child) => (
             <CategoryAccordion
               key={child.slug}
@@ -385,8 +393,8 @@ function CategoryAccordion({
               level={level + 1}
             />
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </li>
   );
 }

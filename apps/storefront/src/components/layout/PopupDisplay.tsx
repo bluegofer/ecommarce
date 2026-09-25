@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { cmsApi, type ActivePopup } from '@/lib/api/cms';
+import styles from './PopupDisplay.module.css';
 
 interface PopupDisplayProps {
   locale: 'bn' | 'en';
@@ -70,7 +71,9 @@ export function PopupDisplay({
       try {
         const list = await cmsApi.getActivePopups();
         if (cancelled) return;
-        const candidate = list.find((p) => p.isActive && !isDismissed(p.id, dismissHours));
+        const candidate = list.find(
+          (p) => p.isActive && !isDismissed(p.id, dismissHours),
+        );
         if (candidate) {
           setPopup(candidate);
           setOpen(true);
@@ -85,6 +88,23 @@ export function PopupDisplay({
     };
   }, [delayMs, dismissHours]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (popup) markDismissed(popup.id);
+        setOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, popup]);
+
   function close() {
     if (popup) markDismissed(popup.id);
     setOpen(false);
@@ -97,53 +117,34 @@ export function PopupDisplay({
   const ctaLabel = locale === 'bn' ? popup.ctaLabelBn : popup.ctaLabelEn;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-    >
+    <div className={styles.wrap} role="dialog" aria-modal="true" aria-label={title}>
       <button
         type="button"
         aria-label="Close popup"
         onClick={close}
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+        className={styles.scrim}
       />
 
-      <div className="relative w-full max-w-[440px] bg-white rounded-lg shadow-2xl overflow-hidden">
+      <div className={styles.card}>
         <button
           type="button"
           onClick={close}
           aria-label="Close"
-          className="absolute top-2 right-2 z-10 h-8 w-8 grid place-items-center rounded-full bg-white/90 hover:bg-slate-100 transition-colors text-slate-600"
+          className={styles.close}
         >
           <XIcon />
         </button>
 
         {popup.imageUrl ? (
-          <img
-            src={popup.imageUrl}
-            alt={title}
-            className="w-full aspect-[2/1] object-cover bg-slate-100"
-          />
+          <img src={popup.imageUrl} alt={title} className={styles.image} />
         ) : null}
 
-        <div className="p-5">
-          <h3 className="text-[18px] font-bold text-slate-900 leading-tight">
-            {title}
-          </h3>
-          {body ? (
-            <p className="text-[13.5px] text-slate-600 mt-2 whitespace-pre-wrap">
-              {body}
-            </p>
-          ) : null}
+        <div className={styles.body}>
+          <h3 className={styles.title}>{title}</h3>
+          {body ? <p className={styles.text}>{body}</p> : null}
 
           {popup.ctaUrl && ctaLabel ? (
-            <Link
-              href={popup.ctaUrl}
-              onClick={close}
-              className="mt-4 inline-flex items-center justify-center w-full h-10 rounded bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 transition-colors"
-            >
+            <Link href={popup.ctaUrl} onClick={close} className={styles.cta}>
               {ctaLabel}
             </Link>
           ) : null}
