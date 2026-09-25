@@ -12,3 +12,5 @@ export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
 
 export { AnnouncementBar } from './AnnouncementBar';
 export type { AnnouncementBarProps } from './AnnouncementBar';
+
+export { PopupDisplay } from './PopupDisplay';

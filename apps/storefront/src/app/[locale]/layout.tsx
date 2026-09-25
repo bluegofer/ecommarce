@@ -4,6 +4,7 @@ import { CartProvider } from '@/lib/cart/context';
 import { SavedProvider } from '@/lib/cart/saved-context';
 import { ToastProvider } from '@/lib/ui/toast-context';
 import { ToastViewport } from '@/components/ui';
+import { PopupDisplay } from '@/components/layout';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export function generateStaticParams() {
@@ -26,7 +27,6 @@ export default function LocaleLayout({
 
   return (
     <>
-
       <script
         dangerouslySetInnerHTML={{
           __html: `document.documentElement.lang = ${JSON.stringify(locale)};`,
@@ -38,6 +38,7 @@ export default function LocaleLayout({
             <ToastProvider>
               {children}
               <ToastViewport />
+              <PopupDisplay locale={locale} />
             </ToastProvider>
           </SavedProvider>
         </CartProvider>

@@ -27,6 +27,25 @@ export interface SubmitContactResponse {
   ticketId?: string;
 }
 
+// Popup shape from backend /cms/popups/active
+export interface ActivePopup {
+  id: string;
+  titleEn: string;
+  titleBn: string;
+  bodyEn: string | null;
+  bodyBn: string | null;
+  imageUrl: string | null;
+  ctaLabelEn: string | null;
+  ctaLabelBn: string | null;
+  ctaUrl: string | null;
+  dismissRule: Record<string, unknown> | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const cmsApi = {
   async getHomeFeed(): Promise<HomeFeed> {
     return api.get<HomeFeed>('/cms/home-feed');
@@ -53,5 +72,10 @@ export const cmsApi = {
 
   async submitContact(input: SubmitContactInput): Promise<SubmitContactResponse> {
     return api.post<SubmitContactResponse>('/cms/contact', input);
+  },
+
+  async getActivePopups(): Promise<ActivePopup[]> {
+    const res = await api.get<unknown>('/cms/popups/active');
+    return unwrap<ActivePopup[]>(res);
   },
 };
