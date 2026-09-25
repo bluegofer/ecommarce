@@ -1,4 +1,4 @@
-// apps/storefront/src/lib/brand.ts
+﻿// apps/storefront/src/lib/brand.ts
 //
 // Single source of truth for brand identity + public URLs.
 // Referenced by: root layout metadata, JSON-LD builders, OG image
@@ -11,15 +11,15 @@
 // Related: DECISIONS.md D-02 (brand placeholder, config-driven).
 
 export const BRAND = {
-  name: 'BlueGofer',
-  nameBn: 'ব্লু-গোফার',
+  name: 'NoLimitShopping',
+  nameBn: 'নো লিমিট শপিং',
   taglineBn: 'বাংলাদেশে অনলাইন শপিং',
   taglineEn: 'Online Shopping in Bangladesh',
 
   descriptionBn:
-    'BlueGofer — বাংলাদেশের বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম। দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট, সহজ রিটার্ন।',
+    'NoLimitShopping — বাংলাদেশের বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম। দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট, সহজ রিটার্ন।',
   descriptionEn:
-    'BlueGofer — Bangladesh\u2019s trusted online shopping platform. Fast delivery, safe payments, easy returns.',
+    'NoLimitShopping — Bangladesh\u2019s trusted online shopping platform. Fast delivery, safe payments, easy returns.',
 
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com',
   supportEmail: 'cloud.bluegofer@gmail.com',

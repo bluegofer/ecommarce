@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi, cmsApi } from '@/lib/api';
@@ -28,8 +28,8 @@ export async function generateMetadata({
 
   const title =
     locale === 'bn'
-      ? 'ব্লু-গোফার — অনলাইনে কেনাকাটা'
-      : 'BlueGofer — Online Shopping in Bangladesh';
+      ? 'নো লিমিট শপিং — অনলাইনে কেনাকাটা'
+      : 'NoLimitShopping — Online Shopping in Bangladesh';
   const description =
     locale === 'bn'
       ? 'ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন সহ সব পণ্য এক জায়গায়। নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি।'
@@ -225,7 +225,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
         <Breadcrumbs items={[{ label: 'Home' }]} locale={locale} />
 
         <h1 className="visually-hidden">
-          {locale === 'bn' ? 'ব্লু-গোফার — অনলাইনে কেনাকাটা' : 'BlueGofer — Shop Online in Bangladesh'}
+          {locale === 'bn' ? 'নো লিমিট শপিং — অনলাইনে কেনাকাটা' : 'NoLimitShopping — Shop Online in Bangladesh'}
         </h1>
 
         {sortedSections.map((section) => renderSection({
@@ -254,7 +254,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
           language: 'Language',
           currency: 'Currency',
           country: 'Country',
-          brand: 'BlueGofer',
+          brand: 'NoLimitShopping',
         }}
         columns={footerColumns}
       />
@@ -435,7 +435,7 @@ function renderSection({
       return (
         <SeoTextBlock
           key={section.id}
-          title={title ?? (locale === 'bn' ? 'ব্লু-গোফারে অনলাইনে কিনুন' : 'Shop online at BlueGofer')}
+          title={title ?? (locale === 'bn' ? 'নো লিমিট শপিং-এ অনলাইনে কিনুন' : 'Shop online at NoLimitShopping')}
           paragraphs={paragraphs}
           seeMoreLabel={locale === 'bn' ? 'আরো দেখুন' : 'See more'}
           seeLessLabel={locale === 'bn' ? 'কম দেখুন' : 'See less'}
@@ -550,11 +550,11 @@ function extractSeoParagraphs(
   }
   return locale === 'bn'
     ? [
-        'ব্লু-গোফার বাংলাদেশের একটি দ্রুত বর্ধনশীল অনলাইন মার্কেটপ্লেস। ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন, বিউটি সহ সব ধরনের পণ্য এক জায়গায়।',
+        'নো লিমিট শপিং বাংলাদেশের একটি দ্রুত বর্ধনশীল অনলাইন মার্কেটপ্লেস। ইলেকট্রনিক্স, ফ্যাশন, হোম ও কিচেন, বিউটি সহ সব ধরনের পণ্য এক জায়গায়।',
         'বিকাশ, নগদ, কার্ড বা ক্যাশ অন ডেলিভারিতে নিরাপদ পেমেন্ট। ১,৫০০ টাকার উপরে অর্ডারে ফ্রি ডেলিভারি। ৭ দিনের সহজ রিটার্ন।',
       ]
     : [
-        "BlueGofer is Bangladesh's rapidly growing online marketplace offering products across Electronics, Fashion, Home & Kitchen, Beauty and more.",
+        "NoLimitShopping is Bangladesh's rapidly growing online marketplace offering products across Electronics, Fashion, Home & Kitchen, Beauty and more.",
         'Pay safely with bKash, Nagad, Card, or Cash on Delivery. Free delivery on eligible orders over ৳1,500. Easy 7-day returns.',
       ];
 }

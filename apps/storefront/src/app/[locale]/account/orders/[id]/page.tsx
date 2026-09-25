@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { OrderTracking, type OrderTrackingLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Track Order | BlueGofer',
+  title: 'Track Order | NoLimitShopping',
   robots: { index: false, follow: false },
 };
 

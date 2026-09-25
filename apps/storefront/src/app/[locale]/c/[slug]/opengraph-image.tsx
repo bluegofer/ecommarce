@@ -1,9 +1,9 @@
-// Step 14.5 — dynamic OG image per category (1200x630).
+﻿// Step 14.5 — dynamic OG image per category (1200x630).
 import { ImageResponse } from 'next/og';
 import { catalogApi } from '@/lib/api';
 
 export const runtime = 'edge';
-export const alt = 'Category — BlueGofer';
+export const alt = 'Category — NoLimitShopping';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -67,7 +67,7 @@ export default async function Image({ params }: Props) {
             color: '#64748B',
           }}
         >
-          <span style={{ fontWeight: 700, color: '#0C2B3D' }}>BlueGofer</span>
+          <span style={{ fontWeight: 700, color: '#0C2B3D' }}>NoLimitShopping</span>
           <span>nolimitshopping.com</span>
         </div>
       </div>

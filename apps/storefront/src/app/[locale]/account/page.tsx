@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { AccountOverview, type AccountOverviewLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'My Account | BlueGofer',
+  title: 'My Account | NoLimitShopping',
   robots: { index: false, follow: false },
 };
 

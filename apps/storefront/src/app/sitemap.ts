@@ -1,4 +1,4 @@
-// Step 14.3 — Dynamic XML sitemap (TDD §8.1).
+﻿// Step 14.3 — Dynamic XML sitemap (TDD §8.1).
 // Generated at request time from the live catalog + CMS; cached by Next.js
 // with `revalidate`. Includes hreflang alternates (bn default + en + x-default).
 import type { MetadataRoute } from 'next';
@@ -6,7 +6,7 @@ import { catalogApi } from '@/lib/api';
 
 export const revalidate = 3600; // refresh hourly
 
-const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://skymart.example';
+const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nolimitshopping.com';
 const LOCALES = ['bn', 'en'] as const;
 
 /** Static, crawlable routes — one entry per locale. */

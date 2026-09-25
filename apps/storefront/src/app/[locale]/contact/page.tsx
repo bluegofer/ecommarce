@@ -1,10 +1,10 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { ContactForm, type ContactFormLabels } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Contact Us | BlueGofer',
-  description: 'Contact BlueGofer customer service — 24/7 support for orders, returns, and product questions.',
+  title: 'Contact Us | NoLimitShopping',
+  description: 'Contact NoLimitShopping customer service — 24/7 support for orders, returns, and product questions.',
 };
 
 export default function ContactPage({ params }: { params: { locale: string } }) {

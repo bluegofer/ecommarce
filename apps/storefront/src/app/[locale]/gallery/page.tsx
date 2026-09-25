@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getDictionary, isLocale, interpolate } from '@/lib/i18n';
 import { Header, Footer, Breadcrumbs } from '@/components/layout';
@@ -86,7 +86,7 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
           locale={locale}
         />
 
-        <h1 style={{ marginTop: 16, fontFamily: 'var(--sk-font-en)' }}>BlueGofer · Step 7 gallery</h1>
+        <h1 style={{ marginTop: 16, fontFamily: 'var(--sk-font-en)' }}>NoLimitShopping · Step 7 gallery</h1>
         <p style={{ color: 'var(--sk-muted)', fontFamily: 'var(--sk-font-en)' }}>
           Locale = <strong>{locale}</strong> · All global components rendered once for visual + axe audit.
         </p>
@@ -254,7 +254,7 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
           language: 'Language',
           currency: 'Currency',
           country: 'Country',
-          brand: 'BlueGofer',
+          brand: 'NoLimitShopping',
         }}
         columns={[
           { heading: t['footer.about'], links: [

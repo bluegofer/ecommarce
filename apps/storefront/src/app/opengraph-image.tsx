@@ -1,9 +1,9 @@
-// Step 14.5 — sitewide OG image fallback (1200x630).
+﻿// Step 14.5 — sitewide OG image fallback (1200x630).
 // Used when a page does not define its own opengraph-image.
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'BlueGofer — Online Shopping in Bangladesh';
+export const alt = 'NoLimitShopping — Online Shopping in Bangladesh';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -39,7 +39,7 @@ export default async function Image() {
           >
             S
           </div>
-          <div style={{ fontSize: 40, fontWeight: 700 }}>BlueGofer</div>
+          <div style={{ fontSize: 40, fontWeight: 700 }}>NoLimitShopping</div>
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
           <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.1 }}>

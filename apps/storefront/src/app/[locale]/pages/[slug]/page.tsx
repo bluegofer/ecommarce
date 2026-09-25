@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CmsPageRenderer, type CmsPageRendererLabels, ContactForm, type ContactFormLabels } from '@/components/content';
 import { cmsApi, ApiError, type CmsPage } from '@/lib/api';
@@ -19,10 +19,10 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const page = await fetchPage(params.slug);
-  if (!page) return { title: 'Page Not Found | BlueGofer', robots: { index: false } };
+  if (!page) return { title: 'Page Not Found | NoLimitShopping', robots: { index: false } };
   const title = params.locale === 'bn' ? page.titleBn : page.titleEn;
   return {
-    title: `${title} | BlueGofer`,
+    title: `${title} | NoLimitShopping`,
     description: page.metaDescription ?? undefined,
   };
 }

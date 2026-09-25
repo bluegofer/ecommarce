@@ -1,10 +1,10 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { DealsClient, type DealsLabels } from '@/components/deals';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: "Today's Deals | BlueGofer",
-  description: 'Fresh discounts every hour on BlueGofer.',
+  title: "Today's Deals | NoLimitShopping",
+  description: 'Fresh discounts every hour on NoLimitShopping.',
 };
 
 // Step 14.2 — ISR: deals page is fully cacheable (server-synced countdown

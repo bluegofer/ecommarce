@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { WishlistGrid, type WishlistGridLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Wishlist | BlueGofer',
+  title: 'Wishlist | NoLimitShopping',
   robots: { index: false, follow: false },
 };
 

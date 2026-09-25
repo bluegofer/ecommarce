@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi } from '@/lib/api';
@@ -161,7 +161,7 @@ function footerLabels(t: ReturnType<typeof getDictionary>) {
     language: 'Language',
     currency: 'Currency',
     country: 'Country',
-    brand: 'BlueGofer',
+    brand: 'NoLimitShopping',
   };
 }
 

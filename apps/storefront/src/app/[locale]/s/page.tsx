@@ -1,4 +1,4 @@
-import { getDictionary, isLocale } from '@/lib/i18n';
+﻿import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi } from '@/lib/api';
 import type { CategoryNode } from '@/lib/api/types';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
@@ -18,11 +18,11 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const q = stringParam(searchParams.k) ?? '';
   const title = q
     ? locale === 'bn'
-      ? `"${q}" — অনলাইনে কিনুন | ব্লু-গোফার`
-      : `"${q}" — Buy Online | BlueGofer`
+      ? `"${q}" — অনলাইনে কিনুন | নো লিমিট শপিং`
+      : `"${q}" — Buy Online | NoLimitShopping`
     : locale === 'bn'
-      ? 'অনুসন্ধান | ব্লু-গোফার'
-      : 'Search | BlueGofer';
+      ? 'অনুসন্ধান | নো লিমিট শপিং'
+      : 'Search | NoLimitShopping';
   return { title, robots: { index: false, follow: true } };
 }
 
@@ -189,7 +189,7 @@ function footerLabels(t: ReturnType<typeof getDictionary>) {
     language: 'Language',
     currency: 'Currency',
     country: 'Country',
-    brand: 'BlueGofer',
+    brand: 'NoLimitShopping',
   };
 }
 

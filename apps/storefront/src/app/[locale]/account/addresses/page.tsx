@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { AddressBook, type AddressBookLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Your Addresses | BlueGofer',
+  title: 'Your Addresses | NoLimitShopping',
   robots: { index: false, follow: false },
 };
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -103,9 +103,9 @@ export function Header({
               <HamburgerIcon />
             </button>
 
-            <Link href={`/${locale}`} className={styles.logo} aria-label="BlueGofer home">
+            <Link href={`/${locale}`} className={styles.logo} aria-label="NoLimitShopping home">
               <PinIcon />
-              <span className={styles.logoText}>BlueGofer</span>
+              <span className={styles.logoText}>NoLimitShopping</span>
             </Link>
 
             <button type="button" className={styles.deliver} aria-label={labels.deliverTo}>

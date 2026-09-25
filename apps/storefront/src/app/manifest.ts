@@ -1,11 +1,11 @@
-import type { MetadataRoute } from 'next';
+﻿import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'BlueGofer — Online Shopping in Bangladesh',
-    short_name: 'BlueGofer',
+    name: 'NoLimitShopping — Online Shopping in Bangladesh',
+    short_name: 'NoLimitShopping',
     description:
-      'BlueGofer — a category-agnostic marketplace placeholder. Fast delivery, safe payments, easy returns.',
+      'NoLimitShopping — a category-agnostic marketplace placeholder. Fast delivery, safe payments, easy returns.',
     start_url: '/bn',
     display: 'standalone',
     background_color: '#F6FAFD',

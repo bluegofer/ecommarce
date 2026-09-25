@@ -1,10 +1,10 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { SignInForm, type SignInLabels } from '@/components/auth';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Sign In | BlueGofer',
+  title: 'Sign In | NoLimitShopping',
   robots: { index: false, follow: true },
 };
 

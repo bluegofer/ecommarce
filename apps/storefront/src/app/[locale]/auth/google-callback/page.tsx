@@ -1,10 +1,10 @@
-import { Suspense } from 'react';
+﻿import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { isLocale, type Locale } from '@/lib/i18n';
 import { GoogleCallbackClient } from './GoogleCallbackClient';
 
 export const metadata = {
-  title: 'Signing In | BlueGofer',
+  title: 'Signing In | NoLimitShopping',
   robots: { index: false, follow: false },
 };
 

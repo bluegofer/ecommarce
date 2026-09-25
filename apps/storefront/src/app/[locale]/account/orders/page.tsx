@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { OrdersList, type OrdersListLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
-  title: 'Your Orders | BlueGofer',
+  title: 'Your Orders | NoLimitShopping',
   robots: { index: false, follow: false },
 };
 
