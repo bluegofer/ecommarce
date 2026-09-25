@@ -1,102 +1,104 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/layout';
 import type { Metadata } from 'next';
-import {
-  ConfirmationClient,
-  type ConfirmationLabels,
-} from '@/components/order-confirmation';
+import { CmsPageRenderer, type CmsPageRendererLabels, ContactForm, type ContactFormLabels } from '@/components/content';
+import { cmsApi, ApiError, type CmsPage } from '@/lib/api';
 import { isLocale, type Locale } from '@/lib/i18n';
 
-export const dynamic = 'force-dynamic';
-
-export const metadata: Metadata = {
-  title: 'Order Confirmed | NoLimitShopping',
-  robots: { index: false, follow: false },
-};
-
 interface PageProps {
-  params: { locale: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: { locale: string; slug: string };
 }
 
-function stringParam(v: string | string[] | undefined): string | undefined {
-  if (Array.isArray(v)) return v[0];
-  return v;
+async function fetchPage(slug: string): Promise<CmsPage | null> {
+  try {
+    return await cmsApi.getPageBySlug(slug);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    return null;
+  }
 }
 
-export default function OrderConfirmationPage({ params, searchParams }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const page = await fetchPage(params.slug);
+  if (!page) return { title: 'Page Not Found | NoLimitShopping', robots: { index: false } };
+  const title = params.locale === 'bn' ? page.titleBn : page.titleEn;
+  return {
+    title: `${title} | NoLimitShopping`,
+    description: page.metaDescription ?? undefined,
+  };
+}
+
+export const revalidate = 300;
+
+export default async function CmsPageRoute({ params }: PageProps) {
   if (!isLocale(params.locale)) notFound();
   const locale: Locale = params.locale;
   const bn = locale === 'bn';
 
-  const orderNumber = stringParam(searchParams.order);
-  const phone = stringParam(searchParams.phone);
+  if (params.slug === 'contact') {
+    const labels: ContactFormLabels = {
+      name: bn ? 'আপনার নাম' : 'Your name',
+      email: bn ? 'ইমেইল' : 'Email',
+      orderNo: bn ? 'অর্ডার নম্বর (ঐচ্ছিক)' : 'Order number (optional)',
+      subject: bn ? 'বিষয়' : 'Subject',
+      subjectGeneral: bn ? 'সাধারণ জিজ্ঞাসা' : 'General question',
+      subjectOrder: bn ? 'অর্ডার সংক্রান্ত' : 'About an order',
+      subjectReturn: bn ? 'রিটার্ন / রিফান্ড' : 'Return / Refund',
+      subjectOther: bn ? 'অন্যান্য' : 'Other',
+      message: bn ? 'বার্তা' : 'Message',
+      submit: bn ? 'পাঠান' : 'Send message',
+      submitting: bn ? 'পাঠানো হচ্ছে…' : 'Sending…',
+      successToast: bn ? '✓ বার্তা পাঠানো হয়েছে — শীঘ্রই যোগাযোগ করব' : "✓ Message sent — we'll reply soon",
+      errorText: bn ? 'পাঠানো যায়নি, আবার চেষ্টা করুন' : 'Could not send — please try again',
+      hotlineTitle: bn ? 'হটলাইন' : 'Hotline',
+      hotlineBody: bn ? '১৬-২৬৩ · সকাল ৮টা - রাত ১০টা' : '16-263 · 8am – 10pm daily',
+      emailTitle: bn ? 'ইমেইল' : 'Email',
+      emailBody: bn ? 'cloud.bluegofer@gmail.com' : 'cloud.bluegofer@gmail.com',
+      whatsappTitle: bn ? 'হোয়াটসঅ্যাপ' : 'WhatsApp',
+      whatsappBody: bn ? '+880 1XXX-XXXXXX' : '+880 1XXX-XXXXXX',
+    };
 
-  const labels: ConfirmationLabels = {
-    heading: bn ? 'ধন্যবাদ! আপনার অর্ডার সম্পন্ন হয়েছে' : 'Thank you! Your order is placed',
-    subhead: bn
-      ? 'শীঘ্রই SMS/ইমেইলে অর্ডার আপডেট পাবেন।'
-      : "You'll receive order updates via SMS/email shortly.",
-    orderLabel: bn ? 'অর্ডার নম্বর' : 'Order',
-    orderDate: bn ? 'তারিখ' : 'Date',
-    items: bn ? 'পণ্যসমূহ' : 'Items',
-    subtotal: bn ? 'সাব-টোটাল' : 'Subtotal',
-    delivery: bn ? 'ডেলিভারি' : 'Delivery',
-    discount: bn ? 'ডিসকাউন্ট' : 'Discount',
-    total: bn ? 'মোট' : 'Total',
-    free: bn ? 'ফ্রি' : 'FREE',
-    payment: bn ? 'পেমেন্ট' : 'Payment',
-    shippingTo: bn ? 'ডেলিভারি ঠিকানা' : 'Shipping to',
-    estimatedDelivery: bn ? 'আনুমানিক ডেলিভারি: শীঘ্রই' : 'Estimated delivery: soon',
-    trackOrder: bn ? 'অর্ডার ট্র্যাক করুন' : 'Track Order',
-    continueShopping: bn ? 'আরো কিনুন' : 'Continue Shopping',
-    downloadInvoice: bn ? 'ইনভয়েস ডাউনলোড' : 'Download Invoice',
-    guestTip: bn
-      ? 'এই ইমেইল দিয়ে অ্যাকাউন্ট খুলুন — সব অর্ডার ট্র্যাক, ঠিকানা সেভ, দ্রুত চেকআউট।'
-      : 'Create an account with this email to track all orders, save addresses, and checkout faster.',
-    createAccount: bn ? 'অ্যাকাউন্ট খুলুন' : 'Create account',
-    loading: bn ? 'লোড হচ্ছে…' : 'Loading…',
-    errorText: bn ? 'লোড করা যায়নি' : 'Could not load order',
-    notFound: bn ? 'অর্ডার খুঁজে পাওয়া যায়নি' : 'Order not found',
-    backHome: bn ? 'হোমে যান' : 'Go to Home',
-  };
-
-  if (!orderNumber || !phone) {
     return (
-      <main style={{ maxWidth: 640, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--sk-ink)' }}>
-          {labels.notFound}
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--sk-muted)', marginTop: 12 }}>
-          {bn ? 'URL-এ অর্ডার নম্বর বা ফোন নম্বর নেই।' : 'Order number or phone missing from URL.'}
-        </p>
-        <a
-          href={`/${locale}`}
-          style={{
-            display: 'inline-block',
-            marginTop: 24,
-            padding: '10px 20px',
-            background: 'var(--sk-cta-primary)',
-            color: 'var(--sk-brand-950)',
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 700,
-            textDecoration: 'none',
-          }}
-        >
-          {labels.backHome}
-        </a>
-      </main>
+      <>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
+          ]}
+          locale={locale}
+        />
+        <main>
+          <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
+            {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
+          </h1>
+          <ContactForm labels={labels} />
+        </main>
+      </>
     );
   }
 
+  const page = await fetchPage(params.slug);
+  if (!page || page.status !== 'PUBLISHED') {
+    notFound();
+  }
+
+  const labels: CmsPageRendererLabels = {
+    lastUpdated: bn ? 'সর্বশেষ আপডেট: {date}' : 'Last updated: {date}',
+    notFound: bn ? 'পৃষ্ঠাটি পাওয়া যায়নি' : 'Page not found',
+  };
+
   return (
-    <main id="main">
-      <ConfirmationClient
+    <>
+      <Breadcrumbs
+        items={[
+          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+          { label: bn ? page.titleBn : page.titleEn },
+        ]}
         locale={locale}
-        orderNumber={orderNumber}
-        phone={phone}
-        labels={labels}
       />
-    </main>
+      <main>
+        <CmsPageRenderer locale={locale} page={page} labels={labels} />
+      </main>
+    </>
   );
 }

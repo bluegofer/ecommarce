@@ -1,4 +1,5 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/layout';
 import { DealsClient, type DealsLabels } from '@/components/deals';
 import { isLocale, type Locale } from '@/lib/i18n';
 

@@ -1,4 +1,5 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/layout';
 import type { Metadata } from 'next';
 import { CmsPageRenderer, type CmsPageRendererLabels, ContactForm, type ContactFormLabels } from '@/components/content';
 import { cmsApi, ApiError, type CmsPage } from '@/lib/api';
@@ -34,9 +35,6 @@ export default async function CmsPageRoute({ params }: PageProps) {
   const locale: Locale = params.locale;
   const bn = locale === 'bn';
 
-  // Special case: slug "contact" renders the interactive ContactForm
-  // instead of the CMS page body. The CMS page still exists (for SEO,
-  // menu links, meta) but the actual form is the interactive component.
   if (params.slug === 'contact') {
     const labels: ContactFormLabels = {
       name: bn ? 'আপনার নাম' : 'Your name',
@@ -61,16 +59,24 @@ export default async function CmsPageRoute({ params }: PageProps) {
     };
 
     return (
-      <main>
-        <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
-          {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
-        </h1>
-        <ContactForm labels={labels} />
-      </main>
+      <>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
+          ]}
+          locale={locale}
+        />
+        <main>
+          <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
+            {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
+          </h1>
+          <ContactForm labels={labels} />
+        </main>
+      </>
     );
   }
 
-  // Default: render CMS page content.
   const page = await fetchPage(params.slug);
   if (!page || page.status !== 'PUBLISHED') {
     notFound();
@@ -82,8 +88,17 @@ export default async function CmsPageRoute({ params }: PageProps) {
   };
 
   return (
-    <main>
-      <CmsPageRenderer locale={locale} page={page} labels={labels} />
-    </main>
+    <>
+      <Breadcrumbs
+        items={[
+          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+          { label: bn ? page.titleBn : page.titleEn },
+        ]}
+        locale={locale}
+      />
+      <main>
+        <CmsPageRenderer locale={locale} page={page} labels={labels} />
+      </main>
+    </>
   );
 }

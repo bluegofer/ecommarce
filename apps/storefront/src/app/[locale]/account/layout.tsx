@@ -14,6 +14,7 @@ export default function AccountLayout({
   const bn = locale === 'bn';
 
   const sidebarLabels: AccountSidebarLabels = {
+    home: bn ? 'হোম' : 'Home',
     overview: bn ? 'সংক্ষিপ্ত' : 'Overview',
     orders: bn ? 'আমার অর্ডার' : 'Your Orders',
     wishlist: bn ? 'উইশলিস্ট' : 'Wishlist',

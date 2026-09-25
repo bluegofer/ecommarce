@@ -1,4 +1,5 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/layout';
 import { FaqAccordion, type FaqAccordionLabels, type FaqItem } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 import { faqJsonLd } from '@/lib/seo/json-ld';
@@ -46,15 +47,24 @@ export default function FaqPage({ params }: { params: { locale: string } }) {
   );
 
   return (
-    <main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    <>
+      <Breadcrumbs
+        items={[
+          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+          { label: bn ? 'সাধারণ প্রশ্ন (FAQ)' : 'FAQ' },
+        ]}
+        locale={locale}
       />
-      <h1 style={{ maxWidth: 720, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
-        {bn ? 'সাধারণ প্রশ্ন (FAQ)' : 'Frequently Asked Questions'}
-      </h1>
-      <FaqAccordion items={items} labels={labels} />
-    </main>
+      <main>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <h1 style={{ maxWidth: 720, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
+          {bn ? 'সাধারণ প্রশ্ন (FAQ)' : 'Frequently Asked Questions'}
+        </h1>
+        <FaqAccordion items={items} labels={labels} />
+      </main>
+    </>
   );
 }

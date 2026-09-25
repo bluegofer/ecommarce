@@ -1,4 +1,5 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/layout';
 import { ContactForm, type ContactFormLabels } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
@@ -35,11 +36,20 @@ export default function ContactPage({ params }: { params: { locale: string } }) 
   };
 
   return (
-    <main>
-      <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
-        {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
-      </h1>
-      <ContactForm labels={labels} />
-    </main>
+    <>
+      <Breadcrumbs
+        items={[
+          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+          { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
+        ]}
+        locale={locale}
+      />
+      <main>
+        <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
+          {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
+        </h1>
+        <ContactForm labels={labels} />
+      </main>
+    </>
   );
 }

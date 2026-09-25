@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import styles from './AccountSidebar.module.css';
 
 export interface AccountSidebarLabels {
+  home: string;
   overview: string;
   orders: string;
   wishlist: string;
@@ -24,6 +25,7 @@ export function AccountSidebar({ locale, labels, onSignOut }: AccountSidebarProp
   const base = `/${locale}/account`;
 
   const items = [
+    { href: `/${locale}`, label: labels.home },
     { href: base, label: labels.overview },
     { href: `${base}/orders`, label: labels.orders },
     { href: `${base}/wishlist`, label: labels.wishlist },
@@ -32,6 +34,7 @@ export function AccountSidebar({ locale, labels, onSignOut }: AccountSidebarProp
   ];
 
   const isActive = (href: string) => {
+    if (href === `/${locale}`) return false;
     if (href === base) return pathname === base || pathname === `${base}/`;
     return pathname.startsWith(href);
   };

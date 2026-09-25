@@ -1,4 +1,5 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/layout';
 import { RegisterForm, type RegisterLabels } from '@/components/auth';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
@@ -11,6 +12,7 @@ export const metadata = {
 export default function RegisterPage({ params }: { params: { locale: string } }) {
   if (!isLocale(params.locale)) notFound();
   const locale: Locale = params.locale;
+  const bn = locale === 'bn';
   const dict = getDictionary(locale);
 
   const labels: RegisterLabels = {
@@ -47,9 +49,18 @@ export default function RegisterPage({ params }: { params: { locale: string } })
   };
 
   return (
-    <main style={{ padding: '24px 16px', minHeight: '60vh' }}>
-      <GoogleAuthButton label={dict['auth.continue_with_google']} />
-      <RegisterForm locale={locale} labels={labels} />
-    </main>
+    <>
+      <Breadcrumbs
+        items={[
+          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+          { label: bn ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account' },
+        ]}
+        locale={locale}
+      />
+      <main style={{ padding: '24px 16px', minHeight: '60vh' }}>
+        <GoogleAuthButton label={dict['auth.continue_with_google']} />
+        <RegisterForm locale={locale} labels={labels} />
+      </main>
+    </>
   );
 }
