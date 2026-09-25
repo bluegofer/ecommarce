@@ -1,5 +1,9 @@
 import { IsString, Length, Matches } from 'class-validator';
-import { E164_REGEX } from '@ecommarce/types';
+
+// Inlined (not imported from @ecommarce/types) because the API Docker build
+// is tsc-only and cannot resolve workspace .ts packages at runtime.
+// E.164: leading '+', 7–15 total digits.
+const E164_REGEX = /^\+[1-9]\d{6,14}$/;
 
 export class RequestOtpDto {
   @IsString()
