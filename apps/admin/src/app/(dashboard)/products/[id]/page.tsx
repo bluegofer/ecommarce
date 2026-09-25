@@ -3,9 +3,17 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Trash2, Plus, Image as ImageIcon, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Save,
+  Trash2,
+  Plus,
+  Image as ImageIcon,
+  X,
+  UploadCloud,
+} from 'lucide-react';
 import { PageHeader, StatusChip, Modal, useToast } from '@/components/ui';
-import { useMutation, useQuery } from '@/lib/hooks';
+import { useMutation, useQuery, useUpload } from '@/lib/hooks';
 import { formatPoisha } from '@/lib/utils';
 
 interface Variant {
@@ -60,6 +68,14 @@ interface MediaLibraryItem {
   createdAt: string;
 }
 
+interface UploadResult {
+  url: string;
+  key: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 const TABS = ['Details', 'Variants', 'Media', 'SEO'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -103,6 +119,20 @@ export default function ProductEditorPage() {
     'delete',
     (input) => `/api/v1/products/${productId}/media/${(input as unknown as string)}`,
   );
+
+  // Inline upload: file → S3 → media library → attach to product
+  const uploadMutation = useUpload<UploadResult>('/api/v1/uploads/media');
+
+  const saveMediaLibraryMutation = useMutation<
+    {
+      url: string;
+      filename: string;
+      mimeType: string;
+      sizeBytes: number;
+      altText?: string;
+    },
+    unknown
+  >('post', '/api/v1/cms/media-library');
 
   async function onSave() {
     try {
@@ -156,6 +186,31 @@ export default function ProductEditorPage() {
       void refetch();
     } catch (e) {
       toast.error('Remove failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
+  async function uploadAndAttach(file: File) {
+    try {
+      // Step 1: file → S3 (returns url, key, metadata)
+      const uploaded = await uploadMutation.upload(file);
+      // Step 2: register in media library (so it appears in the picker later)
+      await saveMediaLibraryMutation.mutate({
+        url: uploaded.url,
+        filename: uploaded.filename,
+        mimeType: uploaded.mimeType,
+        sizeBytes: uploaded.sizeBytes,
+        altText: uploaded.filename,
+      });
+      // Step 3: attach to this product
+      await attachMediaMutation.mutate({
+        productId: productId!,
+        url: uploaded.url,
+        altText: uploaded.filename,
+      });
+      toast.success('Image uploaded and attached');
+      void refetch();
+    } catch (e) {
+      toast.error('Upload failed', e instanceof Error ? e.message : 'Unknown');
     }
   }
 
@@ -387,21 +442,63 @@ export default function ProductEditorPage() {
             <div>
               <h3 className="font-semibold text-slate-900">Media gallery</h3>
               <p className="text-[12.5px] text-slate-500">
-                Pick from Media Library · first image is the PDP main image · auto-WebP on upload.
+                First image is the PDP main image · auto-WebP on upload.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setMediaPickerOpen(true)}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
-            >
-              <Plus className="w-4 h-4" /> Add from library
-            </button>
+            <div className="flex items-center gap-2">
+              <label
+                className={`inline-flex items-center gap-1.5 h-9 px-3 rounded border border-sky-600 bg-white text-sky-700 text-sm font-medium hover:bg-sky-50 cursor-pointer ${
+                  uploadMutation.loading ? 'opacity-60 cursor-wait' : ''
+                }`}
+              >
+                <UploadCloud className="w-4 h-4" />
+                {uploadMutation.loading ? 'Uploading…' : 'Upload new'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadMutation.loading}
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void uploadAndAttach(f);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => setMediaPickerOpen(true)}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+              >
+                <Plus className="w-4 h-4" /> Add from library
+              </button>
+            </div>
           </div>
 
           {productMedia.length === 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
+              <label
+                className={`aspect-square rounded border-2 border-dashed border-sky-400 bg-sky-50 grid place-items-center text-sky-600 hover:bg-sky-100 cursor-pointer ${
+                  uploadMutation.loading ? 'opacity-60 cursor-wait' : ''
+                }`}
+              >
+                <UploadCloud className="w-8 h-8" />
+                <span className="text-[12px] font-medium mt-1">
+                  {uploadMutation.loading ? 'Uploading…' : 'Upload'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadMutation.loading}
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void uploadAndAttach(f);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              {[1, 2, 3].map((i) => (
                 <div
                   key={i}
                   className="aspect-square rounded border border-dashed border-border bg-slate-50 grid place-items-center text-slate-300"
@@ -434,10 +531,29 @@ export default function ProductEditorPage() {
                 type="button"
                 onClick={() => setMediaPickerOpen(true)}
                 className="aspect-square rounded border border-dashed border-sky-300 bg-sky-50 grid place-items-center text-sky-500 hover:bg-sky-100"
-                aria-label="Add more"
+                aria-label="Add from library"
               >
                 <Plus className="w-6 h-6" />
               </button>
+              <label
+                className={`aspect-square rounded border border-dashed border-sky-300 bg-sky-50 grid place-items-center text-sky-500 hover:bg-sky-100 cursor-pointer ${
+                  uploadMutation.loading ? 'opacity-60 cursor-wait' : ''
+                }`}
+                aria-label="Upload new image"
+              >
+                <UploadCloud className="w-6 h-6" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadMutation.loading}
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void uploadAndAttach(f);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
             </div>
           )}
         </div>
@@ -477,11 +593,7 @@ export default function ProductEditorPage() {
           <div className="text-center py-8">
             <ImageIcon className="w-10 h-10 mx-auto mb-3 text-slate-300" />
             <p className="text-sm text-slate-500">
-              Media library is empty. Upload images in{' '}
-              <Link href="/cms/media" className="text-sky-700 underline">
-                CMS → Media
-              </Link>
-              .
+              Media library is empty. Use “Upload new” in the Media tab to add one.
             </p>
           </div>
         ) : (

@@ -2,9 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, GripVertical, LayoutGrid, Plus, Trash2 } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  GripVertical,
+  LayoutGrid,
+  Plus,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import { PageHeader, StatusChip, EmptyState, Modal, useToast } from '@/components/ui';
-import { useQuery, useMutation } from '@/lib/hooks';
+import { useQuery, useMutation, useUpload } from '@/lib/hooks';
 
 type SectionType =
   | 'HERO_CAROUSEL'
@@ -17,6 +26,15 @@ type SectionType =
   | 'RECOMMENDED'
   | 'SEO_TEXT';
 
+interface HeroSlideConfig {
+  imageUrl: string;
+  titleEn: string;
+  titleBn: string;
+  ctaHref: string;
+  ctaLabelEn: string;
+  ctaLabelBn: string;
+}
+
 interface Section {
   id: string;
   key: string;
@@ -24,6 +42,7 @@ interface Section {
   titleEn: string | null;
   titleBn: string | null;
   position: number;
+  config: Record<string, unknown> | null;
   isVisible: boolean;
   startsAt: string | null;
   endsAt: string | null;
@@ -53,10 +72,6 @@ const ALL_TYPES: SectionType[] = [
   'SEO_TEXT',
 ];
 
-function sectionLabel(s: Section): string {
-  return s.titleEn ?? s.titleBn ?? TYPE_LABEL[s.sectionType] ?? s.sectionType;
-}
-
 interface AddFormState {
   key: string;
   sectionType: SectionType;
@@ -64,7 +79,17 @@ interface AddFormState {
   titleBn: string;
   position: number;
   isVisible: boolean;
+  heroSlides: HeroSlideConfig[];
 }
+
+const EMPTY_SLIDE: HeroSlideConfig = {
+  imageUrl: '',
+  titleEn: '',
+  titleBn: '',
+  ctaHref: '',
+  ctaLabelEn: '',
+  ctaLabelBn: '',
+};
 
 const EMPTY_FORM: AddFormState = {
   key: '',
@@ -73,7 +98,12 @@ const EMPTY_FORM: AddFormState = {
   titleBn: '',
   position: 0,
   isVisible: true,
+  heroSlides: [],
 };
+
+function sectionLabel(s: Section): string {
+  return s.titleEn ?? s.titleBn ?? TYPE_LABEL[s.sectionType] ?? s.sectionType;
+}
 
 export default function CmsPage() {
   const toast = useToast();
@@ -90,11 +120,36 @@ export default function CmsPage() {
     'post',
     '/api/v1/cms/sections/reorder',
   );
-  const createMutation = useMutation<AddFormState, unknown>('post', '/api/v1/cms/sections');
+  const createMutation = useMutation<
+    {
+      key: string;
+      sectionType: SectionType;
+      titleEn?: string;
+      titleBn?: string;
+      position: number;
+      config?: Record<string, unknown>;
+      isVisible: boolean;
+    },
+    unknown
+  >('post', '/api/v1/cms/sections');
   const deleteMutation = useMutation<string, unknown>(
     'delete',
     (input) => `/api/v1/cms/sections/${(input as unknown as string)}`,
   );
+
+  // Inline media upload for hero slides
+  const uploadMutation = useUpload<{
+    url: string;
+    key: string;
+    filename: string;
+    mimeType: string;
+    sizeBytes: number;
+  }>('/api/v1/uploads/media');
+
+  const saveMediaLibraryMutation = useMutation<
+    { url: string; filename: string; mimeType: string; sizeBytes: number; altText?: string },
+    unknown
+  >('post', '/api/v1/cms/media-library');
 
   async function move(id: string, dir: -1 | 1) {
     if (!data) return;
@@ -130,15 +185,40 @@ export default function CmsPage() {
       toast.error('Missing key', 'Provide a unique key (e.g. home-hero-2)');
       return;
     }
+
+    // Build config based on sectionType
+    let config: Record<string, unknown> | undefined = undefined;
+    if (form.sectionType === 'HERO_CAROUSEL') {
+      const validSlides = form.heroSlides.filter(
+        (s) => s.imageUrl.trim() && s.titleEn.trim() && s.ctaHref.trim(),
+      );
+      if (validSlides.length === 0) {
+        toast.error('Missing slides', 'Hero carousel needs at least 1 complete slide');
+        return;
+      }
+      config = { slides: validSlides };
+    }
+
     try {
-      await createMutation.mutate({
+      const payload: {
+        key: string;
+        sectionType: SectionType;
+        titleEn?: string;
+        titleBn?: string;
+        position: number;
+        config?: Record<string, unknown>;
+        isVisible: boolean;
+      } = {
         key,
         sectionType: form.sectionType,
-        titleEn,
-        titleBn,
         position: form.position,
         isVisible: form.isVisible,
-      });
+      };
+      if (titleEn) payload.titleEn = titleEn;
+      if (titleBn) payload.titleBn = titleBn;
+      if (config) payload.config = config;
+
+      await createMutation.mutate(payload);
       toast.success('Section created');
       setAddOpen(false);
       setForm({ ...EMPTY_FORM });
@@ -156,6 +236,41 @@ export default function CmsPage() {
       void refetch();
     } catch (e) {
       toast.error('Delete failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
+
+  // Slide helpers
+  function addSlide() {
+    setForm((f) => ({ ...f, heroSlides: [...f.heroSlides, { ...EMPTY_SLIDE }] }));
+  }
+
+  function updateSlide(idx: number, patch: Partial<HeroSlideConfig>) {
+    setForm((f) => {
+      const slides = [...f.heroSlides];
+      slides[idx] = { ...slides[idx]!, ...patch };
+      return { ...f, heroSlides: slides };
+    });
+  }
+
+  function removeSlide(idx: number) {
+    setForm((f) => ({ ...f, heroSlides: f.heroSlides.filter((_, i) => i !== idx) }));
+  }
+
+  async function uploadSlideImage(idx: number, file: File) {
+    try {
+      const uploaded = await uploadMutation.upload(file);
+      // register in media library too
+      await saveMediaLibraryMutation.mutate({
+        url: uploaded.url,
+        filename: uploaded.filename,
+        mimeType: uploaded.mimeType,
+        sizeBytes: uploaded.sizeBytes,
+        altText: uploaded.filename,
+      });
+      updateSlide(idx, { imageUrl: uploaded.url });
+      toast.success('Image uploaded');
+    } catch (e) {
+      toast.error('Upload failed', e instanceof Error ? e.message : 'Unknown');
     }
   }
 
@@ -288,7 +403,7 @@ export default function CmsPage() {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         title="Add homepage section"
-        size="md"
+        size="lg"
         footer={
           <>
             <button
@@ -314,9 +429,16 @@ export default function CmsPage() {
             <span className="text-[12.5px] font-medium text-slate-700">Section type</span>
             <select
               value={form.sectionType}
-              onChange={(e) =>
-                setForm({ ...form, sectionType: e.target.value as SectionType })
-              }
+              onChange={(e) => {
+                const st = e.target.value as SectionType;
+                setForm((f) => ({
+                  ...f,
+                  sectionType: st,
+                  heroSlides: st === 'HERO_CAROUSEL' && f.heroSlides.length === 0
+                    ? [{ ...EMPTY_SLIDE }]
+                    : f.heroSlides,
+                }));
+              }}
               className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
             >
               {ALL_TYPES.map((t) => (
@@ -336,26 +458,28 @@ export default function CmsPage() {
               placeholder="e.g. home-hero-2"
             />
           </label>
-          <label className="block">
-            <span className="text-[12.5px] font-medium text-slate-700">English title</span>
-            <input
-              type="text"
-              value={form.titleEn}
-              onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
-              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-              placeholder="e.g. Hero carousel"
-            />
-          </label>
-          <label className="block">
-            <span className="text-[12.5px] font-medium text-slate-700">Bangla title</span>
-            <input
-              type="text"
-              value={form.titleBn}
-              onChange={(e) => setForm({ ...form, titleBn: e.target.value })}
-              className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
-              placeholder="e.g. হিরো ক্যারোসেল"
-            />
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-[12.5px] font-medium text-slate-700">English title</span>
+              <input
+                type="text"
+                value={form.titleEn}
+                onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
+                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+                placeholder="e.g. Hero carousel"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[12.5px] font-medium text-slate-700">Bangla title</span>
+              <input
+                type="text"
+                value={form.titleBn}
+                onChange={(e) => setForm({ ...form, titleBn: e.target.value })}
+                className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
+                placeholder="e.g. হিরো ক্যারোসেল"
+              />
+            </label>
+          </div>
           <label className="block">
             <span className="text-[12.5px] font-medium text-slate-700">Position</span>
             <input
@@ -375,6 +499,140 @@ export default function CmsPage() {
             />
             <span className="text-sm text-slate-700">Visible on storefront</span>
           </label>
+
+          {/* Hero slides editor — only for HERO_CAROUSEL */}
+          {form.sectionType === 'HERO_CAROUSEL' && (
+            <div className="border-t border-border pt-3 mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Hero slides ({form.heroSlides.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={addSlide}
+                  className="inline-flex items-center gap-1 h-8 px-2.5 rounded bg-sky-600 text-white text-[12.5px] font-medium hover:bg-sky-700"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add slide
+                </button>
+              </div>
+
+              {form.heroSlides.length === 0 ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  No slides yet — click “Add slide” to create one.
+                </p>
+              ) : (
+                <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+                  {form.heroSlides.map((slide, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded border border-border bg-slate-50 p-3 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11.5px] font-semibold text-slate-600">
+                          Slide #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeSlide(idx)}
+                          className="h-7 w-7 grid place-items-center rounded hover:bg-slate-200"
+                          aria-label="Remove slide"
+                        >
+                          <X className="w-3.5 h-3.5 text-danger-600" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        {/* Image upload / preview */}
+                        <div className="w-24 h-24 shrink-0">
+                          {slide.imageUrl ? (
+                            <div className="relative w-24 h-24 rounded overflow-hidden border border-border">
+                              <img
+                                src={slide.imageUrl}
+                                alt={`Slide ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateSlide(idx, { imageUrl: '' })}
+                                className="absolute top-0.5 right-0.5 p-1 rounded bg-danger-600 text-white hover:bg-danger-700"
+                                aria-label="Remove image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label
+                              className={`w-24 h-24 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium ${
+                                uploadMutation.loading ? 'opacity-60' : ''
+                              }`}
+                            >
+                              <UploadCloud className="w-5 h-5" />
+                              <span>Upload</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                disabled={uploadMutation.loading}
+                                className="sr-only"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) void uploadSlideImage(idx, f);
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        <div className="flex-1 grid grid-cols-2 gap-2 min-w-0">
+                          <input
+                            type="text"
+                            value={slide.titleEn}
+                            onChange={(e) => updateSlide(idx, { titleEn: e.target.value })}
+                            className="h-8 px-2 rounded border border-border text-[12px]"
+                            placeholder="Title (English)"
+                          />
+                          <input
+                            type="text"
+                            value={slide.titleBn}
+                            onChange={(e) => updateSlide(idx, { titleBn: e.target.value })}
+                            className="h-8 px-2 rounded border border-border text-[12px]"
+                            placeholder="Title (বাংলা)"
+                          />
+                          <input
+                            type="text"
+                            value={slide.ctaLabelEn}
+                            onChange={(e) => updateSlide(idx, { ctaLabelEn: e.target.value })}
+                            className="h-8 px-2 rounded border border-border text-[12px]"
+                            placeholder="CTA (English)"
+                          />
+                          <input
+                            type="text"
+                            value={slide.ctaLabelBn}
+                            onChange={(e) => updateSlide(idx, { ctaLabelBn: e.target.value })}
+                            className="h-8 px-2 rounded border border-border text-[12px]"
+                            placeholder="CTA (বাংলা)"
+                          />
+                          <input
+                            type="text"
+                            value={slide.ctaHref}
+                            onChange={(e) => updateSlide(idx, { ctaHref: e.target.value })}
+                            className="h-8 px-2 rounded border border-border text-[12px] font-mono col-span-2"
+                            placeholder="Link URL (e.g. /c/smartphones)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {form.sectionType !== 'HERO_CAROUSEL' && (
+            <p className="text-[11.5px] text-slate-400 bg-slate-50 rounded p-2">
+              Config editor for <strong>{TYPE_LABEL[form.sectionType]}</strong> will arrive in a follow-up. For now this section uses default storefront content.
+            </p>
+          )}
         </div>
       </Modal>
     </div>
