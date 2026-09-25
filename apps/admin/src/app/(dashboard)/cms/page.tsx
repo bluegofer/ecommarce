@@ -12,6 +12,8 @@ import {
   UploadCloud,
   X,
   Image as ImageIcon,
+  Search,
+  Check,
 } from 'lucide-react';
 import { PageHeader, StatusChip, EmptyState, Modal, useToast } from '@/components/ui';
 import { useQuery, useMutation, useUpload } from '@/lib/hooks';
@@ -38,11 +40,7 @@ interface HeroSlideConfig {
 
 interface BannerConfig {
   imageUrl: string;
-  titleEn: string;
-  titleBn: string;
   ctaHref: string;
-  ctaLabelEn: string;
-  ctaLabelBn: string;
 }
 
 interface Section {
@@ -66,6 +64,22 @@ interface CategoryNode {
   isActive: boolean;
   sortOrder: number;
   children?: CategoryNode[];
+}
+
+interface ProductSummary {
+  id: string;
+  slug: string;
+  titleEn: string;
+  titleBn: string | null;
+  primaryImageUrl?: string | null;
+}
+
+interface PaginatedProducts {
+  items: ProductSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 interface UploadResult {
@@ -106,6 +120,8 @@ const BANNER_MAX: Partial<Record<SectionType, number>> = {
   WIDE_BANNER: 1,
 };
 
+const PRODUCT_PICKER_TYPES: SectionType[] = ['PRODUCT_CAROUSEL', 'RECOMMENDED'];
+
 interface AddFormState {
   key: string;
   sectionType: SectionType;
@@ -118,6 +134,7 @@ interface AddFormState {
   banners: BannerConfig[];
   paragraphs: string[];
   dealEndsAt: string;
+  productIds: string[];
 }
 
 const EMPTY_SLIDE: HeroSlideConfig = {
@@ -131,11 +148,7 @@ const EMPTY_SLIDE: HeroSlideConfig = {
 
 const EMPTY_BANNER: BannerConfig = {
   imageUrl: '',
-  titleEn: '',
-  titleBn: '',
   ctaHref: '',
-  ctaLabelEn: '',
-  ctaLabelBn: '',
 };
 
 const EMPTY_FORM: AddFormState = {
@@ -150,6 +163,7 @@ const EMPTY_FORM: AddFormState = {
   banners: [],
   paragraphs: [],
   dealEndsAt: '',
+  productIds: [],
 };
 
 function sectionLabel(s: Section): string {
@@ -172,6 +186,13 @@ export default function CmsPage() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState<AddFormState>({ ...EMPTY_FORM });
+  const [productSearch, setProductSearch] = useState('');
+
+  const productsQuery = useQuery<PaginatedProducts>(
+    PRODUCT_PICKER_TYPES.includes(form.sectionType)
+      ? `/api/v1/products?status=PUBLISHED&pageSize=48${productSearch ? `&q=${encodeURIComponent(productSearch)}` : ''}`
+      : null,
+  );
 
   const toggleMutation = useMutation<{ id: string; isVisible: boolean }, unknown>(
     'patch',
@@ -228,6 +249,7 @@ export default function CmsPage() {
   function openAdd() {
     const nextPos = data && data.length > 0 ? Math.max(...data.map((s) => s.position)) + 1 : 0;
     setForm({ ...EMPTY_FORM, position: nextPos });
+    setProductSearch('');
     setAddOpen(true);
   }
 
@@ -264,10 +286,10 @@ export default function CmsPage() {
     ) {
       const max = BANNER_MAX[form.sectionType] ?? 4;
       const validBanners = form.banners
-        .filter((b) => b.imageUrl.trim() && b.titleEn.trim() && b.ctaHref.trim())
+        .filter((b) => b.imageUrl.trim() && b.ctaHref.trim())
         .slice(0, max);
       if (validBanners.length === 0) {
-        toast.error('Missing banners', 'Add at least 1 complete banner tile');
+        toast.error('Missing banners', 'Add at least 1 complete banner tile (image + link)');
         return;
       }
       config = { banners: validBanners };
@@ -284,6 +306,12 @@ export default function CmsPage() {
       if (form.dealEndsAt) {
         config = { endsAt: new Date(form.dealEndsAt).toISOString() };
       }
+    } else if (PRODUCT_PICKER_TYPES.includes(form.sectionType)) {
+      if (form.productIds.length === 0) {
+        toast.error('Missing products', 'Pick at least 1 product');
+        return;
+      }
+      config = { productIds: form.productIds };
     }
 
     try {
@@ -402,12 +430,25 @@ export default function CmsPage() {
     }
   }
 
+  function toggleProduct(id: string) {
+    setForm((f) => {
+      const has = f.productIds.includes(id);
+      return {
+        ...f,
+        productIds: has
+          ? f.productIds.filter((p) => p !== id)
+          : [...f.productIds, id],
+      };
+    });
+  }
+
   const flatCategories = categoriesQuery.data ? flattenCategories(categoriesQuery.data) : [];
   const bannerMax = BANNER_MAX[form.sectionType] ?? 4;
   const isBannerType =
     form.sectionType === 'PROMO_TILES' ||
     form.sectionType === 'PROMO_BANNER' ||
     form.sectionType === 'WIDE_BANNER';
+  const isProductPickerType = PRODUCT_PICKER_TYPES.includes(form.sectionType);
 
   return (
     <div className="space-y-5">
@@ -578,6 +619,7 @@ export default function CmsPage() {
                       ? [{ ...EMPTY_BANNER }]
                       : f.banners,
                 }));
+                setProductSearch('');
               }}
               className="mt-1 w-full h-9 px-3 rounded border border-border text-sm"
             >
@@ -728,9 +770,6 @@ export default function CmsPage() {
                 <span className="text-[12.5px] font-semibold text-slate-700">
                   Categories ({form.categoryIds.length} selected)
                 </span>
-                {categoriesQuery.loading && (
-                  <span className="text-[11px] text-slate-400">Loading…</span>
-                )}
               </div>
               {categoriesQuery.error ? (
                 <p className="text-[12px] text-danger-600 py-2">
@@ -763,7 +802,7 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* PROMO_TILES / PROMO_BANNER / WIDE_BANNER */}
+          {/* PROMO_TILES / PROMO_BANNER / WIDE_BANNER — image + link only */}
           {isBannerType && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -779,6 +818,9 @@ export default function CmsPage() {
                   <Plus className="w-3.5 h-3.5" /> Add tile
                 </button>
               </div>
+              <p className="text-[11.5px] text-slate-400 mb-2">
+                Upload the banner image (with text baked in) + link URL.
+              </p>
               {form.banners.length === 0 ? (
                 <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
                   No banners yet — click “Add tile”.
@@ -801,9 +843,9 @@ export default function CmsPage() {
                         </button>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="w-24 h-24 shrink-0">
+                        <div className="w-32 h-20 shrink-0">
                           {banner.imageUrl ? (
-                            <div className="relative w-24 h-24 rounded overflow-hidden border border-border">
+                            <div className="relative w-32 h-20 rounded overflow-hidden border border-border">
                               <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
                               <button
                                 type="button"
@@ -815,9 +857,9 @@ export default function CmsPage() {
                               </button>
                             </div>
                           ) : (
-                            <label className="w-24 h-24 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium">
+                            <label className="w-32 h-20 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium">
                               <ImageIcon className="w-5 h-5" />
-                              <span>Upload</span>
+                              <span>Upload (2:1)</span>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -832,12 +874,14 @@ export default function CmsPage() {
                             </label>
                           )}
                         </div>
-                        <div className="flex-1 grid grid-cols-2 gap-2 min-w-0">
-                          <input type="text" value={banner.titleEn} onChange={(e) => updateBanner(idx, { titleEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Title (EN)" />
-                          <input type="text" value={banner.titleBn} onChange={(e) => updateBanner(idx, { titleBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Title (BN)" />
-                          <input type="text" value={banner.ctaLabelEn} onChange={(e) => updateBanner(idx, { ctaLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (EN)" />
-                          <input type="text" value={banner.ctaLabelBn} onChange={(e) => updateBanner(idx, { ctaLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (BN)" />
-                          <input type="text" value={banner.ctaHref} onChange={(e) => updateBanner(idx, { ctaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono col-span-2" placeholder="Link URL" />
+                        <div className="flex-1 min-w-0">
+                          <input
+                            type="text"
+                            value={banner.ctaHref}
+                            onChange={(e) => updateBanner(idx, { ctaHref: e.target.value })}
+                            className="w-full h-8 px-2 rounded border border-border text-[12px] font-mono"
+                            placeholder="Link URL (e.g. /c/smartphones)"
+                          />
                         </div>
                       </div>
                     </div>
@@ -847,7 +891,7 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* SEO_TEXT: paragraphs editor */}
+          {/* SEO_TEXT */}
           {form.sectionType === 'SEO_TEXT' && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -903,7 +947,7 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* DEAL_STRIP: end datetime picker */}
+          {/* DEAL_STRIP */}
           {form.sectionType === 'DEAL_STRIP' && (
             <div className="border-t border-border pt-3 mt-3">
               <label className="block">
@@ -923,14 +967,88 @@ export default function CmsPage() {
             </div>
           )}
 
-          {/* Other types — placeholder */}
+          {/* PRODUCT_CAROUSEL / RECOMMENDED — product picker */}
+          {isProductPickerType && (
+            <div className="border-t border-border pt-3 mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12.5px] font-semibold text-slate-700">
+                  Products ({form.productIds.length} selected)
+                </span>
+              </div>
+              <div className="relative mb-2">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 rounded border border-border text-sm"
+                  placeholder="Search products by name…"
+                />
+              </div>
+              {productsQuery.loading && !productsQuery.data ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  Loading products…
+                </p>
+              ) : productsQuery.error ? (
+                <p className="text-[12px] text-danger-600 py-2">
+                  Failed: {productsQuery.error.message}
+                </p>
+              ) : !productsQuery.data || productsQuery.data.items.length === 0 ? (
+                <p className="text-[12px] text-slate-400 py-3 text-center bg-slate-50 rounded">
+                  No published products found.
+                </p>
+              ) : (
+                <div className="max-h-[300px] overflow-y-auto border border-border rounded bg-slate-50 p-2 space-y-1">
+                  {productsQuery.data.items.map((p) => {
+                    const selected = form.productIds.includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => toggleProduct(p.id)}
+                        className={`w-full flex items-center gap-2 p-2 rounded text-left text-[12.5px] transition-colors ${
+                          selected ? 'bg-sky-100 border border-sky-400' : 'hover:bg-white border border-transparent'
+                        }`}
+                      >
+                        <span
+                          className={`w-4 h-4 grid place-items-center rounded border ${
+                            selected ? 'bg-sky-600 border-sky-600' : 'border-slate-300'
+                          }`}
+                        >
+                          {selected && <Check className="w-3 h-3 text-white" />}
+                        </span>
+                        {p.primaryImageUrl ? (
+                          <img
+                            src={p.primaryImageUrl}
+                            alt=""
+                            className="w-8 h-8 rounded object-cover bg-slate-100 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-slate-200 shrink-0" />
+                        )}
+                        <span className="flex-1 min-w-0 text-slate-700 truncate">
+                          {p.titleEn}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-[11.5px] text-slate-400 mt-1">
+                Selected products appear in this carousel. Order matches selection order.
+              </p>
+            </div>
+          )}
+
+          {/* Other — placeholder */}
           {form.sectionType !== 'HERO_CAROUSEL' &&
             form.sectionType !== 'CATEGORY_TILES' &&
             form.sectionType !== 'SEO_TEXT' &&
             form.sectionType !== 'DEAL_STRIP' &&
-            !isBannerType && (
+            !isBannerType &&
+            !isProductPickerType && (
               <p className="text-[11.5px] text-slate-400 bg-slate-50 rounded p-2">
-                Config editor for <strong>{TYPE_LABEL[form.sectionType]}</strong> will arrive in a follow-up. For now this section uses default storefront content.
+                Config editor for <strong>{TYPE_LABEL[form.sectionType]}</strong> will arrive in a follow-up.
               </p>
             )}
         </div>

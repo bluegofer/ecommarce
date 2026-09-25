@@ -66,6 +66,25 @@ export default async function HomePage({ params }: { params: { locale: string } 
       cmsApi.getMenu('FOOTER').catch(() => null),
     ]);
 
+  // ── Product picker support: collect all productIds referenced by sections ──
+  const allPickedProductIds = new Set<string>();
+  for (const s of feed.sections) {
+    if (s.sectionType === 'PRODUCT_CAROUSEL' || s.sectionType === 'RECOMMENDED') {
+      for (const id of extractProductIds(s.config)) allPickedProductIds.add(id);
+    }
+  }
+
+  // Fetch all published products once (single request), index by id.
+  const pickedProductsMap = new Map<string, ProductSummary>();
+  if (allPickedProductIds.size > 0) {
+    const allProducts = await catalogApi
+      .listProducts({ status: 'PUBLISHED', limit: 96 })
+      .catch(() => ({ items: [] as ProductSummary[], total: 0, page: 1, pageSize: 96, totalPages: 1 }));
+    for (const p of allProducts.items) {
+      if (allPickedProductIds.has(p.id)) pickedProductsMap.set(p.id, p);
+    }
+  }
+
   const sortedSections = [...feed.sections].sort((a, b) => a.position - b.position);
   const activeAnnouncement = feed.announcements[0];
 
@@ -194,6 +213,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
           bestSellers: bestSellers.items,
           newArrivals: newArrivals.items,
           recommended: recommended.items,
+          pickedProductsMap,
           dict: t,
         }))}
       </main>
@@ -236,6 +256,7 @@ interface RenderSectionArgs {
   bestSellers: ProductSummary[];
   newArrivals: ProductSummary[];
   recommended: ProductSummary[];
+  pickedProductsMap: Map<string, ProductSummary>;
   dict: ReturnType<typeof getDictionary>;
 }
 
@@ -245,6 +266,7 @@ function renderSection({
   categories,
   bestSellers,
   recommended,
+  pickedProductsMap,
   dict,
 }: RenderSectionArgs) {
   const title = locale === 'bn'
@@ -293,28 +315,38 @@ function renderSection({
       );
     }
     case 'PRODUCT_CAROUSEL': {
-      if (bestSellers.length === 0) return null;
+      const pickedIds = extractProductIds(section.config);
+      const pickedProducts =
+        pickedIds.length > 0
+          ? pickedIds.map((id) => pickedProductsMap.get(id)).filter((p): p is ProductSummary => Boolean(p))
+          : bestSellers;
+      if (pickedProducts.length === 0) return null;
       return (
         <ProductCarousel
           key={section.id}
           title={title ?? (locale === 'bn' ? 'বেস্ট সেলার' : 'Best Sellers')}
           seeAllHref={`/${locale}/deals`}
           seeAllLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all →'}
-          products={bestSellers}
+          products={pickedProducts}
           locale={locale}
           dict={dict}
         />
       );
     }
     case 'RECOMMENDED': {
-      if (recommended.length === 0) return null;
+      const pickedIds = extractProductIds(section.config);
+      const pickedProducts =
+        pickedIds.length > 0
+          ? pickedIds.map((id) => pickedProductsMap.get(id)).filter((p): p is ProductSummary => Boolean(p))
+          : recommended;
+      if (pickedProducts.length === 0) return null;
       return (
         <ProductCarousel
           key={section.id}
           title={title ?? (locale === 'bn' ? 'আপনার জন্য সুপারিশ' : 'Recommended for you')}
           seeAllHref={`/${locale}/deals`}
           seeAllLabel={locale === 'bn' ? 'সব দেখুন →' : 'See all →'}
-          products={recommended}
+          products={pickedProducts}
           locale={locale}
           dict={dict}
         />
@@ -375,21 +407,28 @@ function extractCategoryIds(
   );
 }
 
+function extractProductIds(
+  config: Record<string, unknown> | null | undefined,
+): string[] {
+  if (!config || !('productIds' in config) || !Array.isArray(config.productIds)) {
+    return [];
+  }
+  return (config.productIds as unknown[]).filter(
+    (id): id is string => typeof id === 'string' && id.length > 0,
+  );
+}
+
 function extractPromoBanners(
   config: Record<string, unknown> | null | undefined,
   locale: 'bn' | 'en',
-): Array<{ imageUrl: string; titleEn: string; titleBn: string; ctaHref: string; ctaLabelEn: string; ctaLabelBn: string }> {
+): Array<{ imageUrl: string; ctaHref: string }> {
   if (config && 'banners' in config && Array.isArray(config.banners)) {
     return (config.banners as Array<Record<string, unknown>>)
       .filter((b) => b && typeof b.imageUrl === 'string' && typeof b.ctaHref === 'string')
       .slice(0, 4)
       .map((b) => ({
         imageUrl: String(b.imageUrl),
-        titleEn: String(b.titleEn ?? ''),
-        titleBn: String(b.titleBn ?? ''),
         ctaHref: String(b.ctaHref),
-        ctaLabelEn: String(b.ctaLabelEn ?? 'Shop'),
-        ctaLabelBn: String(b.ctaLabelBn ?? 'কিনুন'),
       }));
   }
   return fallbackPromoBanners(locale);
@@ -398,18 +437,14 @@ function extractPromoBanners(
 function extractWideBanners(
   config: Record<string, unknown> | null | undefined,
   locale: 'bn' | 'en',
-): Array<{ imageUrl: string; titleEn: string; titleBn: string; ctaHref: string; ctaLabelEn: string; ctaLabelBn: string }> {
+): Array<{ imageUrl: string; ctaHref: string }> {
   if (config && 'banners' in config && Array.isArray(config.banners)) {
     return (config.banners as Array<Record<string, unknown>>)
       .filter((b) => b && typeof b.imageUrl === 'string' && typeof b.ctaHref === 'string')
       .slice(0, 1)
       .map((b) => ({
         imageUrl: String(b.imageUrl),
-        titleEn: String(b.titleEn ?? ''),
-        titleBn: String(b.titleBn ?? ''),
         ctaHref: String(b.ctaHref),
-        ctaLabelEn: String(b.ctaLabelEn ?? 'Shop'),
-        ctaLabelBn: String(b.ctaLabelBn ?? 'কিনুন'),
       }));
   }
   return fallbackPromoBanners(locale).slice(0, 1);
@@ -434,40 +469,24 @@ function extractSeoParagraphs(
       ];
 }
 
-function fallbackPromoBanners(locale: 'bn' | 'en') {
+function fallbackPromoBanners(locale: 'bn' | 'en'): Array<{ imageUrl: string; ctaHref: string }> {
   const mk = (bg: string, fg: string) => placeholderSvg('', bg, fg);
   return [
     {
       imageUrl: mk('EFF7FB', '25729A'),
-      titleEn: 'Smartphones under ৳20,000',
-      titleBn: '২০,০০০ টাকার নিচে স্মার্টফোন',
       ctaHref: `/${locale}/c/smartphones`,
-      ctaLabelEn: 'Shop the range',
-      ctaLabelBn: 'কিনুন',
     },
     {
       imageUrl: mk('FEF5E7', 'B45309'),
-      titleEn: 'Fashion Fest — Min 50% off',
-      titleBn: 'ফ্যাশন ফেস্ট — ন্যূনতম ৫০% ছাড়',
       ctaHref: `/${locale}/c/fashion`,
-      ctaLabelEn: 'Explore styles',
-      ctaLabelBn: 'দেখুন',
     },
     {
       imageUrl: mk('EAF7EF', '16A34A'),
-      titleEn: 'Grocery Super Saver Days',
-      titleBn: 'গ্রোসারি সুপার সেভার',
       ctaHref: `/${locale}/c/home-kitchen`,
-      ctaLabelEn: 'Stock up now',
-      ctaLabelBn: 'স্টক করুন',
     },
     {
       imageUrl: mk('E0F2FE', '0C2B3D'),
-      titleEn: 'Home Makeover from ৳499',
-      titleBn: 'হোম মেকওভার ৪৯৯ টাকা থেকে',
       ctaHref: `/${locale}/c/home-kitchen`,
-      ctaLabelEn: 'Discover deals',
-      ctaLabelBn: 'আবিষ্কার করুন',
     },
   ];
 }
