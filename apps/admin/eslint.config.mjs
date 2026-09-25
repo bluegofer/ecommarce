@@ -9,6 +9,7 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default [
   {
@@ -38,6 +39,14 @@ export default [
     },
   },
 
+  // JSX Accessibility (jsx-a11y)
+  // Only load plugin — do NOT enable recommended ruleset (we'll set rules manually)
+  {
+    plugins: {
+      'jsx-a11y': jsxA11y,
+    },
+  },
+
   // Project overrides — start lenient (Step 15 will tighten)
   {
     rules: {
@@ -54,6 +63,15 @@ export default [
       'no-empty': 'warn',
       'no-useless-escape': 'warn',
       'prefer-const': 'warn',
+
+      // jsx-a11y — all rules as warnings (CI stays green)
+      'jsx-a11y/alt-text': 'warn',
+      'jsx-a11y/anchor-is-valid': 'warn',
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/no-static-element-interactions': 'warn',
+      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+      'jsx-a11y/label-has-associated-control': 'warn',
+      'jsx-a11y/no-autofocus': 'warn',
     },
   },
 ];
