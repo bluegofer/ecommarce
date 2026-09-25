@@ -1515,3 +1515,68 @@ Phase 3 (credentials).
 - `apps/storefront/src/lib/api/client.ts`
 - `apps/storefront/src/lib/i18n/bn.json`
 - `apps/storefront/src/lib/i18n/en.json`
+
+---
+
+## Custom Phase 6 — Category CRUD Admin UI (2026-09-25)
+
+**Status:** IN PROGRESS
+
+### Context
+
+Admin `/categories` page had toast stubs ("Modal wired in Batch B.3") from an earlier
+batch. Backend endpoints (`POST/PATCH/DELETE /api/v1/categories`) existed since Step 3
+but had no UI, so categories could only be created via API/seed. This phase closes
+the gap and enables subcategory creation from the admin UI (which the storefront
+mega-menu and PLP filters depend on).
+
+### Delivered
+
+| Component | File | Purpose |
+|---|---|---|
+| `CategoryFormModal` | `apps/admin/src/components/catalog/category-form-modal.tsx` | Unified create + edit modal with all 13 DTO fields |
+| `CategoryDeleteDialog` | `apps/admin/src/components/catalog/category-delete-dialog.tsx` | Delete confirmation with children/products guard |
+| Wire-in | `apps/admin/src/app/(dashboard)/categories/page.tsx` | Toast stubs replaced with real modal triggers; tree refetches on success |
+
+### Decisions locked
+
+1. **Image upload — dual-mode**: file picker via `useUpload` → `/api/v1/uploads/media`
+   (media-library reuse per TDD §6.4) + URL paste fallback for advanced users.
+2. **Icon picker — visual grid + custom tab**: 54 curated lucide icon names in a
+   grid + fallback text input for any lucide name. Used by storefront mega-menu
+   and home category tiles.
+3. **Slug auto-generation**: auto-fills from `nameEn` while user hasn't manually
+   edited the field; user override sticks.
+4. **Parent dropdown cycle-safety**: in edit mode, the category itself + all its
+   descendants are excluded from the parent list to prevent orphaned subtrees.
+5. **Client-side validation only this pass**: backend re-validates (TDD §10.1);
+   slug-collision errors surface inline under the slug field.
+6. **Single commit — atomic feature** (Workflow v2 §3.1 Rule 12).
+
+### Deferred (logged for later)
+
+| # | Item | Owner | Target |
+|---|---|---|---|
+| D-6.1 | Backend validation of `iconName` against curated list (TDD §10.1 gap) | dev | Custom Phase 6 cleanup or Phase D |
+| D-6.2 | Category slug-rename 301 redirect (TDD §8.1 requires, backend missing) | dev | Phase 14 (SEO step) |
+| D-6.3 | Bangla i18n for admin form labels (Workflow §9 Rule 4) | dev | Post-Phase-D i18n pass |
+| D-6.4 | Drag-to-reorder categories in tree (subtitle claims it; not yet built) | dev | Later phase |
+| D-6.5 | Delete orphan 1-line files: `catalog/categories.controller.ts`, `catalog/products.controller.ts` (unused stubs) | dev | Cleanup phase |
+
+### Reference
+
+TDD §6.1 (product catalog), §6.4 (media library), §6.13 (admin UX/RBAC), §10.1
+(input validation), §8.1 (SEO slug redirect). Workflow v2 §9 Rule 1 (backend
+mock pattern reuse), Ground Rule 13 (single-source ERP data). Audit reference:
+`docs/phase-4-audit.md` §2.2 (category gap).
+
+### Brand note (D-02 update)
+
+Client confirmed on 2026-09-25: brand name is **"NoLimitShopping"** (not Bluegofer,
+not SkyMart). TDD §5/§15.2 brand references will be updated by the client in a
+future TDD revision. Code-wide search-replace will be a separate phase.
+
+### Next
+
+Phase B done → verify locally (lint + typecheck) → commit → CI → staging test.
+Phase C (advanced menu builder) and Phase D (full product form) follow.

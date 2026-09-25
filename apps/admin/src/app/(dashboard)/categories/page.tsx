@@ -2,26 +2,21 @@
 
 import { useState } from 'react';
 import { FolderTree, Plus, ChevronRight, ChevronDown, Edit, Trash2 } from 'lucide-react';
-import { PageHeader, StatusChip, useToast } from '@/components/ui';
-import { useQuery, useMutation } from '@/lib/hooks';
-
-interface CategoryNode {
-  id: string;
-  nameEn: string;
-  nameBn: string;
-  slug: string;
-  isActive: boolean;
-  sortOrder: number;
-  children?: CategoryNode[];
-}
+import { PageHeader, StatusChip } from '@/components/ui';
+import { useQuery } from '@/lib/hooks';
+import { CategoryFormModal } from '@/components/catalog/category-form-modal';
+import { CategoryDeleteDialog } from '@/components/catalog/category-delete-dialog';
+import type { CategoryDto, CategoryTreeNode } from '@ecommarce/types';
 
 export default function CategoriesPage() {
-  const toast = useToast();
-  const { data, loading, error, refetch } = useQuery<CategoryNode[]>(
+  const { data, loading, error, refetch } = useQuery<CategoryTreeNode[]>(
     '/api/v1/categories/tree',
   );
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<CategoryDto | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CategoryDto | null>(null);
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -32,6 +27,15 @@ export default function CategoriesPage() {
     });
   };
 
+  const findNode = (nodes: CategoryTreeNode[], id: string): CategoryTreeNode | null => {
+    for (const n of nodes) {
+      if (n.id === id) return n;
+      const found = findNode(n.children ?? [], id);
+      if (found) return found;
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -40,7 +44,7 @@ export default function CategoriesPage() {
         actions={
           <button
             type="button"
-            onClick={() => toast.push({ tone: 'info', title: 'Create category', description: 'Modal wired in Batch B.3.' })}
+            onClick={() => setCreateOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
           >
             <Plus className="w-4 h-4" /> New category
@@ -67,8 +71,8 @@ export default function CategoriesPage() {
                 depth={0}
                 expanded={expanded}
                 onToggle={toggle}
-                onEdit={(n) => toast.push({ tone: 'info', title: `Edit ${n.nameEn}`, description: 'Wired in B.3.' })}
-                onDelete={(n) => toast.push({ tone: 'warning', title: `Delete ${n.nameEn}`, description: 'Confirm modal wired in B.3.' })}
+                onEdit={(n) => setEditTarget(n)}
+                onDelete={(n) => setDeleteTarget(n)}
               />
             ))}
           </div>
@@ -78,6 +82,41 @@ export default function CategoriesPage() {
       <div className="text-[12px] text-slate-400">
         Tip: categories with no children can be parents of products; any node can hold attributes.
       </div>
+
+      <CategoryFormModal
+        mode="create"
+        category={null}
+        categories={data ?? []}
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={() => {
+          setCreateOpen(false);
+          void refetch();
+        }}
+      />
+
+      <CategoryFormModal
+        mode="edit"
+        category={editTarget}
+        categories={data ?? []}
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        onSuccess={() => {
+          setEditTarget(null);
+          void refetch();
+        }}
+      />
+
+      <CategoryDeleteDialog
+        category={deleteTarget}
+        hasChildren={!!(deleteTarget && findNode(data ?? [], deleteTarget.id)?.children?.length)}
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onSuccess={() => {
+          setDeleteTarget(null);
+          void refetch();
+        }}
+      />
     </div>
   );
 }
@@ -90,12 +129,12 @@ function TreeNode({
   onEdit,
   onDelete,
 }: {
-  node: CategoryNode;
+  node: CategoryTreeNode;
   depth: number;
   expanded: Set<string>;
   onToggle: (id: string) => void;
-  onEdit: (n: CategoryNode) => void;
-  onDelete: (n: CategoryNode) => void;
+  onEdit: (n: CategoryTreeNode) => void;
+  onDelete: (n: CategoryTreeNode) => void;
 }) {
   const hasChildren = !!node.children?.length;
   const isOpen = expanded.has(node.id);
