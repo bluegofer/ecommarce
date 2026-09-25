@@ -55,6 +55,9 @@ export class ProductsService {
         metaDescription: dto.metaDescription ?? null,
         bulletFeatures: (dto.bulletFeatures as unknown as object) ?? undefined,
         specsJson: (dto.specsJson as unknown as object) ?? undefined,
+        deliveryTimeEn: dto.deliveryTimeEn ?? null,
+        deliveryTimeBn: dto.deliveryTimeBn ?? null,
+        videoUrl: dto.videoUrl ?? null,
         isFeatured: dto.isFeatured ?? false,
       },
     });
@@ -80,6 +83,9 @@ export class ProductsService {
     if (dto.metaDescription !== undefined) data.metaDescription = dto.metaDescription;
     if (dto.bulletFeatures !== undefined) data.bulletFeatures = dto.bulletFeatures;
     if (dto.specsJson !== undefined) data.specsJson = dto.specsJson;
+    if (dto.deliveryTimeEn !== undefined) data.deliveryTimeEn = dto.deliveryTimeEn;
+    if (dto.deliveryTimeBn !== undefined) data.deliveryTimeBn = dto.deliveryTimeBn;
+    if (dto.videoUrl !== undefined) data.videoUrl = dto.videoUrl;
     if (dto.isFeatured !== undefined) data.isFeatured = dto.isFeatured;
     if (dto.categoryId !== undefined) {
       const cat = await this.prisma.category.findUnique({ where: { id: dto.categoryId } });
@@ -323,6 +329,9 @@ export class ProductsService {
     brand: string | null;
     status: string;
     publishedAt: Date | null;
+    deliveryTimeEn: string | null;
+    deliveryTimeBn: string | null;
+    videoUrl: string | null;
     metaTitle: string | null;
     metaDescription: string | null;
     bulletFeatures: unknown;
@@ -379,6 +388,9 @@ export class ProductsService {
       metaTitle: p.metaTitle,
       metaDescription: p.metaDescription,
       bulletFeatures: Array.isArray(p.bulletFeatures) ? (p.bulletFeatures as string[]) : null,
+      deliveryTimeEn: p.deliveryTimeEn ?? null,
+      deliveryTimeBn: p.deliveryTimeBn ?? null,
+      videoUrl: p.videoUrl ?? null,
       specsJson:
         p.specsJson && typeof p.specsJson === 'object'
           ? (p.specsJson as Record<string, string>)

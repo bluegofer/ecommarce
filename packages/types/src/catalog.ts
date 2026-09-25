@@ -130,6 +130,9 @@ export interface ProductDto {
   brand: string | null;
   status: ProductStatus;
   publishedAt: string | null;
+  deliveryTimeEn: string | null;
+  deliveryTimeBn: string | null;
+  videoUrl: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   bulletFeatures: string[] | null;
@@ -160,6 +163,9 @@ export interface CreateProductDto {
   brand?: string;
   status?: ProductStatus;
   publishedAt?: string;
+  deliveryTimeEn?: string;
+  deliveryTimeBn?: string;
+  videoUrl?: string;
   metaTitle?: string;
   metaDescription?: string;
   bulletFeatures?: string[];

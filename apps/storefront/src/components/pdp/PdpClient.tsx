@@ -41,6 +41,8 @@ export interface PdpClientProps {
   specs: { key: string; value: string }[];
   ratingAverage: number;
   ratingCount: number;
+  deliveryTime?: string | null;
+  videoUrl?: string | null;
   reviews: { summary: ReviewSummary; items: ReviewItem[] };
   isNew: boolean;
   bestSeller: boolean;
@@ -53,6 +55,7 @@ export function PdpClient(props: PdpClientProps) {
     productId, slug, title, brand, sellerName, images, variants,
     bulletFeatures, descriptionHtml, specs,
     ratingAverage, ratingCount, reviews, isNew, bestSeller,
+    deliveryTime, videoUrl,
     locale, dict,
   } = props;
 
@@ -222,6 +225,11 @@ export function PdpClient(props: PdpClientProps) {
               <div className={styles.trustRow}>
                 <LockIcon /> {locale === 'bn' ? 'নিরাপদ পেমেন্ট' : 'Secure checkout'}
               </div>
+              {deliveryTime ? (
+                <div className={styles.trustRow}>
+                  <TruckIcon /> {deliveryTime}
+                </div>
+              ) : null}
             </div>
           </div>
         </aside>
@@ -229,6 +237,22 @@ export function PdpClient(props: PdpClientProps) {
 
       {/* Sticky tabs — span full width below 3-column */}
       <StickyTabs tabs={tabs} />
+
+      {/* Video */}
+      {videoUrl ? (
+        <section id="video" className={styles.section}>
+          <h2 className={styles.sectionTitle}>{locale === 'bn' ? 'ভিডিও' : 'Product Video'}</h2>
+          <div style={{ position: 'relative', paddingTop: '56.25%', marginTop: 12 }}>
+            <iframe
+              src={toEmbedUrl(videoUrl)}
+              title={title}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, borderRadius: 8 }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </section>
+      ) : null}
 
       {/* Description */}
       <section id="description" className={styles.section}>
@@ -296,6 +320,14 @@ export function PdpClient(props: PdpClientProps) {
 }
 
 // ── Helpers ──
+
+function toEmbedUrl(url: string): string {
+  const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (yt) return 'https://www.youtube.com/embed/' + yt[1];
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo) return 'https://player.vimeo.com/video/' + vimeo[1];
+  return url;
+}
 
 function attributeLabel(key: string, locale: 'bn' | 'en'): string {
   const labels: Record<string, { bn: string; en: string }> = {

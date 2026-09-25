@@ -36,6 +36,9 @@ export interface ProductSummary {
   brand: string | null;
   status: 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED';
   publishedAt: string | null;
+  deliveryTimeEn: string | null;
+  deliveryTimeBn: string | null;
+  videoUrl: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   bulletFeatures: string[] | null;
@@ -141,6 +144,9 @@ export interface CmsPage {
   bodyBn: string | null;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   publishedAt: string | null;
+  deliveryTimeEn: string | null;
+  deliveryTimeBn: string | null;
+  videoUrl: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   currentRevision: number;

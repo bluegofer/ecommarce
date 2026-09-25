@@ -25,6 +25,9 @@ interface ProductRow {
   brand: string | null;
   status: string;
   publishedAt: Date | null;
+  deliveryTimeEn: string | null;
+  deliveryTimeBn: string | null;
+  videoUrl: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   bulletFeatures: unknown;
@@ -290,6 +293,9 @@ export class SearchService {
       brand: p.brand,
       status: p.status as ProductStatus,
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+      deliveryTimeEn: p.deliveryTimeEn,
+      deliveryTimeBn: p.deliveryTimeBn,
+      videoUrl: p.videoUrl,
       metaTitle: p.metaTitle,
       metaDescription: p.metaDescription,
       bulletFeatures: Array.isArray(p.bulletFeatures) ? (p.bulletFeatures as string[]) : null,

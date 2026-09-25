@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { api, catalogApi } from '@/lib/api';
@@ -223,6 +223,8 @@ export default async function ProductPage({ params }: PageProps) {
           bulletFeatures={bullets}
           descriptionHtml={descriptionHtml}
           specs={specs}
+          deliveryTime={locale === 'bn' ? product.deliveryTimeBn : product.deliveryTimeEn}
+          videoUrl={product.videoUrl}
           ratingAverage={Number(product.avgRating)}
           ratingCount={product.ratingCount}
           reviews={{

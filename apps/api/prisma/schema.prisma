@@ -351,6 +351,9 @@ model Product {
   brand           String?
   status          ProductStatus @default(DRAFT)
   publishedAt     DateTime?
+  deliveryTimeEn  String?
+  deliveryTimeBn  String?
+  videoUrl        String?
   metaTitle       String?
   metaDescription String?
   bulletFeatures  Json?
