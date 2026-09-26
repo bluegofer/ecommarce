@@ -291,7 +291,7 @@ export default function ProductEditorPage() {
 
       <PageHeader
         title={data.titleEn}
-        subtitle={`${data.category?.nameEn ?? 'No category'} · ${data.variants.length} variants`}
+        subtitle={`${data.category?.nameEn ?? 'No category'} · ${(data.variants ?? []).length} variants`}
         actions={
           <>
             <StatusChip
@@ -563,7 +563,7 @@ export default function ProductEditorPage() {
               Generate variants
             </button>
           </div>
-          {data.variants.length === 0 ? (
+          {(data.variants ?? []).length === 0 ? (
             <div className="p-10 text-center text-slate-400">
               No variants yet — click &quot;Generate variants&quot; to create combinations from
               category attributes.
@@ -590,7 +590,7 @@ export default function ProductEditorPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {data.variants.map((v) => (
+                {(data.variants ?? []).map((v) => (
                   <tr key={v.id}>
                     <td className="px-4 py-3 font-mono text-slate-700">{v.sku}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-slate-800">

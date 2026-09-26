@@ -437,6 +437,11 @@ export class ProductsService {
       }));
     }
 
+    // B-1 fix (2026-09-27): always include variants/media/primaryImageUrl
+    // so admin editor + storefront PDP never hit .length on undefined.
+    if (extra.variants === undefined) extra.variants = [];
+    if (extra.media === undefined) extra.media = [];
+    if (extra.primaryImageUrl === undefined) extra.primaryImageUrl = null;
     return Object.assign(base, extra) as ProductDto;
   }
 
