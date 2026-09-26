@@ -2465,3 +2465,20 @@ model WishlistItem {
   @@index([productId])
   @@map("wishlist_items")
 }
+// ---------------------------------------------------------------------
+// Newsletter Subscriber (A-2)
+// ---------------------------------------------------------------------
+
+model NewsletterSubscriber {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(254)
+  name         String?  @db.VarChar(120)
+  source       String?  @db.VarChar(40)   // 'footer' | 'popup' | 'admin'
+  locale       String?  @db.VarChar(8)    // 'bn' | 'en'
+  isActive     Boolean  @default(true)
+  subscribedAt DateTime @default(now()) @map("subscribed_at")
+  unsubscribedAt DateTime? @map("unsubscribed_at")
+
+  @@index([email])
+  @@map("newsletter_subscribers")
+}

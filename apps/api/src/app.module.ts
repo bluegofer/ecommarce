@@ -14,6 +14,7 @@ import { IdempotencyInterceptor } from './common/interceptors/idempotency.interc
 import { AuthModule } from './modules/auth/auth.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
@@ -58,6 +59,7 @@ import { CourierModule } from './modules/courier/courier.module';
     AuthModule,
     UploadsModule,
     AuditModule,
+    NewsletterModule,
     JobsModule,
     CatalogModule,
     InventoryModule,

@@ -15,3 +15,4 @@ export type { AnnouncementBarProps } from './AnnouncementBar';
 
 export { PopupDisplay } from './PopupDisplay';
 export { AppDownloadBanner } from './AppDownloadBanner';
+export { NewsletterSignup } from './NewsletterSignup';

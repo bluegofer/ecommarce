@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BRAND } from '@/lib/brand';
 import styles from './Footer.module.css';
+import { NewsletterSignup } from './NewsletterSignup';
 
 export interface FooterProps {
   locale: 'bn' | 'en';
@@ -16,6 +17,8 @@ export function Footer({ locale }: FooterProps) {
       <a href="#top" className={styles.backTop}>
         {t('Back to top', 'উপরে ফিরে যান')}
       </a>
+
+      <NewsletterSignup locale={locale} />
 
       <div className={styles.columns}>
         {/* ── Column 1: Get to Know Us ── */}
