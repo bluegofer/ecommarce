@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payments &amp; Refunds · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item active" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search by transaction ID…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>💰 Payments &amp; Refunds</h2><div class="crumb">Sales / Payments</div><p>Multi-gateway ledger — bKash · Nagad · SSLCommerz · COD. Refund initiation &amp; reconciliation per gateway.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Reconciliation exported">⬇ Recon Report</button><button class="btn b-primary" data-toast="Manual payment captured">＋ Record Payment</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-green">💵</div><div><div class="stat-lbl">Collected Today</div><div class="stat-val">৳1,28,450</div><div class="stat-sub"><span class="up">▲ 12%</span></div></div></div>
+<div class="card stat"><div class="stat-ic ic-sky">📱</div><div><div class="stat-lbl">MFS Gateway</div><div class="stat-val">৳68,200</div><div class="stat-sub">bKash + Nagad</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">🏦</div><div><div class="stat-lbl">SSLCommerz</div><div class="stat-val">৳11,250</div><div class="stat-sub">cards + bank</div></div></div>
+<div class="card stat"><div class="stat-ic ic-red">↩️</div><div><div class="stat-lbl">Refunds · MTD</div><div class="stat-val">৳8,420</div><div class="stat-sub">7 refunds processed</div></div></div>
+</div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">Transactions</div>
+<div class="tab">Refunds</div>
+<div class="tab">Settlements</div>
+<div class="tab">Gateway Settings</div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Txn ID</th><th>Order</th><th>Method</th><th>Amount</th><th>Status</th><th>Verified</th><th>When</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>TXN-9821</b></td><td>#BG-10233</td><td><span class="badge b-sky">bKash</span></td><td>৳1,250</td><td><span class="badge b-green">Success</span></td><td>✅ Auto</td><td>Today 10:18</td><td><div class="t-actions"><button>👁</button><button>↩️</button></div></td></tr>
+<tr><td><b>TXN-9820</b></td><td>#BG-10232</td><td><span class="badge b-violet">SSLCommerz</span></td><td>৳6,980</td><td><span class="badge b-green">Success</span></td><td>✅ Auto</td><td>Today 09:56</td><td><div class="t-actions"><button>👁</button><button>↩️</button></div></td></tr>
+<tr><td><b>TXN-9819</b></td><td>#BG-10231</td><td><span class="badge b-teal">Nagad</span></td><td>৳2,150</td><td><span class="badge b-green">Success</span></td><td>✅ Auto</td><td>Today 09:31</td><td><div class="t-actions"><button>👁</button><button>↩️</button></div></td></tr>
+<tr><td><b>TXN-9818</b></td><td>#BG-10230</td><td><span class="badge b-amber">COD</span></td><td>৳9,320</td><td><span class="badge b-amber">Pending collection</span></td><td>⏳ Rider</td><td>Today 08:47</td><td><div class="t-actions"><button>👁</button><button>✓</button></div></td></tr>
+<tr><td><b>TXN-9817</b></td><td>#BG-10229</td><td><span class="badge b-amber">COD</span></td><td>৳890</td><td><span class="badge b-red">RTO</span></td><td>❌ Returned</td><td>Today 08:12</td><td><div class="t-actions"><button>👁</button><button>↩️</button></div></td></tr>
+<tr><td><b>TXN-9816</b></td><td>#BG-10228</td><td><span class="badge b-sky">bKash</span></td><td>৳3,420</td><td><span class="badge b-green">Success</span></td><td>✅ Auto</td><td>Today 07:36</td><td><div class="t-actions"><button>👁</button><button>↩️</button></div></td></tr>
+<tr><td><b>TXN-9815</b></td><td>#BG-10198</td><td><span class="badge b-violet">SSLCommerz</span></td><td>৳4,560</td><td><span class="badge b-green">Success</span></td><td>✅ Auto</td><td>Yest 21:18</td><td><div class="t-actions"><button>👁</button><button>↩️</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="card" style="margin-top:14px"><div class="card-hd"><h3>Refund Requests</h3></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Refund ID</th><th>Order</th><th>Customer</th><th>Reason</th><th>Amount</th><th>Method</th><th>Status</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>RF-204</b></td><td>#BG-10200</td><td>Faria Tabassum</td><td>Damaged item</td><td>৳1,890</td><td><span class="badge b-sky">bKash</span></td><td><span class="badge b-amber">Pending approval</span></td><td><div class="t-actions"><button>✓</button><button>✗</button></div></td></tr>
+<tr><td><b>RF-203</b></td><td>#BG-10188</td><td>Jahangir Alam</td><td>Wrong size</td><td>৳2,350</td><td><span class="badge b-amber">COD</span></td><td><span class="badge b-green">Approved</span></td><td><div class="t-actions"><button>👁</button></div></td></tr>
+<tr><td><b>RF-202</b></td><td>#BG-10176</td><td>Sumaiya Akter</td><td>Late delivery</td><td>৳980</td><td><span class="badge b-violet">SSLCommerz</span></td><td><span class="badge b-green">Processed</span></td><td><div class="t-actions"><button>👁</button></div></td></tr>
+</tbody></table></div></div></div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

@@ -1,0 +1,117 @@
+.row {
+  display: grid;
+  grid-template-columns: 24px 100px 1fr auto;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--sk-divider);
+}
+
+.checkWrap {
+  display: flex;
+  align-items: center;
+  padding-top: 6px;
+}
+.checkWrap input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--sk-brand-600);
+}
+
+.thumbLink { display: block; }
+.thumb {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: var(--sk-radius-md);
+  border: 1px solid var(--sk-border);
+  background: var(--sk-surface);
+}
+.thumbEmpty {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-surface-alt);
+}
+
+.info { min-width: 0; }
+
+.title {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--sk-body);
+  text-decoration: none;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.title:hover { color: var(--sk-info); }
+
+.variant {
+  font-size: 13px;
+  color: var(--sk-muted);
+  margin-top: 2px;
+}
+
+.stockLine { margin-top: 6px; font-size: 12px; }
+.stockOk { color: var(--sk-success-text); font-weight: 600; }
+.stockLow { color: var(--sk-warning); font-weight: 600; }
+.stockOut { color: var(--sk-muted); font-weight: 600; }
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.linkBtn {
+  background: transparent;
+  border: none;
+  color: var(--sk-info);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+.linkBtn:hover { text-decoration: underline; }
+
+.dot { color: var(--sk-muted); }
+
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.linePrice {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--sk-price);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 639px) {
+  .row {
+    grid-template-columns: 24px 80px 1fr;
+    gap: 12px;
+    row-gap: 8px;
+  }
+  .thumb, .thumbEmpty { width: 80px; height: 80px; }
+  .right {
+    grid-column: 2 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+html[lang="bn"] .title,
+html[lang="bn"] .variant,
+html[lang="bn"] .linkBtn { font-family: var(--sk-font-bn); }

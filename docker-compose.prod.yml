@@ -1,0 +1,80 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: bluegofer-redis
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-south-1
+        awslogs-group: /bluegofer/staging/redis
+        awslogs-stream: redis
+        awslogs-create-group: "true"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 100
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  api:
+    image: 390630836942.dkr.ecr.ap-south-1.amazonaws.com/bluegofer-staging-api:latest
+    container_name: bluegofer-api
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-south-1
+        awslogs-group: /bluegofer/staging/api
+        awslogs-stream: api
+        awslogs-create-group: "true"
+    env_file: apps/api/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  storefront:
+    image: 390630836942.dkr.ecr.ap-south-1.amazonaws.com/bluegofer-staging-storefront:latest
+    container_name: bluegofer-storefront
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-south-1
+        awslogs-group: /bluegofer/staging/storefront
+        awslogs-stream: storefront
+        awslogs-create-group: "true"
+    env_file: apps/storefront/.env.local
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - api
+
+  admin:
+    image: 390630836942.dkr.ecr.ap-south-1.amazonaws.com/bluegofer-staging-admin:latest
+    container_name: bluegofer-admin
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-south-1
+        awslogs-group: /bluegofer/staging/admin
+        awslogs-stream: admin
+        awslogs-create-group: "true"
+    env_file: apps/admin/.env.local
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      - api
+
+volumes:
+  redisdata:
+    driver: local

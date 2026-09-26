@@ -1,0 +1,115 @@
+/* PopupDisplay.module.css — storefront modal popup (CSS Module + tokens) */
+
+.wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  animation: fadeIn var(--sk-motion-fast) var(--sk-ease);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: var(--sk-surface);
+  border-radius: var(--sk-radius-md);
+  box-shadow: var(--sk-shadow-3);
+  overflow: hidden;
+  animation: popIn var(--sk-motion-base) var(--sk-ease);
+  font-family: var(--sk-font-en);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim, .card { animation: none; }
+}
+
+html[lang="bn"] .card {
+  font-family: var(--sk-font-bn);
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--sk-muted);
+  cursor: pointer;
+  transition: background var(--sk-motion-fast) var(--sk-ease);
+}
+.close:hover { background: var(--sk-hover-row); color: var(--sk-ink); }
+
+.image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  background: var(--sk-neutral-bg);
+}
+
+.body {
+  padding: 20px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sk-ink);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.text {
+  font-size: 13.5px;
+  color: var(--sk-muted-strong);
+  margin-top: 8px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-brand-600);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--sk-motion-fast) var(--sk-ease);
+}
+.cta:hover { background: var(--sk-brand-700); text-decoration: none; }

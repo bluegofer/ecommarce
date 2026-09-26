@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@ecommarce/types": ["../../packages/types/src/index.ts"] }
+  }
+}

@@ -1,0 +1,31 @@
+node_modules/
+dist/
+.next/
+coverage/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.log
+
+# Step 3: local media uploads (dev only, Step 12 swaps to S3)
+# Scope to a specific path so the new `src/modules/uploads/` source module
+# (Step 17, S3 media upload endpoint) is NOT ignored.
+/apps/api/uploads/
+
+# Temp scratch (Step 9+)
+apps/api/prisma/_step9_parts/
+
+
+# ---------------------------------------------------------------------------
+# Terraform — never commit state/providers/plans (contains secrets)
+# ---------------------------------------------------------------------------
+**/.terraform/
+**/.terraform.lock.hcl
+
+# Step 17: never commit Terraform plan files or ad-hoc backup files
+# (per DECISIONS.md handoff rules — tfplan* and *.bak.* are local-only)
+tfplan*
+*.bak.*

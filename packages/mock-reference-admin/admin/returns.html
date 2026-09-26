@@ -1,0 +1,57 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Returns &amp; Support · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item active" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search ticket / return…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>↩️ Returns &amp; Support (RMA)</h2><div class="crumb">Customer / Returns</div><p>Return/refund workflow · ticket system with SLA aging · call &amp; chat history archives (A.3).</p></div>
+<div class="page-acts"><button class="btn b-primary" data-toast="New ticket form">＋ New Ticket</button></div></div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">Return Requests</div>
+<div class="tab">Support Tickets</div>
+<div class="tab">Call History · A.3</div>
+<div class="tab">Chat History · A.3</div>
+</div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-amber">⏳</div><div><div class="stat-lbl">Pending Return</div><div class="stat-val">12</div><div class="stat-sub">awaiting pickup</div></div></div>
+<div class="card stat"><div class="stat-ic ic-red">⚠️</div><div><div class="stat-lbl">SLA Breach (>24h)</div><div class="stat-val">3</div><div class="stat-sub">urgent</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-lbl">Resolved Today</div><div class="stat-val">22</div><div class="stat-sub">avg time 4h</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">📞</div><div><div class="stat-lbl">Calls Today</div><div class="stat-val">48</div><div class="cell-sub">missed 7</div></div></div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Return #</th><th>Order</th><th>Customer</th><th>Reason</th><th>Requested</th><th>Action</th><th>Status</th><th>SLA</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>RET-220</b></td><td>#BG-10200</td><td>Faria Tabassum</td><td>Damaged item</td><td>Exchange</td><td><b style="color:var(--sky-700)">Exchange (A.1)</b></td><td><span class="badge b-amber">Awaiting pickup</span></td><td style="color:var(--green-600)">3h remaining</td><td><div class="t-actions"><button>✓</button><button>✗</button><button>🚚</button></div></td></tr>
+<tr><td><b>RET-219</b></td><td>#BG-10188</b></td><td>Jahangir Alam</td><td>Wrong size</td><td>Replace</td><td><b>Replace</b></td><td><span class="badge b-sky">Approved</span></td><td>—</td><td><div class="t-actions"><button>👁</button><button>🚚</button></div></td></tr>
+<tr><td><b>RET-218</b></td><td>#BG-10176</td><td>Sumaiya Akter</td><td>Late delivery</td><td>Refund</td><td><b style="color:var(--red-600)">Refund</b></td><td><span class="badge b-green">Refunded</span></td><td>—</td><td><div class="t-actions"><button>👁</button></div></td></tr>
+<tr><td><b>RET-217</b></td><td>#BG-10166</td><td>Rezaul Karim</td><td>Wrong color</td><td>Exchange</td><td><b style="color:var(--sky-700)">Exchange (A.1)</b></td><td><span class="badge b-red">SLA breach</span></td><td style="color:var(--red-600)">5h over</td><td><div class="t-actions"><button>✓</button><button>✗</button><button>📞</button></div></td></tr>
+<tr><td><b>RET-216</b></td><td>#BG-10150</td><td>Shahin Alam</td><td>Not as described</td><td>Refund</td><td><b style="color:var(--red-600)">Refund</b></td><td><span class="badge b-amber">Pending review</span></td><td>12h remaining</td><td><div class="t-actions"><button>👁</button><button>✓</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>🎫 Support Tickets · Live Queue</h3></div><div class="card-bd">
+<div style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px"><div style="display:flex;justify-content:space-between"><b>TCK-314 · Duty refund issue</b><span class="badge b-red">High</span></div><br><span class="cell-sub">Anwar Hossain · order #BG-10188 · raised 32 minutes ago</span><p style="font-size:13px;margin-top:8px">"আমি ৪ দিন আগে অর্ডার করেছি, এখনও কুরিয়ার থেকে শিপমেন্ট আপডেট পাইনি।"</p></div>
+<div style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px"><div style="display:flex;justify-content:space-between"><b>TCK-313 · Wrong item received</b><span class="badge b-amber">Medium</span></div><br><span class="cell-sub">Poly Akter · order #BG-10102 · raised 2h ago</span><p style="font-size:13px;margin-top:8px">"Medium বদলে Large পাঠিয়েছে।" — Replacement requested.</p></div>
+<div style="padding:12px;border:1px solid var(--border);border-radius:10px"><div style="display:flex;justify-content:space-between"><b>TCK-312 · Payment failed but deducted</b><span class="badge b-amber">Medium</span></div><br><span class="cell-sub">Tahmid Rahman · bKash · raised 4h ago</span><p style="font-size:13px;margin-top:8px">"bKash থেকে টাকা কেটে নিয়েছে কিন্তু অর্ডার কনফার্ম হয়নি।"</p></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

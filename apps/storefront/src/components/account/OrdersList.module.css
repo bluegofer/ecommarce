@@ -1,0 +1,100 @@
+.wrap { display: flex; flex-direction: column; gap: 20px; }
+.h1 { font-size: 24px; font-weight: 700; color: var(--sk-ink); margin: 0; }
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  padding: 4px;
+}
+
+.tab {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-body);
+  background: transparent;
+  border: none;
+  border-radius: var(--sk-radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background var(--sk-motion-fast) var(--sk-ease);
+}
+.tab:hover { background: var(--sk-hover-row, #F0F7FC); }
+.tabActive {
+  background: var(--sk-brand-100, #E6F4FB);
+  color: var(--sk-brand-950);
+}
+
+.search {
+  height: 40px;
+  min-width: 240px;
+  padding: 0 12px;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-surface);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--sk-body);
+  outline: none;
+}
+.search:focus {
+  border-color: var(--sk-brand-400);
+  outline: var(--sk-focus-ring);
+  outline-offset: 2px;
+}
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.stateText { color: var(--sk-muted); font-size: 14px; }
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-lg);
+}
+.emptyTitle { font-size: 18px; font-weight: 600; color: var(--sk-ink); margin: 0; }
+.emptyBody { font-size: 14px; color: var(--sk-muted); margin: 0; }
+.cta {
+  display: inline-block;
+  padding: 10px 20px;
+  background: var(--sk-cta-primary);
+  color: var(--sk-brand-950);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: var(--sk-radius-md);
+  margin-top: 8px;
+}
+.cta:hover { background: var(--sk-cta-primary-hover); }
+
+@media (max-width: 640px) {
+  .controls { flex-direction: column; align-items: stretch; }
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .search { min-width: 0; width: 100%; }
+}
+
+html[lang="bn"] .h1,
+html[lang="bn"] .tab,
+html[lang="bn"] .search,
+html[lang="bn"] .emptyTitle,
+html[lang="bn"] .emptyBody,
+html[lang="bn"] .cta { font-family: var(--sk-font-bn); }

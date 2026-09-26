@@ -1,0 +1,7 @@
+.wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 16px 0; }
+.pill { min-width: 36px; height: 36px; padding: 0 10px; border-radius: var(--sk-radius-pill); border: 1px solid var(--sk-border); background: var(--sk-surface); color: var(--sk-body); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; transition: background var(--sk-motion-fast) var(--sk-ease), border-color var(--sk-motion-fast) var(--sk-ease); }
+.pill:hover:not(:disabled) { background: var(--sk-hover-row); border-color: var(--sk-brand-400); }
+.pill:disabled { color: var(--sk-disabled); cursor: not-allowed; background: var(--sk-surface); }
+.current { background: var(--sk-brand-300); color: var(--sk-brand-950); border-color: var(--sk-brand-400); font-weight: 600; }
+.gap { color: var(--sk-muted); font-size: 13px; padding: 0 4px; }
+.caption { margin-left: 8px; font-size: 12px; color: var(--sk-muted); }
