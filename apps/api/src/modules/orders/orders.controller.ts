@@ -19,6 +19,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type {
   AddOrderNoteDto,
+  AssignRiderDto,
   CancelOrderDto,
   UpdateOrderStatusDto,
 } from '@ecommarce/types';
@@ -70,6 +71,16 @@ export class OrdersController {
     @CurrentUser() user: RequestUser | null,
   ) {
     return this.orders.updateStatus(id, dto, user?.userId ?? null);
+  }
+
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+  @Patch(':id/rider')
+  assignRider(
+    @Param('id') id: string,
+    @Body() dto: AssignRiderDto,
+    @CurrentUser() user: RequestUser | null,
+  ) {
+    return this.orders.assignRider(id, dto, user?.userId ?? null);
   }
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')

@@ -794,10 +794,15 @@ enum CartState {
 
 enum OrderStatus {
   PLACED
+  PENDING_VERIFICATION
+  VERIFIED
   CONFIRMED
   PROCESSING
   SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
   DELIVERED
+  FAILED
   CANCELLED
   RETURN_REQUESTED
   RETURNED
@@ -976,12 +981,22 @@ model Order {
   customerNote String? @db.Text
   cancelReason String?
 
-  placedAt     DateTime  @default(now())
-  confirmedAt  DateTime?
-  processingAt DateTime?
-  shippedAt    DateTime?
-  deliveredAt  DateTime?
-  cancelledAt  DateTime?
+  placedAt              DateTime  @default(now())
+  pendingVerificationAt DateTime?
+  verifiedAt            DateTime?
+  confirmedAt           DateTime?
+  processingAt          DateTime?
+  shippedAt             DateTime?
+  inTransitAt           DateTime?
+  outForDeliveryAt      DateTime?
+  deliveredAt           DateTime?
+  failedAt              DateTime?
+  cancelledAt           DateTime?
+
+  // Manual rider assignment (TDD Appendix A section A.4)
+  riderName       String?  @db.VarChar(120)
+  riderPhone      String?  @db.VarChar(20)
+  riderAssignedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

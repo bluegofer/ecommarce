@@ -3,9 +3,12 @@ import styles from './TrackingTimeline.module.css';
 
 export interface TimelineNodeLabels {
   PLACED: string;
+  PENDING_VERIFICATION: string;
+  VERIFIED: string;
   CONFIRMED: string;
   PROCESSING: string;
   SHIPPED: string;
+  IN_TRANSIT: string;
   OUT_FOR_DELIVERY: string;
   DELIVERED: string;
 }
@@ -24,7 +27,7 @@ export interface TrackingTimelineProps {
   eta?: string | null;
 }
 
-const FLOW = ['PLACED', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'] as const;
+const FLOW = ['PLACED', 'PENDING_VERIFICATION', 'VERIFIED', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'] as const;
 
 /** Map API status (which may skip some steps) to the latest flow index reached. */
 function reachedIndex(status: string): number {

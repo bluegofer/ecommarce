@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { OrdersList, type OrdersListLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
@@ -23,12 +23,17 @@ export default function OrdersPage({ params }: { params: { locale: string } }) {
     cancelledReason: bn ? 'কারণ' : 'Reason',
     statusLabels: {
       PLACED: bn ? 'অর্ডার হয়েছে' : 'Ordered',
+      PENDING_VERIFICATION: bn ? 'যাচাই বাকি' : 'Pending verification',
+      VERIFIED: bn ? 'যাচাইকৃত' : 'Verified',
       CONFIRMED: bn ? 'নিশ্চিত' : 'Confirmed',
       PROCESSING: bn ? 'প্যাকিং' : 'Packed',
       SHIPPED: bn ? 'শিপড' : 'Shipped',
+      IN_TRANSIT: bn ? 'পথে' : 'In transit',
       OUT_FOR_DELIVERY: bn ? 'ডেলিভারিতে' : 'Out for delivery',
       DELIVERED: bn ? 'ডেলিভারড' : 'Delivered',
+      FAILED: bn ? 'ব্যর্থ' : 'Failed',
       CANCELLED: bn ? 'বাতিল' : 'Cancelled',
+      RETURN_REQUESTED: bn ? 'ফেরত অনুরোধ' : 'Return requested',
       RETURNED: bn ? 'ফেরত' : 'Returned',
       PAYMENT_PENDING: bn ? 'পেমেন্ট বাকি' : 'Payment pending',
     },

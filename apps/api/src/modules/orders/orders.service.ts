@@ -10,6 +10,7 @@ import { DispatchService } from '../notifications/dispatch.service';
 import { LedgerService } from '../accounting/services/ledger.service';
 import type {
   AddOrderNoteDto,
+  AssignRiderDto,
   CancelOrderDto,
   OrderDto,
   OrderStatus,
@@ -244,6 +245,42 @@ export class OrdersService {
       { status: 'CANCELLED', note: dto.reason },
       actorUserId,
     );
+  }
+
+  // -------------------------------------------------------------------------
+  // Rider assignment (TDD Appendix A §A.4)
+  // -------------------------------------------------------------------------
+  async assignRider(
+    orderId: string,
+    dto: AssignRiderDto,
+    actorUserId: string | null,
+  ): Promise<OrderDto> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+    if (!order) throw new NotFoundException('order not found');
+
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        riderName: dto.riderName,
+        riderPhone: dto.riderPhone ?? null,
+        riderAssignedAt: new Date(),
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: actorUserId,
+        action: 'order.rider.assign',
+        entityType: 'order',
+        entityId: orderId,
+        before: { riderName: order.riderName, riderPhone: order.riderPhone },
+        after: { riderName: dto.riderName, riderPhone: dto.riderPhone ?? null },
+      },
+    });
+
+    return this.findOne(orderId);
   }
 
   // -------------------------------------------------------------------------

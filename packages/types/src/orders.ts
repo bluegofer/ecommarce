@@ -3,10 +3,15 @@
 
 export type OrderStatus =
   | 'PLACED'
+  | 'PENDING_VERIFICATION'
+  | 'VERIFIED'
   | 'CONFIRMED'
   | 'PROCESSING'
   | 'SHIPPED'
+  | 'IN_TRANSIT'
+  | 'OUT_FOR_DELIVERY'
   | 'DELIVERED'
+  | 'FAILED'
   | 'CANCELLED'
   | 'RETURN_REQUESTED'
   | 'RETURNED';
@@ -233,6 +238,11 @@ export interface GuestOrderLookupDto {
 export interface UpdateOrderStatusDto {
   status: OrderStatus;
   note?: string;
+}
+
+export interface AssignRiderDto {
+  riderName: string;
+  riderPhone?: string;
 }
 
 export interface AddOrderNoteDto {

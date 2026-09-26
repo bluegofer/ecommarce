@@ -68,8 +68,19 @@ export default function OrderDetailPage() {
     'post',
     `/api/v1/orders/${orderId}/exchange`,
   );
+  const riderMutation = useMutation<{ riderName: string; riderPhone?: string }, unknown>(
+    'patch',
+    `/api/v1/orders/${orderId}/rider`,
+  );
+  const noteMutation = useMutation<{ body: string; isCustomerVisible: boolean }, unknown>(
+    'post',
+    `/api/v1/orders/${orderId}/notes`,
+  );
 
   const [note, setNote] = useState('');
+  const [noteVisible, setNoteVisible] = useState(false);
+  const [riderName, setRiderName] = useState('');
+  const [riderPhone, setRiderPhone] = useState('');
 
   if (loading && !data) return <div className="p-10 text-center text-slate-400">Loading order…</div>;
   if (error || !data) {
@@ -203,18 +214,31 @@ export default function OrderDetailPage() {
             />
             <div className="mt-3 flex items-center gap-3">
               <label className="inline-flex items-center gap-2 text-[12.5px] text-slate-600">
-                <input type="checkbox" className="w-4 h-4 rounded" />
+                <input
+                  type="checkbox"
+                  checked={noteVisible}
+                  onChange={(e) => setNoteVisible(e.target.checked)}
+                  className="w-4 h-4 rounded"
+                />
                 Customer-visible
               </label>
               <button
                 type="button"
-                onClick={() => {
-                  setNote('');
-                  toast.success('Note saved');
+                disabled={!note || noteMutation.loading}
+                onClick={async () => {
+                  try {
+                    await noteMutation.mutate({ body: note, isCustomerVisible: noteVisible });
+                    setNote('');
+                    setNoteVisible(false);
+                    toast.success('Note saved');
+                    void refetch();
+                  } catch {
+                    toast.error('Could not save note');
+                  }
                 }}
-                className="ml-auto h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+                className="ml-auto h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50"
               >
-                Save note
+                {noteMutation.loading ? 'Saving…' : 'Save note'}
               </button>
             </div>
           </div>
@@ -256,19 +280,41 @@ export default function OrderDetailPage() {
 
           <div className="card p-5">
             <h3 className="font-semibold text-slate-900 mb-3">Assign rider</h3>
-            <div className="flex items-center gap-2">
-              <Bike className="w-4 h-4 text-slate-400" />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Bike className="w-4 h-4 text-slate-400 shrink-0" />
+                <input
+                  type="text"
+                  value={riderName}
+                  onChange={(e) => setRiderName(e.target.value)}
+                  placeholder="Rider name"
+                  className="flex-1 h-9 px-3 rounded border border-border bg-white text-sm"
+                />
+              </div>
               <input
-                type="text"
-                placeholder="Rider name"
-                className="flex-1 h-9 px-3 rounded border border-border bg-white text-sm"
+                type="tel"
+                value={riderPhone}
+                onChange={(e) => setRiderPhone(e.target.value)}
+                placeholder="Rider phone (optional)"
+                className="w-full h-9 px-3 rounded border border-border bg-white text-sm"
               />
               <button
                 type="button"
-                onClick={() => toast.success('Rider assigned')}
-                className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium"
+                disabled={!riderName || riderMutation.loading}
+                onClick={async () => {
+                  try {
+                    await riderMutation.mutate(riderPhone ? { riderName, riderPhone } : { riderName });
+                    toast.success('Rider assigned');
+                    setRiderName('');
+                    setRiderPhone('');
+                    void refetch();
+                  } catch {
+                    toast.error('Could not assign rider');
+                  }
+                }}
+                className="w-full h-9 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50"
               >
-                Assign
+                {riderMutation.loading ? 'Assigning…' : 'Assign'}
               </button>
             </div>
           </div>

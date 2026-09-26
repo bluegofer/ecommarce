@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { OrderTracking, type OrderTrackingLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
 
@@ -37,6 +37,11 @@ export default function OrderDetailPage({
     copied: bn ? '✓ কপি হয়েছে' : '✓ Copied',
     statusLabels: {
       PLACED: bn ? 'অর্ডার হয়েছে' : 'Ordered',
+      PENDING_VERIFICATION: bn ? 'যাচাই বাকি' : 'Pending verification',
+      VERIFIED: bn ? 'যাচাইকৃত' : 'Verified',
+      IN_TRANSIT: bn ? 'পথে' : 'In transit',
+      FAILED: bn ? 'ব্যর্থ' : 'Failed',
+      RETURN_REQUESTED: bn ? 'ফেরত অনুরোধ' : 'Return requested',
       CONFIRMED: bn ? 'নিশ্চিত' : 'Confirmed',
       PROCESSING: bn ? 'প্যাকিং' : 'Packed',
       SHIPPED: bn ? 'শিপড' : 'Shipped',
@@ -49,6 +54,9 @@ export default function OrderDetailPage({
     timeline: {
       nodes: {
         PLACED: bn ? 'অর্ডার করা হয়েছে' : 'Order Placed',
+        PENDING_VERIFICATION: bn ? 'যাচাই' : 'Verification',
+        VERIFIED: bn ? 'যাচাইকৃত' : 'Verified',
+        IN_TRANSIT: bn ? 'পথে' : 'In Transit',
         CONFIRMED: bn ? 'নিশ্চিত করা হয়েছে' : 'Order Confirmed',
         PROCESSING: bn ? 'প্যাকিং' : 'Packed',
         SHIPPED: bn ? 'কুরিয়ারে দেওয়া হয়েছে' : 'Handed to Courier',

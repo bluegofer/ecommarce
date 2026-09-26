@@ -14,12 +14,17 @@ export type OrderStatus =
 
 export interface StatusChipLabels {
   PLACED: string;
+  PENDING_VERIFICATION: string;
+  VERIFIED: string;
   CONFIRMED: string;
   PROCESSING: string;
   SHIPPED: string;
+  IN_TRANSIT: string;
   OUT_FOR_DELIVERY: string;
   DELIVERED: string;
+  FAILED: string;
   CANCELLED: string;
+  RETURN_REQUESTED: string;
   RETURNED: string;
   PAYMENT_PENDING: string;
 }
