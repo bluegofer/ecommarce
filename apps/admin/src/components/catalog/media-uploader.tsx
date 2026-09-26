@@ -189,12 +189,10 @@ export function MediaUploader({
               )}
             >
               {m.kind === 'image' ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={m.url} alt={m.altText} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full grid place-items-center bg-slate-900 text-white relative">
                   {m.posterUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={m.posterUrl} alt="" className="w-full h-full object-cover" />
                   ) : null}
                   <div className="absolute inset-0 grid place-items-center bg-slate-900/40">
