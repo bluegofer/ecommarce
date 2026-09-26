@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -21,45 +22,76 @@ import {
   ShoppingCart,
   Factory,
   UserCog,
+  UserPlus,
   Clock,
   Banknote,
   ShieldCheck,
   BarChart3,
+  Settings,
+  ChevronRight,
+  Layers,
+  Image,
+  Megaphone,
+  Menu as MenuIcon,
+  Mail,
   X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface NavItem {
+interface NavLeaf {
   label: string;
   href: string;
   icon: LucideIcon;
 }
+
+interface NavGroup {
+  label: string;
+  icon: LucideIcon;
+  children: NavLeaf[];
+}
+
+type NavItem = NavLeaf | NavGroup;
 
 interface NavSection {
   title: string;
   items: NavItem[];
 }
 
-// Order + sections strictly match packages/mock-reference-admin/README.md
+function isGroup(item: NavItem): item is NavGroup {
+  return 'children' in item;
+}
+
+// Structure mirrors packages/mock-reference-admin sidebar and now covers
+// every route that exists under apps/admin/src/app/(dashboard)/**.
 const NAV_SECTIONS: NavSection[] = [
   {
-    title: 'ADMIN — Dashboard',
+    title: 'Dashboard',
     items: [
       { label: 'Dashboard', href: '/', icon: LayoutDashboard },
       { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+      { label: 'Reports', href: '/reports', icon: BarChart3 },
     ],
   },
   {
-    title: 'CATALOG',
+    title: 'Catalog',
     items: [
       { label: 'Products', href: '/products', icon: ShoppingBag },
       { label: 'Categories', href: '/categories', icon: FolderTree },
-      { label: 'Inventory', href: '/inventory', icon: Package },
+      {
+        label: 'Inventory',
+        icon: Package,
+        children: [
+          { label: 'Overview', href: '/inventory', icon: Package },
+          { label: 'Low stock', href: '/inventory/low-stock', icon: Package },
+          { label: 'Transfers', href: '/inventory/transfers', icon: Package },
+        ],
+      },
+      { label: 'Attributes', href: '/catalog/attributes', icon: Layers },
     ],
   },
   {
-    title: 'SALES',
+    title: 'Sales',
     items: [
       { label: 'Orders', href: '/orders', icon: ReceiptText },
       { label: 'Delivery', href: '/delivery', icon: Truck },
@@ -67,7 +99,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'CUSTOMER',
+    title: 'Customers',
     items: [
       { label: 'Customers', href: '/customers', icon: Users },
       { label: 'Returns & RMA', href: '/returns', icon: RotateCcw },
@@ -75,32 +107,120 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'MARKETING',
+    title: 'Marketing',
     items: [
-      { label: 'Promotions', href: '/promotions', icon: Tag },
-      { label: 'CMS', href: '/cms', icon: FileText },
+      {
+        label: 'Promotions',
+        icon: Tag,
+        children: [
+          { label: 'Coupons', href: '/promotions', icon: Tag },
+          { label: 'Flash sales', href: '/promotions/flash-sales', icon: Tag },
+        ],
+      },
+      {
+        label: 'CMS',
+        icon: FileText,
+        children: [
+          { label: 'Overview', href: '/cms', icon: FileText },
+          { label: 'Pages', href: '/cms/pages', icon: FileText },
+          { label: 'Announcements', href: '/cms/announcements', icon: Megaphone },
+          { label: 'Menus', href: '/cms/menus', icon: MenuIcon },
+          { label: 'Media library', href: '/cms/media', icon: Image },
+          { label: 'Popups', href: '/cms/popups', icon: Megaphone },
+          { label: 'Contact inbox', href: '/cms/contact', icon: Mail },
+        ],
+      },
       { label: 'Notifications', href: '/notifications', icon: Bell },
     ],
   },
   {
-    title: 'ERP SUITE',
+    title: 'ERP Suite',
     items: [
-      { label: 'POS', href: '/pos', icon: Store },
+      {
+        label: 'POS',
+        icon: Store,
+        children: [
+          { label: 'Register', href: '/pos', icon: Store },
+          { label: 'Sessions', href: '/pos/sessions', icon: Store },
+          { label: 'Returns', href: '/pos/returns', icon: Store },
+        ],
+      },
       { label: 'Accounting', href: '/accounting', icon: BookOpen },
-      { label: 'Purchases', href: '/purchases', icon: ShoppingCart },
+      {
+        label: 'Purchases',
+        icon: ShoppingCart,
+        children: [
+          { label: 'Requisitions', href: '/purchases/requisitions', icon: ShoppingCart },
+          { label: 'Purchase orders', href: '/purchases/orders', icon: ShoppingCart },
+          { label: 'Receiving (GRN)', href: '/purchases/receiving', icon: ShoppingCart },
+        ],
+      },
       { label: 'Suppliers', href: '/suppliers', icon: Factory },
-      { label: 'HR', href: '/hr', icon: UserCog },
-      { label: 'Attendance', href: '/hr/attendance', icon: Clock },
-      { label: 'Payroll', href: '/hr/payroll', icon: Banknote },
+      {
+        label: 'HR',
+        icon: UserCog,
+        children: [
+          { label: 'Employees', href: '/hr/employees', icon: UserPlus },
+          { label: 'Attendance', href: '/hr/attendance', icon: Clock },
+          { label: 'Payroll', href: '/hr/payroll', icon: Banknote },
+        ],
+      },
     ],
   },
   {
-    title: 'SYSTEM',
+    title: 'System',
     items: [
       { label: 'Users & Roles', href: '/settings/users', icon: ShieldCheck },
+      {
+        label: 'Settings',
+        icon: Settings,
+        children: [
+          { label: 'Profile', href: '/settings/profile', icon: Settings },
+          { label: 'Audit log', href: '/settings/audit-log', icon: ShieldCheck },
+          { label: 'Roles', href: '/settings/roles', icon: ShieldCheck },
+          { label: 'Checkout', href: '/settings/checkout', icon: Settings },
+          { label: 'Delivery', href: '/settings/delivery', icon: Truck },
+        ],
+      },
     ],
   },
 ];
+
+// Flatten every leaf href, longest first — so /inventory/transfers beats
+// /inventory when both match the current pathname.
+const ALL_LEAF_HREFS: string[] = NAV_SECTIONS.flatMap((s) =>
+  s.items.flatMap((it) => (isGroup(it) ? it.children.map((c) => c.href) : [it.href])),
+).sort((a, b) => b.length - a.length);
+
+function resolveActiveHref(pathname: string): string | null {
+  if (pathname === '/' || pathname === '/(dashboard)') return '/';
+  for (const h of ALL_LEAF_HREFS) {
+    if (h === '/') continue;
+    if (pathname === h || pathname.startsWith(h + '/')) return h;
+  }
+  return null;
+}
+
+const STORAGE_KEY = 'admin.sidebar.expanded';
+
+function readExpandedFromStorage(): Record<string, boolean> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeExpandedToStorage(state: Record<string, boolean>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore quota errors */
+  }
+}
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -109,10 +229,48 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
+  const activeHref = resolveActiveHref(pathname ?? '');
 
-  const isActive = (href: string) => {
-    if (href === '/') return pathname === '/' || pathname === '/(dashboard)';
-    return pathname === href || pathname.startsWith(`${href}/`);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  // Load persisted expanded state once on mount.
+  useEffect(() => {
+    setExpanded(readExpandedFromStorage());
+  }, []);
+
+  // Auto-expand the group that contains the current route.
+  useEffect(() => {
+    const toOpen: string[] = [];
+    for (const section of NAV_SECTIONS) {
+      for (const item of section.items) {
+        if (!isGroup(item)) continue;
+        if (item.children.some((c) => c.href === activeHref)) {
+          toOpen.push(item.label);
+        }
+      }
+    }
+    if (toOpen.length === 0) return;
+    setExpanded((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const label of toOpen) {
+        if (!next[label]) {
+          next[label] = true;
+          changed = true;
+        }
+      }
+      if (!changed) return prev;
+      writeExpandedToStorage(next);
+      return next;
+    });
+  }, [activeHref]);
+
+  const toggleGroup = (label: string) => {
+    setExpanded((prev) => {
+      const next = { ...prev, [label]: !prev[label] };
+      writeExpandedToStorage(next);
+      return next;
+    });
   };
 
   const content = (
@@ -150,8 +308,74 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             </div>
             <ul className="space-y-0.5">
               {section.items.map((item) => {
+                if (isGroup(item)) {
+                  const isOpen = expanded[item.label] ?? false;
+                  const groupActive = item.children.some((c) => c.href === activeHref);
+                  const GroupIcon = item.icon;
+                  return (
+                    <li key={item.label}>
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup(item.label)}
+                        aria-expanded={isOpen}
+                        className={cn(
+                          'w-full flex items-center gap-2.5 px-3 py-2 rounded text-[13.5px] font-medium transition-colors',
+                          groupActive
+                            ? 'text-sky-900'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                        )}
+                      >
+                        <GroupIcon
+                          className={cn(
+                            'w-4 h-4 shrink-0',
+                            groupActive ? 'text-sky-700' : 'text-slate-400',
+                          )}
+                        />
+                        <span className="truncate flex-1 text-left">{item.label}</span>
+                        <ChevronRight
+                          className={cn(
+                            'w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform',
+                            isOpen && 'rotate-90',
+                          )}
+                        />
+                      </button>
+                      {isOpen && (
+                        <ul className="mt-1 ml-4 pl-3 border-l border-slate-200 space-y-0.5">
+                          {item.children.map((child) => {
+                            const ChildIcon = child.icon;
+                            const childActive = child.href === activeHref;
+                            return (
+                              <li key={child.href}>
+                                <Link
+                                  href={child.href}
+                                  {...(onMobileClose ? { onClick: onMobileClose } : {})}
+                                  aria-current={childActive ? 'page' : undefined}
+                                  className={cn(
+                                    'flex items-center gap-2 px-2.5 py-1.5 rounded text-[13px] font-medium transition-colors',
+                                    childActive
+                                      ? 'bg-sky-100 text-sky-900'
+                                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900',
+                                  )}
+                                >
+                                  <ChildIcon
+                                    className={cn(
+                                      'w-3.5 h-3.5 shrink-0',
+                                      childActive ? 'text-sky-700' : 'text-slate-400',
+                                    )}
+                                  />
+                                  <span className="truncate">{child.label}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                }
+
                 const Icon = item.icon;
-                const active = isActive(item.href);
+                const active = item.href === activeHref;
                 return (
                   <li key={item.href}>
                     <Link
