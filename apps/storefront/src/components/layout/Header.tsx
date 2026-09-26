@@ -47,7 +47,6 @@ export function Header({
   navLinks,
   categories,
   alternateLocaleHref,
-  deliverToLabel,
   signedIn = false,
   userName,
   serverCartCount = 0,
@@ -107,16 +106,6 @@ export function Header({
               <PinIcon />
               <span className={styles.logoText}>NoLimitShopping</span>
             </Link>
-
-            <button type="button" className={styles.deliver} aria-label={labels.deliverTo}>
-              <LocationIcon />
-              <span className={styles.deliverText}>
-                <span className={styles.deliverTop}>{labels.deliverTo}</span>
-                <span className={styles.deliverBottom}>
-                  {deliverToLabel ?? labels.deliverPlaceholder}
-                </span>
-              </span>
-            </button>
 
             <SearchBox
               locale={locale}
@@ -316,9 +305,6 @@ function SearchBox({
   return (
     <div className={styles.search} ref={wrapRef} suppressHydrationWarning>
       <div className={styles.searchBar}>
-        <button type="button" className={styles.searchCat} aria-label="Search in category">
-          {searchAll} <ChevronDown />
-        </button>
         <input
           type="search"
           className={styles.searchInput}
@@ -368,14 +354,6 @@ function PinIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M12 22s8-6.5 8-12a8 8 0 10-16 0c0 5.5 8 12 8 12z" fill="var(--sk-brand-300)" />
       <circle cx="12" cy="10" r="3" fill="var(--sk-brand-950)" />
-    </svg>
-  );
-}
-function LocationIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 22s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="12" cy="11" r="2.5" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
