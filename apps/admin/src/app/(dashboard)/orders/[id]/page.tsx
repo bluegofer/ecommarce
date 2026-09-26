@@ -50,6 +50,14 @@ const NEXT_STATUS: Record<string, string> = {
   OUT_FOR_DELIVERY: 'DELIVERED',
 };
 
+const MANUAL_STATUSES = [
+  { value: 'IN_TRANSIT', label: 'In Transit', cls: 'border-sky-300 text-sky-700 hover:bg-sky-50' },
+  { value: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', cls: 'border-amber-300 text-amber-700 hover:bg-amber-50' },
+  { value: 'DELIVERED', label: 'Delivered', cls: 'border-success-300 text-success-700 hover:bg-success-50' },
+  { value: 'FAILED', label: 'Failed', cls: 'border-danger-300 text-danger-700 hover:bg-danger-50' },
+  { value: 'RETURNED', label: 'Returned', cls: 'border-slate-300 text-slate-700 hover:bg-slate-50' },
+] as const;
+
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
   const toast = useToast();
@@ -316,6 +324,31 @@ export default function OrderDetailPage() {
               >
                 {riderMutation.loading ? 'Assigning…' : 'Assign'}
               </button>
+            </div>
+          </div>
+          <div className="card p-5">
+            <h3 className="font-semibold text-slate-900 mb-3">Manual delivery status</h3>
+            <p className="text-[12px] text-slate-500 mb-3">Set by staff (TDD A.4). Courier sync will not override.</p>
+            <div className="flex flex-wrap gap-2">
+              {MANUAL_STATUSES.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  disabled={data.status === s.value || statusMutation.loading}
+                  onClick={async () => {
+                    try {
+                      await statusMutation.mutate({ status: s.value });
+                      toast.success('Marked ' + s.label);
+                      void refetch();
+                    } catch {
+                      toast.error('Could not set ' + s.label);
+                    }
+                  }}
+                  className={'h-9 px-3 rounded text-sm font-medium border ' + s.cls + ' disabled:opacity-40'}
+                >
+                  {s.label}
+                </button>
+              ))}
             </div>
           </div>
         </aside>

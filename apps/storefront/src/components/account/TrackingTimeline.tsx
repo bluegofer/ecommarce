@@ -9,6 +9,9 @@ export interface TimelineNodeLabels {
   PROCESSING: string;
   SHIPPED: string;
   IN_TRANSIT: string;
+  FAILED: string;
+  RETURN_REQUESTED: string;
+  RETURNED: string;
   OUT_FOR_DELIVERY: string;
   DELIVERED: string;
 }
@@ -31,6 +34,10 @@ const FLOW = ['PLACED', 'PENDING_VERIFICATION', 'VERIFIED', 'CONFIRMED', 'PROCES
 
 /** Map API status (which may skip some steps) to the latest flow index reached. */
 function reachedIndex(status: string): number {
+  if (status === 'FAILED') return -1;
+  if (status === 'RETURN_REQUESTED') return -2;
+  if (status === 'RETURNED') return -3;
+  if (status === 'CANCELLED') return -4;
   const idx = FLOW.indexOf(status as (typeof FLOW)[number]);
   return idx === -1 ? 0 : idx;
 }
@@ -43,7 +50,7 @@ export function TrackingTimeline({
   eta,
 }: TrackingTimelineProps) {
   const reached = reachedIndex(currentStatus);
-  const isCancelled = currentStatus === 'CANCELLED' || currentStatus === 'RETURNED';
+  const isCancelled = currentStatus === 'CANCELLED' || currentStatus === 'RETURNED' || currentStatus === 'RETURN_REQUESTED' || currentStatus === 'FAILED';
 
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleString(locale === 'bn' ? 'bn-BD' : 'en-GB', {
