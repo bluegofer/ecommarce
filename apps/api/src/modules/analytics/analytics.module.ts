@@ -7,6 +7,7 @@ import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';
 import { DailySummaryService } from './daily-summary.service';
 import { SummaryController } from './summary.controller';
+import { DashboardController } from './dashboard.controller';
 import { AnalyticsAdapterRegistry } from './analytics-adapter.registry';
 import { AnalyticsForwarderService } from './analytics-forwarder.service';
 import { Ga4Adapter } from './adapters/ga4.adapter';
@@ -38,7 +39,7 @@ function buildAdapters(): AnalyticsAdapter[] {
 }
 
 @Module({
-  controllers: [EventsController, ReportsController, SummaryController],
+  controllers: [EventsController, ReportsController, SummaryController, DashboardController],
   providers: [
     PrismaService,
     EventsService,
