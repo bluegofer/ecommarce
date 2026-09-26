@@ -572,6 +572,72 @@ async function seedCmsDemo() {
   console.log(`CMS seed: ${sectionsUpdated} sections updated`);
 }
 
+/**
+ * Step 47 (T2-3) — Demo RBAC users for role-matrix testing.
+ *
+ * Creates one staff user per non-SUPER_ADMIN role, so the admin RBAC
+ * matrix can be exercised (TDD §6.13, §10.1). All share the same demo
+ * password — DEMO ONLY, never use in production.
+ *
+ * Idempotent — safe to re-run.
+ */
+async function seedDemoRoleUsers() {
+  const PASSWORD = 'ChangeMe!2026';
+  const passwordHash = await bcrypt.hash(PASSWORD, 12);
+
+  const DEMO_USERS: Array<{
+    phone: string;
+    email: string;
+    fullName: string;
+    roleCode: string;
+  }> = [
+    { phone: '+8801700000011', email: 'catalog@bluegofer.local',   fullName: 'Demo Catalog Manager',       roleCode: 'CATALOG_MANAGER' },
+    { phone: '+8801700000012', email: 'orders@bluegofer.local',    fullName: 'Demo Order Support',         roleCode: 'ORDER_SUPPORT' },
+    { phone: '+8801700000013', email: 'marketing@bluegofer.local', fullName: 'Demo Marketing Manager',     roleCode: 'MARKETING_MANAGER' },
+    { phone: '+8801700000014', email: 'finance@bluegofer.local',   fullName: 'Demo Finance (Read-Only)',   roleCode: 'FINANCE_READONLY' },
+    { phone: '+8801700000015', email: 'financemgr@bluegofer.local',fullName: 'Demo Finance Manager',       roleCode: 'FINANCE_MANAGER' },
+    { phone: '+8801700000016', email: 'purchase@bluegofer.local',  fullName: 'Demo Purchase Manager',      roleCode: 'PURCHASE_MANAGER' },
+    { phone: '+8801700000017', email: 'pos@bluegofer.local',       fullName: 'Demo Store POS Staff',       roleCode: 'STORE_POS_STAFF' },
+    { phone: '+8801700000018', email: 'hr@bluegofer.local',        fullName: 'Demo HR Manager',            roleCode: 'HR_MANAGER' },
+  ];
+
+  let created = 0;
+  let rolesAttached = 0;
+
+  for (const u of DEMO_USERS) {
+    const role = await prisma.role.findUnique({ where: { code: u.roleCode } });
+    if (!role) {
+      console.log(`SKIP ${u.email}: role ${u.roleCode} missing`);
+      continue;
+    }
+
+    let user = await prisma.user.findUnique({ where: { phone: u.phone } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          phone: u.phone,
+          email: u.email,
+          fullName: u.fullName,
+          passwordHash,
+          phoneVerifiedAt: new Date(),
+          notificationPrefs: { create: {} },
+        },
+      });
+      created++;
+    }
+
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId: user.id, roleId: role.id } },
+      update: {},
+      create: { userId: user.id, roleId: role.id },
+    });
+    rolesAttached++;
+  }
+
+  console.log(
+    `Demo role users: ${created} created, ${rolesAttached}/${DEMO_USERS.length} roles attached`,
+  );
+}
 async function main() {
   console.log('Seed starting...');
   await seedRoles();
@@ -590,6 +656,7 @@ async function main() {
   await seedDepartmentsAndDesignations();
   await seedShifts();
   await seedDemoEmployee();
+  await seedDemoRoleUsers();
   await seedCmsDemo();
   console.log('Seed complete');
 }
