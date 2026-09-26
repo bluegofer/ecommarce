@@ -212,6 +212,8 @@ export function PdpClient(props: PdpClientProps) {
                 inStock: dict['product.in_stock'],
                 addedToCart: dict['cart.added'],
                 lowStock: dict['product.low_stock'],
+                wishlistAdd: locale === 'bn' ? 'ইচ্ছেতালিকায় যোগ করুন' : 'Add to wishlist',
+                wishlistRemove: locale === 'bn' ? 'ইচ্ছেতালিকা থেকে সরান' : 'Remove from wishlist',
               }}
             />
 
