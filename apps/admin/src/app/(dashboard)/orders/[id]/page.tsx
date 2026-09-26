@@ -4,9 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
-  ArrowLeft, CheckCircle2, Package, Truck, Home, XCircle, RefreshCcw, Bike,
+  ArrowLeft, CheckCircle2, Package, Truck, Home, XCircle, RefreshCcw, Bike, Pencil,
 } from 'lucide-react';
-import { PageHeader, StatusChip, ORDER_STATUS_TONE, useToast } from '@/components/ui';
+import { PageHeader, StatusChip, ORDER_STATUS_TONE, useToast, Modal } from '@/components/ui';
 import type { StatusTone } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
 import { formatPoisha, formatDateTime } from '@/lib/utils';
@@ -80,6 +80,11 @@ export default function OrderDetailPage() {
     'patch',
     `/api/v1/orders/${orderId}/rider`,
   );
+  const addressMutation = useMutation<
+    { shippingAddress: string; contactPhone: string; customerNote: string },
+    unknown
+  >('patch', `/api/v1/orders/${orderId}/address`);
+
   const noteMutation = useMutation<{ body: string; isCustomerVisible: boolean }, unknown>(
     'post',
     `/api/v1/orders/${orderId}/notes`,
@@ -89,6 +94,10 @@ export default function OrderDetailPage() {
   const [noteVisible, setNoteVisible] = useState(false);
   const [riderName, setRiderName] = useState('');
   const [riderPhone, setRiderPhone] = useState('');
+  const [addressEditOpen, setAddressEditOpen] = useState(false);
+  const [editAddress, setEditAddress] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editNote, setEditNote] = useState('');
 
   if (loading && !data) return <div className="p-10 text-center text-slate-400">Loading order…</div>;
   if (error || !data) {
@@ -270,7 +279,22 @@ export default function OrderDetailPage() {
           </div>
 
           <div className="card p-5 space-y-3 text-sm">
-            <h3 className="font-semibold text-slate-900">Shipping</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900">Shipping</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditAddress(data.shippingAddress ?? '');
+                  setEditPhone(data.phone ?? '');
+                  setEditNote('');
+                  setAddressEditOpen(true);
+                }}
+                className="inline-flex items-center gap-1 text-[12px] font-medium text-sky-700 hover:text-sky-800"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
+            </div>
             <p className="text-slate-700">{data.customerName}</p>
             <p className="text-slate-500 font-mono text-[12.5px]">{data.phone}</p>
             <p className="text-slate-600 text-[13px]">{data.shippingAddress}</p>
@@ -353,6 +377,53 @@ export default function OrderDetailPage() {
           </div>
         </aside>
       </div>
+
+      <Modal
+        open={addressEditOpen}
+        onClose={() => setAddressEditOpen(false)}
+        title="Edit shipping details"
+        size="md"
+        footer={
+          <>
+            <button type="button" onClick={() => setAddressEditOpen(false)}
+              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700">Cancel</button>
+            <button type="button" disabled={addressMutation.loading}
+              onClick={async () => {
+                try {
+                  await addressMutation.mutate({ shippingAddress: editAddress, contactPhone: editPhone, customerNote: editNote });
+                  toast.success('Shipping details updated');
+                  setAddressEditOpen(false);
+                  void refetch();
+                } catch (e) {
+                  toast.error('Update failed', e instanceof Error ? e.message : 'Unknown');
+                }
+              }}
+              className="h-9 px-4 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60">
+              {addressMutation.loading ? 'Saving…' : 'Save changes'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">Shipping address</label>
+            <textarea value={editAddress} onChange={(e) => setEditAddress(e.target.value)} rows={3}
+              className="w-full p-3 rounded border border-border bg-white text-sm text-slate-700 focus:border-sky-400 focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">Contact phone</label>
+            <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)}
+              className="w-full h-10 px-3 rounded border border-border bg-white text-sm font-mono" />
+          </div>
+          <div>
+            <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">Customer-visible note (optional)</label>
+            <textarea value={editNote} onChange={(e) => setEditNote(e.target.value)} rows={2}
+              placeholder="e.g. Delivery between 2-5 PM"
+              className="w-full p-3 rounded border border-border bg-white text-sm text-slate-700 focus:border-sky-400 focus:outline-none" />
+          </div>
+          <p className="text-[11.5px] text-slate-500">Only editable before the order ships. All changes are logged.</p>
+        </div>
+      </Modal>
     </div>
   );
 }

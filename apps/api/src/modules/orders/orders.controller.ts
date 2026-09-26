@@ -94,6 +94,16 @@ export class OrdersController {
   }
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+  @Patch(':id/address')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'ORDER_SUPPORT')
+  async updateAddress(
+    @Param('id') id: string,
+    @Body() body: { shippingAddress?: string; customerNote?: string | null; contactPhone?: string },
+    @CurrentUser() user: RequestUser | null,
+  ) {
+    return this.orders.updateAddressAndNote(id, body, user?.userId ?? null);
+  }
+
   @Post(':id/notes')
   addNote(
     @Param('id') id: string,

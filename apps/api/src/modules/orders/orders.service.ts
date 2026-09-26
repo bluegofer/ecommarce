@@ -532,4 +532,49 @@ export class OrdersService {
       { tx, status: 'POSTED' },
     );
   }
-}
+
+  /**
+   * A-3 — update shipping address + customer note (admin edit panel).
+   */
+  async updateAddressAndNote(
+    id: string,
+    dto: {
+      shippingAddress?: string;
+      customerNote?: string | null;
+      contactPhone?: string;
+    },
+    actorUserId: string | null,
+  ): Promise<OrderDto> {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException('order not found');
+
+    const lockedStatuses = ['SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'RETURNED'];
+    if (lockedStatuses.includes(order.status)) {
+      throw new BadRequestException(
+        'Address/notes can only be edited before the order ships',
+      );
+    }
+
+    const data: Record<string, unknown> = {};
+    if (dto.shippingAddress !== undefined && dto.shippingAddress.trim()) {
+      data.shippingAddressJson = { line1: dto.shippingAddress.trim() };
+    }
+    if (dto.customerNote !== undefined) {
+      data.customerNote = dto.customerNote ? dto.customerNote.trim() : null;
+    }
+    if (dto.contactPhone !== undefined && dto.contactPhone.trim()) {
+      data.contactPhone = dto.contactPhone.trim();
+    }
+
+    if (Object.keys(data).length === 0) {
+      return this.toDto(order as never);
+    }
+
+    const updated = await this.prisma.order.update({
+      where: { id },
+      data: data as never,
+    });
+
+    void actorUserId;
+    return this.toDto(updated as never);
+  }}
