@@ -3,6 +3,12 @@ export type UserRole =
   | 'CATALOG_MANAGER'
   | 'ORDER_SUPPORT'
   | 'MARKETING_MANAGER'
+  | 'ADMIN'
+  | 'EDITOR'
+  | 'FINANCE_MANAGER'
+  | 'PURCHASE_MANAGER'
+  | 'STORE_POS_STAFF'
+  | 'HR_MANAGER'
   | 'FINANCE_READONLY';
 
 export interface AuthTokens {

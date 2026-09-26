@@ -33,6 +33,8 @@ const prisma = new PrismaClient();
 
 const ROLES = [
   { code: 'SUPER_ADMIN', name: 'Super Admin', description: 'Full platform access - all modules, all actions' },
+    { code: 'ADMIN', name: 'Admin', description: 'Full platform access except SUPER_ADMIN-only actions' },
+    { code: 'EDITOR', name: 'Editor', description: 'Content operations - CMS, promotions, reviews' },
   { code: 'CATALOG_MANAGER', name: 'Catalog Manager', description: 'Products, categories, attributes, inventory, media' },
   { code: 'ORDER_SUPPORT', name: 'Order / Support Staff', description: 'Orders, courier, RMA, tickets, customer service' },
   { code: 'MARKETING_MANAGER', name: 'Marketing Manager', description: 'Promotions, coupons, flash sales, CMS, banners' },
@@ -111,6 +113,8 @@ async function assignPermissionsToRoles() {
 
   const grants: Record<string, string[]> = {
     SUPER_ADMIN: all.map((p) => p.code),
+      ADMIN: all.map((p) => p.code),
+      EDITOR: ['catalog.read', 'cms.read', 'cms.write', 'promotions.read', 'promotions.write', 'reviews.moderate'],
     CATALOG_MANAGER: ['catalog.read', 'catalog.write', 'catalog.delete', 'inventory.read', 'inventory.adjust'],
     ORDER_SUPPORT: ['orders.read', 'orders.write', 'orders.cancel', 'rma.process', 'customers.read', 'customers.write'],
     MARKETING_MANAGER: ['promotions.read', 'promotions.write', 'cms.read', 'cms.write'],
