@@ -3,6 +3,7 @@
 // webhook + controller wiring land in Step 13.3.
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { LedgerService } from '../accounting/services/ledger.service';
 import { PAYMENT_ADAPTERS } from './payment-adapter.interface';
 import type { PaymentAdapterRegistry } from './payment-adapter.interface';
 import type {
@@ -22,6 +23,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_ADAPTERS) private readonly adapters: PaymentAdapterRegistry,
+    private readonly ledger: LedgerService,
   ) {}
 
   /**
@@ -164,5 +166,65 @@ export class PaymentsService {
     if (provider === 'COD') return undefined;
     const lower = provider.toLowerCase();
     return `https://mock-gateway.local/${lower}/checkout?intent=${ref}`;
+  }
+
+  /**
+   * A.5 chain #4 — post revenue when a prepaid payment is confirmed PAID.
+   * Idempotent via (sourceType=ORDER, sourceId=orderId): if the delivery
+   * hook already posted (unlikely but possible via re-queue), no-op.
+   * TDD §6.8 (revenue on verified payment) + §11.4 (money correctness).
+   */
+  private async postRevenueOnPaid(orderId: string): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { payments: true },
+      });
+      if (!order) return;
+
+      // Idempotency — same key the delivery hook uses.
+      const existing = await this.prisma.journalEntry.findFirst({
+        where: { sourceType: 'ORDER', sourceId: order.id },
+      });
+      if (existing) return;
+
+      const paidPayment = order.payments.find((p) => p.status === 'PAID');
+      if (!paidPayment) return;
+
+      const method = paidPayment.method;
+      const debitCode =
+        method === 'BKASH' || method === 'NAGAD'
+          ? '1020-MFS'
+          : '1010-BANK';
+
+      const debit = await this.prisma.ledgerAccount.findUnique({ where: { code: debitCode } });
+      const sales = await this.prisma.ledgerAccount.findUnique({ where: { code: '4000-SALES' } });
+      if (!debit || !sales) {
+        this.logger.warn(
+          `postRevenueOnPaid skipped: ledger accounts missing (${debitCode} / 4000-SALES) for order=${order.orderNumber}`,
+        );
+        return;
+      }
+
+      await this.ledger.postEntry(
+        {
+          entryDate: new Date().toISOString(),
+          description: `Order ${order.orderNumber} paid via ${method} — revenue`,
+          sourceType: 'ORDER',
+          sourceId: order.id,
+          lines: [
+            { ledgerAccountId: debit.id, debit: order.totalPoisha, credit: 0, description: 'Payment received' },
+            { ledgerAccountId: sales.id, debit: 0, credit: order.totalPoisha, description: 'Sales revenue' },
+          ],
+        },
+        { status: 'POSTED' },
+      );
+    } catch (err) {
+      // Revenue posting must never break webhook processing.
+      this.logger.error(
+        `postRevenueOnPaid failed for order=${orderId}: ${(err as Error).message}`,
+        (err as Error).stack,
+      );
+    }
   }
 }

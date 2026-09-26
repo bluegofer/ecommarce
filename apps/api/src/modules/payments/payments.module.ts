@@ -14,6 +14,7 @@ import { NagadAdapter } from './adapters/nagad.adapter';
 import { SslcommerzAdapter } from './adapters/sslcommerz.adapter';
 import { CodAdapter } from './adapters/cod.adapter';
 import { PrismaService } from '../../database/prisma.service';
+import { AccountingModule } from '../accounting/accounting.module';
 import type { PaymentAdapter } from '@ecommarce/types';
 
 function buildAdapters(config: AppConfig): PaymentAdapter[] {
@@ -47,7 +48,7 @@ function buildAdapters(config: AppConfig): PaymentAdapter[] {
 }
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, AccountingModule],
   providers: [
     PrismaService,
     {
