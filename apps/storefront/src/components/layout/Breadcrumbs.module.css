@@ -1,15 +1,36 @@
 .wrap {
-  height: 32px;
+  height: 44px;
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: 12.5px;
   overflow-x: auto;
   scrollbar-width: none;
-  /* Fade-out mask on right edge (UI Spec B4, mobile) */
+  padding: 0 24px;
+  max-width: var(--sk-container-max);
+  margin: 0 auto;
+  gap: 12px;
   mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
 }
 .wrap::-webkit-scrollbar { display: none; }
+
+/* T2-5 — branded "Home" pill at the start of every breadcrumb strip */
+.homeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--sk-cta);
+  color: var(--sk-ink);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12.5px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 150ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.homeBtn:hover { background: var(--sk-cta-hover, #FFB800); }
+.homeIcon { display: inline-flex; }
 
 .list {
   display: flex;
@@ -40,3 +61,5 @@
   color: var(--sk-muted);
   font-size: 12px;
 }
+
+html[lang="bn"] .wrap { line-height: 1.4; }

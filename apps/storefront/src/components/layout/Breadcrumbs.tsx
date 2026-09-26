@@ -18,20 +18,48 @@ export interface BreadcrumbsProps {
 }
 
 /**
- * Breadcrumb strip (UI Spec B4).
+ * Breadcrumb strip (UI Spec B4, T2-5 polish).
+ * - First item (Home) is rendered as a prominent branded pill.
+ * - Remaining items render as the classic chain with › separators.
  * - Last item is bold + non-interactive (current page).
- * - If items.length > maxVisible, middle is truncated: [1, …, n-1, n].
+ * - Middle items are truncated: [home] [2nd-last, last] when long.
  * - Renders BreadcrumbList JSON-LD for SEO.
  */
 export function Breadcrumbs({ items, maxVisible = 4, locale = 'en', className }: BreadcrumbsProps) {
   if (items.length === 0) return null;
 
-  const truncated = truncateMiddle(items, maxVisible);
+  const [first, ...rest] = items;
+  const isHome =
+    !!first &&
+    (first.href === '/' ||
+      first.href === `/${locale}` ||
+      first.href === `/${locale}/` ||
+      first.label === 'Home' ||
+      first.label === 'হোম');
+  const homeHref = first?.href ?? `/${locale}`;
+  const homeLabel = locale === 'bn' ? 'হোম' : 'Home';
+  const restItems = isHome ? rest : items;
+  const truncated = truncateMiddle(restItems, maxVisible);
   const ariaLabel = locale === 'bn' ? 'ব্রেডক্রাম্ব' : 'Breadcrumb';
 
   return (
     <>
       <nav className={[styles.wrap, className].filter(Boolean).join(' ')} aria-label={ariaLabel}>
+        {isHome ? (
+          <Link href={homeHref} className={styles.homeBtn}>
+            <span className={styles.homeIcon} aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V10.5z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            {homeLabel}
+          </Link>
+        ) : null}
         <ol className={styles.list}>
           {truncated.map((item, idx) => {
             const isLast = idx === truncated.length - 1;

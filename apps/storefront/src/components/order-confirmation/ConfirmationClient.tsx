@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, ordersApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth/context';
 import styles from './ConfirmationClient.module.css';
 
 export interface LookupOrderDto {
@@ -81,10 +82,12 @@ export function ConfirmationClient({
   phone,
   labels,
 }: ConfirmationClientProps) {
+  const auth = useAuth();
   const [order, setOrder] = useState<LookupOrderDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,6 +128,28 @@ export function ConfirmationClient({
 
   const addr = (order?.shippingAddressJson as Record<string, unknown> | null) ?? null;
   const addrLine = (key: string) => (addr?.[key] ? String(addr[key]) : '');
+
+  // T2-5 / Issue-2 — signed-in users download the invoice directly.
+  // Guests see the sign-in CTA (DECISIONS.md Step-8.11).
+  const handleDownloadInvoice = async () => {
+    if (!order || invoiceBusy) return;
+    setInvoiceBusy(true);
+    try {
+      const blob = await ordersApi.downloadInvoice(order.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${order.orderNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent — user can retry
+    } finally {
+      setInvoiceBusy(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -267,12 +292,23 @@ export function ConfirmationClient({
         <Link href={`/${locale}`} className={styles.secondaryBtn}>
           {labels.continueShopping}
         </Link>
-        <Link
-          href={`/${locale}/signin?next=${encodeURIComponent(`/${locale}/account/orders`)}`}
-          className={styles.ghostBtn}
-        >
-          {labels.downloadInvoice}
-        </Link>
+        {auth.signedIn && order ? (
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            onClick={handleDownloadInvoice}
+            disabled={invoiceBusy}
+          >
+            {invoiceBusy ? '…' : labels.downloadInvoice}
+          </button>
+        ) : (
+          <Link
+            href={`/${locale}/signin?next=${encodeURIComponent(`/${locale}/account/orders`)}`}
+            className={styles.ghostBtn}
+          >
+            {labels.downloadInvoice}
+          </Link>
+        )}
       </div>
 
       <aside className={styles.guestPanel}>
