@@ -228,7 +228,7 @@ export function MenuItemModal({
     <Modal
       open={open}
       onClose={isBusy ? () => undefined : onClose}
-      title={isEdit ? 'Edit menu item' : 'New menu item'}
+      title={(isEdit ? 'Edit' : 'New') + ' menu item · ' + (location === 'HEADER' ? 'Header' : location === 'FOOTER' ? 'Footer' : 'Mobile')}
       size="md"
       footer={
         <div className="flex items-center gap-2">

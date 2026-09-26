@@ -16,7 +16,7 @@ import {
 } from '@/components/home';
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 
-export const revalidate = 60;
+export const revalidate = 5;
 
 export async function generateMetadata({
   params,
