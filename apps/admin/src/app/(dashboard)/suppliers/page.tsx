@@ -1,9 +1,12 @@
 'use client';
 
+import * as React from 'react';
+
 import Link from 'next/link';
 import { Factory, Plus } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip, EmptyState, useToast } from '@/components/ui';
 import type { Column } from '@/components/ui';
+import { SupplierFormModal } from '@/components/suppliers/supplier-form-modal';
 import { useQuery } from '@/lib/hooks';
 import { formatPoisha } from '@/lib/utils';
 
@@ -20,6 +23,7 @@ interface Supplier {
 
 export default function SuppliersPage() {
   const toast = useToast();
+  const [modalOpen, setModalOpen] = React.useState(false);
   const { data, loading, error } = useQuery<Supplier[]>('/api/v1/suppliers');
 
   const columns: Column<Supplier>[] = [
@@ -62,7 +66,7 @@ export default function SuppliersPage() {
         actions={
           <button
             type="button"
-            onClick={() => toast.push({ tone: 'info', title: 'New supplier', description: 'Modal in follow-up.' })}
+            onClick={() => setModalOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
           >
             <Plus className="w-4 h-4" /> New supplier
@@ -80,6 +84,13 @@ export default function SuppliersPage() {
           <DataTable columns={columns} rows={data} rowKey={(r) => r.id} />
         )}
       </div>
+      <SupplierFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 }
+
+// MODAL_WRAPPER_PLACEHOLDER

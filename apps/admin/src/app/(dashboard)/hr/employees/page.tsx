@@ -1,8 +1,11 @@
 'use client';
 
+import * as React from 'react';
+
 import { UserCog, Plus } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip, EmptyState, useToast } from '@/components/ui';
 import type { Column } from '@/components/ui';
+import { EmployeeFormModal } from '@/components/hr/employee-form-modal';
 import { useQuery } from '@/lib/hooks';
 import { formatPoisha, formatDate } from '@/lib/utils';
 
@@ -20,6 +23,7 @@ interface Employee {
 
 export default function EmployeesPage() {
   const toast = useToast();
+  const [modalOpen, setModalOpen] = React.useState(false);
   const { data, loading, error } = useQuery<Employee[]>('/api/v1/hr/employees');
 
   const columns: Column<Employee>[] = [
@@ -52,7 +56,7 @@ export default function EmployeesPage() {
             <a href="/hr/payroll" className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50">Payroll</a>
             <button
               type="button"
-              onClick={() => toast.push({ tone: 'info', title: 'New employee', description: 'Modal in follow-up.' })}
+              onClick={() => setModalOpen(true)}
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
             >
               <Plus className="w-4 h-4" /> New employee
@@ -71,6 +75,11 @@ export default function EmployeesPage() {
           <DataTable columns={columns} rows={data} rowKey={(r) => r.id} />
         )}
       </div>
+      <EmployeeFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 }

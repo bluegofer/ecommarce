@@ -1,10 +1,13 @@
 'use client';
 
+import * as React from 'react';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { Tag, Plus, Percent, Gift } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip, EmptyState, useToast } from '@/components/ui';
 import type { Column } from '@/components/ui';
+import { CouponFormModal } from '@/components/promotions/coupon-form-modal';
 import { useQuery } from '@/lib/hooks';
 import { formatPoisha, formatDate } from '@/lib/utils';
 
@@ -23,6 +26,7 @@ interface Coupon {
 
 export default function PromotionsPage() {
   const toast = useToast();
+  const [modalOpen, setModalOpen] = React.useState(false);
   const { data, loading, error } = useQuery<Coupon[]>('/api/v1/coupons');
 
   const columns: Column<Coupon>[] = [
@@ -123,7 +127,7 @@ export default function PromotionsPage() {
             </Link>
             <button
               type="button"
-              onClick={() => toast.push({ tone: 'info', title: 'New coupon', description: 'Modal in follow-up.' })}
+              onClick={() => setModalOpen(true)}
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
             >
               <Plus className="w-4 h-4" /> New coupon
@@ -147,6 +151,11 @@ export default function PromotionsPage() {
           <DataTable columns={columns} rows={data} rowKey={(r) => r.id} />
         )}
       </div>
+      <CouponFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 }

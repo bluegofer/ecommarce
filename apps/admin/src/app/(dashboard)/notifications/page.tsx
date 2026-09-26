@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Bell, Mail, MessageSquare, Send } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip, Modal, useToast } from '@/components/ui';
 import type { Column } from '@/components/ui';
+import { TemplateFormModal } from '@/components/notifications/template-form-modal';
 import { useQuery } from '@/lib/hooks';
 import { formatDateTime } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ export default function NotificationsPage() {
   const toast = useToast();
   const [tab, setTab] = useState<(typeof TABS)[number]>('Templates');
   const [editing, setEditing] = useState<Template | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const templatesQuery = useQuery<Template[]>('/api/v1/notifications/templates');
   const logQuery = useQuery<LogEntry[]>('/api/v1/notifications/log');
@@ -154,6 +156,18 @@ export default function NotificationsPage() {
         </nav>
       </div>
 
+      {tab === 'Templates' && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+          >
+            + New template
+          </button>
+        </div>
+      )}
+
       {tab === 'Templates' ? (
         <div className="card overflow-hidden">
           {templatesQuery.loading && !templatesQuery.data ? (
@@ -235,6 +249,12 @@ export default function NotificationsPage() {
           </div>
         )}
       </Modal>
+
+      <TemplateFormModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={() => void templatesQuery.refetch?.()}
+      />
     </div>
   );
 }
