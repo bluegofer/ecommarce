@@ -107,6 +107,12 @@ export class PosController {
 
   // -------- TRANSFERS --------
 
+  @Get('transfers')
+  @Roles('SUPER_ADMIN', 'PURCHASE_MANAGER', 'STORE_POS_STAFF', 'FINANCE_READONLY')
+  listTransfers() {
+    return this.pos.listTransfers();
+  }
+
   @Post('transfers')
   @Roles('SUPER_ADMIN', 'PURCHASE_MANAGER')
   createTransfer(

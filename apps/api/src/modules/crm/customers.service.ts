@@ -12,7 +12,7 @@ import type {
 export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(search?: string): Promise<CustomerDto[]> {
+  async list(search?: string, page = 1, pageSize = 20): Promise<{ items: CustomerDto[]; total: number; page: number; pageSize: number }> {
     const rows = await this.prisma.customer.findMany({
       where: search
         ? {
@@ -26,7 +26,13 @@ export class CustomersService {
       orderBy: { lastOrderAt: { sort: 'desc', nulls: 'last' } },
       take: 200,
     });
-    return rows.map((r) => this.toDto(r));
+    const total = rows.length;
+    return {
+      items: rows.map((r) => this.toDto(r)),
+      total,
+      page: 1,
+      pageSize: rows.length,
+    };
   }
 
   async findOne(id: string): Promise<CustomerDto> {

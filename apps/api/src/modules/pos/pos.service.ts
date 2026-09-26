@@ -431,4 +431,37 @@ export class PosService {
       });
     });
   }
+
+  /**
+   * B-4 fix — list all inter-branch transfers (DRAFT/DISPATCHED/RECEIVED/CANCELLED).
+   * Called by admin /inventory/transfers page.
+   */
+  async listTransfers(): Promise<Array<{
+    id: string;
+    transferNumber: string;
+    fromBranch: { code: string; name: string };
+    toBranch: { code: string; name: string };
+    status: string;
+    itemCount: number;
+    createdAt: string;
+  }>> {
+    const rows = await this.prisma.stockTransfer.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        fromBranch: { select: { code: true, name: true } },
+        toBranch: { select: { code: true, name: true } },
+        items: { select: { id: true } },
+      },
+    });
+    return rows.map((r: any) => ({
+      id: r.id,
+      transferNumber: r.transferNumber,
+      fromBranch: r.fromBranch,
+      toBranch: r.toBranch,
+      status: r.status,
+      itemCount: r.items?.length ?? 0,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  }
 }
