@@ -3,7 +3,7 @@
  * The mock SMS adapter lands in Step 13.1 behind the same interface.
  */
 
-export type SmsProvider = 'MOCK' | 'BULK_SMS_BD' | 'ALPHA_SMS' | 'BANGLA_SMS' | 'SSL_WIRELESS';
+export type SmsProvider = 'MOCK' | 'SMSNETBD' | 'BULK_SMS_BD' | 'ALPHA_SMS' | 'BANGLA_SMS' | 'SSL_WIRELESS';
 export type EmailProvider = 'SES' | 'MOCK';
 export type PushProvider = 'VAPID' | 'MOCK';
 

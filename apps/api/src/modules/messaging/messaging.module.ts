@@ -6,13 +6,26 @@ import { Module } from '@nestjs/common';
 import { MessagingService } from './messaging.service';
 import { MessagingRegistry } from './messaging-registry';
 import { MockSmsAdapter } from './adapters/mock-sms.adapter';
+import { SmsNetBdAdapter } from './adapters/sms-net-bd.adapter';
 import { MockEmailAdapter } from './adapters/mock-email.adapter';
 import { SesEmailAdapter } from './adapters/ses-email.adapter';
 import { VapidPushAdapter } from './adapters/vapid-push.adapter';
 import type { EmailAdapter, PushAdapter, SmsAdapter } from '@ecommarce/types';
 
 function buildRegistry(): MessagingRegistry {
-  const sms: SmsAdapter = new MockSmsAdapter();
+  // SMS provider — env-driven switch (no code change to swap).
+  //   SMS_PROVIDER=smsnetbd + SMSNETBD_API_KEY set → real Alpha SMS adapter
+  //   otherwise                                  → mock (dev / CI)
+  const smsProviderEnv = (process.env.SMS_PROVIDER ?? '').toLowerCase();
+  const smsNetBdApiKey = process.env.SMSNETBD_API_KEY ?? '';
+  const sms: SmsAdapter =
+    smsProviderEnv === 'smsnetbd' && smsNetBdApiKey
+      ? new SmsNetBdAdapter({
+          apiKey: smsNetBdApiKey,
+          senderId: process.env.SMSNETBD_SENDER_ID,
+          baseUrl: process.env.SMSNETBD_BASE_URL,
+        })
+      : new MockSmsAdapter();
 
   const sesRegion = process.env.SES_REGION ?? '';
   const sesAccessKey = process.env.SES_ACCESS_KEY_ID ?? '';
