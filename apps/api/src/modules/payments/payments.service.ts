@@ -121,6 +121,15 @@ export class PaymentsService {
         gatewayMeta: event.raw as object,
       },
     });
+
+    // A.5 chain #4 — Website Orders -> Accounting.
+    // Post revenue at PAID for prepaid methods (bKash/Nagad/SSLCommerz).
+    // COD is offline; its revenue posts at DELIVERED (OrdersService hook).
+    // Idempotency guaranteed by (sourceType=ORDER, sourceId=orderId).
+    if (event.status === 'PAID' && payment.method !== 'COD') {
+      await this.postRevenueOnPaid(payment.orderId);
+    }
+
     return { ok: true };
   }
 
