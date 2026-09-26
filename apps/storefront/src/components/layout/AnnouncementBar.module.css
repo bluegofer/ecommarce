@@ -1,7 +1,7 @@
 .bar {
   position: relative;
-  background: var(--sk-brand-950);
-  color: #DCF0FA;
+  background: var(--sk-brand-600);
+  color: #FFFFFF;
   height: 32px;
   display: flex;
   align-items: center;
@@ -23,10 +23,10 @@
   max-width: 100%;
 }
 
-.message { color: #DCF0FA; }
+.message { color: #FFFFFF; }
 
 .cta {
-  color: #DCF0FA;
+  color: #FFFFFF;
   text-decoration: underline;
   font-weight: 600;
   margin-left: 4px;
@@ -45,7 +45,7 @@
   justify-content: center;
   background: transparent;
   border: none;
-  color: #DCF0FA;
+  color: #FFFFFF;
   cursor: pointer;
   border-radius: var(--sk-radius-sm);
 }
