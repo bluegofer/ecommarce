@@ -41,6 +41,7 @@ export function OrderTracking({ locale, orderId, labels }: OrderTrackingProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copyToast, setCopyToast] = useState(false);
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +79,26 @@ export function OrderTracking({ locale, orderId, labels }: OrderTrackingProps) {
     }
   };
 
+
+  const handleDownloadInvoice = async () => {
+    if (invoiceBusy) return;
+    setInvoiceBusy(true);
+    try {
+      const blob = await ordersApi.downloadInvoice(orderId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${order?.orderNumber ?? orderId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Silent fail — user can retry; server logs to Sentry on 5xx
+    } finally {
+      setInvoiceBusy(false);
+    }
+  };
   if (loading) {
     return <p className={styles.state}>{labels.loading}</p>;
   }

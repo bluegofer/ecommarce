@@ -52,6 +52,8 @@ export interface RequestOptions {
   rawBody?: boolean;
   /** Cache mode for fetch. */
   cache?: RequestCache;
+  /** Return the raw Response (binary/stream) instead of parsing JSON. */
+  raw?: boolean;
 }
 
 function buildHeaders(options?: RequestOptions): HeadersInit {
@@ -95,6 +97,15 @@ async function request<T>(
   }
 
   const res = await fetch(url, init);
+
+  // Binary/blob path: return the raw Response (caller handles headers + body)
+  if (options?.raw) {
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new ApiError(res.status, errText, url);
+    }
+    return res as unknown as T;
+  }
 
   // 204 No Content
   if (res.status === 204) {

@@ -117,3 +117,32 @@ html[lang="bn"] .paymentLabel,
 html[lang="bn"] .totalRow dt,
 html[lang="bn"] .backLink,
 html[lang="bn"] .helpLink { font-family: var(--sk-font-bn); }
+/* T2-4 — invoice download button + top actions wrapper */
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.invoiceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  background: #fff;
+  border: 1px solid var(--sk-border, #d0d7de);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 150ms cubic-bezier(0.2, 0.6, 0.2, 1),
+    background 150ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.invoiceBtn:hover:not(:disabled) {
+  border-color: var(--sk-cta, #FFC533);
+  background: #fffbeb;
+}
+.invoiceBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

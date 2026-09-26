@@ -52,4 +52,16 @@ export const ordersApi = {
   listMine: () => api.get<MyOrderListItem[]>('/me/orders'),
 
   findMine: (id: string) => api.get<MyOrderDetail>(`/me/orders/${id}`),
+
+  /**
+   * Fetch the invoice PDF as a Blob (T2-4).
+   * Ownership enforced server-side at GET /me/orders/:id/invoice.pdf.
+   * Caller triggers the browser download via URL.createObjectURL.
+   */
+  downloadInvoice: async (id: string): Promise<Blob> => {
+    const res = await api.get<Response>(`/me/orders/${id}/invoice.pdf`, {
+      raw: true,
+    });
+    return res.blob();
+  },
 };
