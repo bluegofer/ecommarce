@@ -41,3 +41,8 @@ export type { ReturnRequestFormProps } from './ReturnRequestForm';
 
 export { ReturnTimeline } from './ReturnTimeline';
 export type { ReturnTimelineProps } from './ReturnTimeline';
+export { WriteReviewModal } from './WriteReviewModal';
+export type { WriteReviewModalProps } from './WriteReviewModal';
+
+export { MyReviewsList } from './MyReviewsList';
+export type { MyReviewsListProps } from './MyReviewsList';

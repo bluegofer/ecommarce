@@ -35,6 +35,7 @@ export default function OrderDetailPage({
     couponLabel: bn ? 'কুপন' : 'Coupon',
     downloadInvoice: bn ? 'ইনভয়েস' : 'Download invoice',
     copied: bn ? '✓ কপি হয়েছে' : '✓ Copied',
+    writeReview: bn ? 'রিভিউ লিখুন' : 'Write a review',
     statusLabels: {
       PLACED: bn ? 'অর্ডার হয়েছে' : 'Ordered',
       PENDING_VERIFICATION: bn ? 'যাচাই বাকি' : 'Pending verification',

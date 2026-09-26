@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ordersApi, ApiError, type MyOrderDetail } from '@/lib/api';
 import { StatusChip, type StatusChipLabels } from './StatusChip';
 import { TrackingTimeline, type TrackingTimelineLabels } from './TrackingTimeline';
+import { WriteReviewModal } from './WriteReviewModal';
 import styles from './OrderTracking.module.css';
 
 export interface OrderTrackingLabels {
@@ -28,6 +29,7 @@ export interface OrderTrackingLabels {
   statusLabels: StatusChipLabels;
   timeline: TrackingTimelineLabels;
   copied: string;
+  writeReview: string;
 }
 
 export interface OrderTrackingProps {
@@ -42,6 +44,8 @@ export function OrderTracking({ locale, orderId, labels }: OrderTrackingProps) {
   const [error, setError] = useState<string | null>(null);
   const [copyToast, setCopyToast] = useState(false);
   const [invoiceBusy, setInvoiceBusy] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -166,6 +170,26 @@ export function OrderTracking({ locale, orderId, labels }: OrderTrackingProps) {
 
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Timeline</h2>
+            {order.status === 'DELIVERED' && (
+              <section className={styles.section}>
+                <div className={styles.reviewCta}>
+                  {reviewSuccess ? (
+                    <p className={styles.reviewThanks}>
+                      {'✓'} {labels.writeReview}
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setReviewOpen(true)}
+                      className={styles.writeReviewBtn}
+                    >
+                      {labels.writeReview}
+                    </button>
+                  )}
+                </div>
+              </section>
+            )}
+
             <TrackingTimeline
               locale={locale}
               currentStatus={order.status}
@@ -243,6 +267,26 @@ export function OrderTracking({ locale, orderId, labels }: OrderTrackingProps) {
           </section>
         </aside>
       </div>
+
+      {reviewOpen && (
+        <WriteReviewModal
+          open={reviewOpen}
+          orderId={orderId}
+          items={order.items.map((it) => ({
+            id: it.id,
+            productId: it.variantId,
+            variantId: it.variantId,
+            sku: it.variantId,
+            title: it.titleEn,
+          }))}
+          locale={locale}
+          onClose={() => setReviewOpen(false)}
+          onSuccess={() => {
+            setReviewOpen(false);
+            setReviewSuccess(true);
+          }}
+        />
+      )}
     </div>
   );
 }
