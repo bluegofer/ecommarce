@@ -101,7 +101,7 @@ export default function AttendancePage() {
                 return (
                   <tr key={row.employeeId}>
                     <td className="px-3 py-2 sticky left-0 bg-white">
-                      <div className="font-medium text-slate-800 whitespace-nowrap">{emp?.fullName ?? row.employeeId}</div>
+                      <div className="font-medium text-slate-800 whitespace-nowrap"><Link href={`/hr/attendance/${row.employeeId}`} className="text-sky-700 hover:underline font-medium">{emp?.fullName ?? row.employeeId}</Link></div>
                       <code className="text-[11px] text-slate-400 font-mono">{emp?.code}</code>
                     </td>
                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
