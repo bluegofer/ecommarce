@@ -1,3 +1,6 @@
+// apps/storefront/src/lib/api/returns.ts
+// M-2/M-3/M-4 — customer-facing return request APIs.
+// Preserves existing MyReturnItem + listMine (used by ReturnsList component).
 import { api } from './client';
 
 // ── Types (mirror apps/api/modules/rma/returns.service.ts) ──
@@ -14,8 +17,58 @@ export interface MyReturnItem {
   resolvedAt: string | null;
 }
 
+export interface ReturnLineItem {
+  id: string;
+  sku: string;
+  title: string;
+  quantity: number;
+}
+
+export interface ReturnRequestSummary {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  status: 'REQUESTED' | 'APPROVED' | 'PICKED_UP' | 'RECEIVED' | 'RESOLVED' | 'REJECTED';
+  reason: string;
+  reasonNote: string | null;
+  photoUrls: string[] | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReturnEvent {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string;
+  note: string | null;
+  actorUserId: string | null;
+  createdAt: string;
+}
+
+export interface ReturnRequestDetail extends ReturnRequestSummary {
+  itemIds: string[];
+  items: ReturnLineItem[];
+  timeline: ReturnEvent[];
+}
+
+export interface CreateReturnPayload {
+  orderId: string;
+  itemIds: string[];
+  reason: string;
+  reasonNote?: string;
+  photoUrls?: string[];
+}
+
 // ── API wrapper ──
 
 export const returnsApi = {
-  listMine: () => api.get<MyReturnItem[]>('/returns/me'),
+  listMine(): Promise<MyReturnItem[]> {
+    return api.get<MyReturnItem[]>('/returns/me');
+  },
+  create(payload: CreateReturnPayload): Promise<ReturnRequestDetail> {
+    return api.post<ReturnRequestDetail>('/returns', payload);
+  },
+  detail(id: string): Promise<ReturnRequestDetail> {
+    return api.get<ReturnRequestDetail>(`/returns/${id}`);
+  },
 };

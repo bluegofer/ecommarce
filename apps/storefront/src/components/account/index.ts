@@ -36,3 +36,8 @@ export type { ProfileSettingsProps, ProfileSettingsLabels } from './ProfileSetti
 
 export { ReturnsList } from './ReturnsList';
 export type { ReturnsListLabels, ReturnsListProps } from './ReturnsList';
+export { ReturnRequestForm } from './ReturnRequestForm';
+export type { ReturnRequestFormProps } from './ReturnRequestForm';
+
+export { ReturnTimeline } from './ReturnTimeline';
+export type { ReturnTimelineProps } from './ReturnTimeline';

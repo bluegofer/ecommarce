@@ -99,9 +99,11 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
         <div className={styles.empty}>
           <h2 className={styles.emptyTitle}>{labels.emptyTitle}</h2>
           <p className={styles.emptyBody}>{labels.emptyBody}</p>
-          <Link href={`/${locale}/account/orders`} className={styles.cta}>
-            {labels.findSomething}
-          </Link>
+          <div className={styles.ctaRow}>
+            <Link href={`/${locale}/account/orders`} className={styles.cta}>
+              {labels.findSomething}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -109,7 +111,12 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
 
   return (
     <div className={styles.wrap}>
-      <h1 className={styles.h1}>{labels.title}</h1>
+      <div className={styles.header}>
+        <h1 className={styles.h1}>{labels.title}</h1>
+        <Link href={`/${locale}/account/orders`} className={styles.newBtn}>
+          + {locale === 'bn' ? 'নতুন ফেরত অনুরোধ' : 'New return request'}
+        </Link>
+      </div>
       <ul className={styles.list}>
         {items.map((it) => {
           const tone = STATUS_TONE[it.status] ?? 'neutral';
