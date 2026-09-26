@@ -393,6 +393,17 @@ async function seedCmsDemo() {
       metaTitle: 'Refund & Return Policy — BlueGofer',
       metaDescription: 'Understand our 7-day return and refund process.',
     },
+    {
+      slug: 'shipping-policy',
+      titleEn: 'Shipping & Delivery Policy',
+      titleBn: 'শিপিং ও ডেলিভারি নীতি',
+      bodyEn:
+        '<p>[PLACEHOLDER] Inside Dhaka: 60 BDT / 2-3 days. Outside Dhaka: 120 BDT / 3-5 days. Free over 1,500 BDT (D-10, D-12). Editable from the admin CMS.</p>',
+      bodyBn:
+        '<p>[PLACEHOLDER] ঢাকার ভিতরে: ৬০ টাকা / ২-৩ দিন। ঢাকার বাইরে: ১২০ টাকা / ৩-৫ দিন। ১,৫০০ টাকার উপরে ফ্রি (D-10, D-12)। admin CMS থেকে সম্পাদনাযোগ্য।</p>',
+      metaTitle: 'Shipping & Delivery Policy — BlueGofer',
+      metaDescription: 'Delivery charges, zones, and estimated timelines for Bangladesh.',
+    },
   ];
 
   let pagesCreated = 0;
@@ -476,6 +487,7 @@ async function seedCmsDemo() {
     { labelEn: 'Privacy Policy', labelBn: 'গোপনীয়তা নীতি', url: '/pages/privacy-policy', sortOrder: 3 },
     { labelEn: 'Terms of Service', labelBn: 'সেবার শর্তাবলী', url: '/pages/terms-of-service', sortOrder: 4 },
     { labelEn: 'Refund Policy', labelBn: 'ফেরত নীতি', url: '/pages/refund-policy', sortOrder: 5 },
+    { labelEn: 'Shipping Policy', labelBn: 'শিপিং নীতি', url: '/pages/shipping-policy', sortOrder: 6 },
   ];
 
   let footerItemsCreated = 0;
