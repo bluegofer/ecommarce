@@ -1,4 +1,4 @@
-﻿import { getDictionary, isLocale } from '@/lib/i18n';
+import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi } from '@/lib/api';
 import type { CategoryNode } from '@/lib/api/types';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
@@ -103,11 +103,7 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
         />
       </main>
 
-      <Footer
-        locale={locale}
-        labels={footerLabels(t)}
-        columns={footerColumns(t, locale)}
-      />
+      <Footer locale={locale} />
     </>
   );
 }

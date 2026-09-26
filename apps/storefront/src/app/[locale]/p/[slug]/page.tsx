@@ -275,11 +275,7 @@ export default async function ProductPage({ params }: PageProps) {
         ) : null}
       </main>
 
-      <Footer
-        locale={locale}
-        labels={footerLabels(t)}
-        columns={footerColumns(t, locale)}
-      />
+      <Footer locale={locale} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi, cmsApi } from '@/lib/api';
@@ -241,23 +241,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
         }))}
       </main>
 
-      <Footer
-        locale={locale}
-        labels={{
-          backTop: t['common.back_top'],
-          about: t['footer.about'],
-          contact: t['footer.contact'],
-          faq: t['footer.faq'],
-          privacy: t['footer.privacy'],
-          terms: t['footer.terms'],
-          returns: t['footer.returns'],
-          language: 'Language',
-          currency: 'Currency',
-          country: 'Country',
-          brand: 'NoLimitShopping',
-        }}
-        columns={footerColumns}
-      />
+      <Footer locale={locale} />
     </>
   );
 }

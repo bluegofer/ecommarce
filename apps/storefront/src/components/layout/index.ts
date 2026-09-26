@@ -5,7 +5,7 @@ export { MegaMenu } from './MegaMenu';
 export type { MegaMenuProps, MegaMenuCategory, MegaMenuLabels } from './MegaMenu';
 
 export { Footer } from './Footer';
-export type { FooterProps, FooterColumn } from './Footer';
+export type { FooterProps } from './Footer';
 
 export { Breadcrumbs } from './Breadcrumbs';
 export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';

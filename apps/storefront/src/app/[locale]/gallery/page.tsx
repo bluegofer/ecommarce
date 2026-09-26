@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getDictionary, isLocale, interpolate } from '@/lib/i18n';
 import { Header, Footer, Breadcrumbs } from '@/components/layout';
@@ -241,41 +241,7 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
         </Section>
       </main>
 
-      <Footer
-        locale={locale}
-        labels={{
-          backTop: t['common.back_top'],
-          about: t['footer.about'],
-          contact: t['footer.contact'],
-          faq: t['footer.faq'],
-          privacy: t['footer.privacy'],
-          terms: t['footer.terms'],
-          returns: t['footer.returns'],
-          language: 'Language',
-          currency: 'Currency',
-          country: 'Country',
-          brand: 'NoLimitShopping',
-        }}
-        columns={[
-          { heading: t['footer.about'], links: [
-            { label: 'About', href: `/${locale}/pages/about` },
-            { label: 'Careers', href: `/${locale}/pages/careers` },
-          ]},
-          { heading: 'Help', links: [
-            { label: t['footer.contact'], href: `/${locale}/pages/contact` },
-            { label: t['footer.faq'], href: `/${locale}/pages/faq` },
-          ]},
-          { heading: 'Policies', links: [
-            { label: t['footer.privacy'], href: `/${locale}/pages/privacy` },
-            { label: t['footer.terms'], href: `/${locale}/pages/terms` },
-            { label: t['footer.returns'], href: `/${locale}/pages/returns` },
-          ]},
-          { heading: 'Account', links: [
-            { label: t['account.title'], href: `/${locale}/account` },
-            { label: t['header.orders'], href: `/${locale}/account/orders` },
-          ]},
-        ]}
-      />
+      <Footer locale={locale} />
     </>
   );
 }

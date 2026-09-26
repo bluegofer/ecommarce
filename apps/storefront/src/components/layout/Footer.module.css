@@ -1,3 +1,5 @@
+/* Footer.module.css — professional BD e-commerce footer */
+
 .footer {
   background: var(--sk-brand-900);
   color: #B8E2F5;
@@ -21,24 +23,26 @@
 .columns {
   max-width: var(--sk-container-max);
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 40px 24px 32px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
+  grid-template-columns: 1.2fr 1fr 1fr 1.3fr;
+  gap: 40px;
 }
 
 .column { display: block; }
 
 .heading {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #FFFFFF;
-  margin-bottom: 12px;
+  margin: 0 0 14px;
   cursor: default;
   list-style: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 .heading::-webkit-details-marker { display: none; }
 .chevron { display: none; }
@@ -49,15 +53,120 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .links a {
   color: #B8E2F5;
   font-size: 13px;
   text-decoration: none;
+  transition: color var(--sk-motion-fast) var(--sk-ease);
 }
 .links a:hover { color: #FFFFFF; text-decoration: underline; }
+
+/* Contact block */
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  color: #B8E2F5;
+}
+.contactRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.contactRow svg { flex-shrink: 0; margin-top: 2px; }
+.contactRow a {
+  color: #B8E2F5;
+  text-decoration: none;
+}
+.contactRow a:hover { color: #FFFFFF; text-decoration: underline; }
+.contactLabel {
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-right: 4px;
+}
+
+/* Social icons */
+
+.social {
+  margin-top: 20px;
+}
+.socialLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+.socialRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #DCF0FA;
+  transition: all var(--sk-motion-fast) var(--sk-ease);
+}
+.socialLink:hover {
+  background: #FFFFFF;
+  color: var(--sk-brand-900);
+  transform: translateY(-2px);
+}
+
+/* Payment badges */
+
+.payments {
+  margin-top: 20px;
+}
+.paymentsLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+.paymentsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.payBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  background: #FFFFFF;
+  color: var(--sk-brand-900);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 56px;
+  letter-spacing: 0.02em;
+}
+.payBadgeBkash { background: #E2136E; color: #FFFFFF; }
+.payBadgeNagad { background: #EC1C24; color: #FFFFFF; }
+.payBadgeRocket { background: #8C3494; color: #FFFFFF; }
+.payBadgeVisa { background: #1A1F71; color: #FFFFFF; }
+.payBadgeMc { background: #EB001B; color: #FFFFFF; }
+.payBadgeCod { background: #16A34A; color: #FFFFFF; }
+
+/* Divider */
 
 .divider {
   max-width: var(--sk-container-max);
@@ -65,6 +174,8 @@
   height: 1px;
   background: #164561;
 }
+
+/* Brand center */
 
 .brandCenter {
   max-width: var(--sk-container-max);
@@ -90,7 +201,11 @@
   gap: 8px;
   font-size: 12px;
   color: #B8E2F5;
+  flex-wrap: wrap;
+  justify-content: center;
 }
+
+/* Bottom bar */
 
 .bottomBar {
   background: var(--sk-brand-950);
@@ -108,14 +223,22 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .legal a { color: #B8E2F5; text-decoration: none; }
 .legal a:hover { color: #FFFFFF; text-decoration: underline; }
+
+/* Bangla typography */
 
 html[lang="bn"] .footer,
 html[lang="bn"] .backTop,
 html[lang="bn"] .heading,
 html[lang="bn"] .links a,
+html[lang="bn"] .contact,
+html[lang="bn"] .contactRow,
+html[lang="bn"] .socialLabel,
+html[lang="bn"] .paymentsLabel,
 html[lang="bn"] .brandMark,
 html[lang="bn"] .selectors,
 html[lang="bn"] .bottomBar,
@@ -123,12 +246,12 @@ html[lang="bn"] .legal a {
   font-family: var(--sk-font-bn);
 }
 
-/* Tablet: 2×2 */
+/* Tablet — 2×2 */
 @media (max-width: 1023px) and (min-width: 640px) {
-  .columns { grid-template-columns: repeat(2, 1fr); }
+  .columns { grid-template-columns: repeat(2, 1fr); gap: 32px; }
 }
 
-/* Mobile: accordion columns */
+/* Mobile — accordion */
 @media (max-width: 639px) {
   .columns {
     grid-template-columns: 1fr;
@@ -138,6 +261,7 @@ html[lang="bn"] .legal a {
 
   .column {
     border-bottom: 1px solid #164561;
+    padding: 0;
   }
 
   .heading {
@@ -156,7 +280,13 @@ html[lang="bn"] .legal a {
 
   .links {
     padding-bottom: 14px;
+    gap: 8px;
   }
+
+  /* Contact column: hide details when collapsed on mobile */
+  .contact,
+  .social,
+  .payments { padding-bottom: 14px; }
 
   .brandCenter { padding: 16px; }
   .bottomBar {
@@ -168,5 +298,7 @@ html[lang="bn"] .legal a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chevron { transition: none; }
+  .chevron,
+  .socialLink { transition: none; }
+  .socialLink:hover { transform: none; }
 }

@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi } from '@/lib/api';
@@ -98,11 +98,7 @@ export default async function CartPage({ params }: PageProps) {
         />
       </main>
 
-      <Footer
-        locale={locale}
-        labels={footerLabels(t)}
-        columns={footerColumns(t, locale)}
-      />
+      <Footer locale={locale} />
     </>
   );
 }
