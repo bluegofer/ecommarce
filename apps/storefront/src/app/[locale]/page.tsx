@@ -11,6 +11,7 @@ import {
   ProductCarousel,
   PromoBanners,
   SeoTextBlock,
+  EidMegaSale,
   type HeroSlide,
 } from '@/components/home';
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
@@ -414,6 +415,12 @@ function renderSection({
       if (banners.length === 0) return null;
       return <PromoBanners key={section.id} banners={banners} locale={locale} />;
     }
+    case 'EID_MEGA_SALE': {
+      const cfg = extractEidConfig(section.config, locale);
+      if (!cfg) return null;
+      return <EidMegaSale key={section.id} config={cfg} locale={locale} />;
+    }
+
     case 'SEO_TEXT': {
       const paragraphs = extractSeoParagraphs(section.config, locale);
       if (paragraphs.length === 0) return null;
@@ -525,6 +532,40 @@ function extractWideBanners(
   return fallbackPromoBanners(locale).slice(0, 1);
 }
 
+function extractEidConfig(
+  config: Record<string, unknown> | null,
+  _locale: 'bn' | 'en',
+): import('@/components/home/EidMegaSale').EidMegaSaleConfig | null {
+  if (!config || typeof config !== 'object') return null;
+  const c = config as Record<string, unknown>;
+  if (
+    typeof c.titleEn !== 'string' ||
+    typeof c.titleBn !== 'string' ||
+    typeof c.discountTextEn !== 'string' ||
+    typeof c.discountTextBn !== 'string' ||
+    typeof c.imageLeft !== 'string' ||
+    typeof c.imageRight !== 'string' ||
+    typeof c.ctaHref !== 'string'
+  ) {
+    return null;
+  }
+  return {
+    titleEn: c.titleEn,
+    titleBn: c.titleBn,
+    discountTextEn: c.discountTextEn,
+    discountTextBn: c.discountTextBn,
+    subtitleEn: typeof c.subtitleEn === 'string' ? c.subtitleEn : '',
+    subtitleBn: typeof c.subtitleBn === 'string' ? c.subtitleBn : '',
+    badgeEn: typeof c.badgeEn === 'string' ? c.badgeEn : undefined,
+    badgeBn: typeof c.badgeBn === 'string' ? c.badgeBn : undefined,
+    imageLeft: c.imageLeft,
+    imageRight: c.imageRight,
+    ctaHref: c.ctaHref,
+    ctaLabelEn: typeof c.ctaLabelEn === 'string' ? c.ctaLabelEn : 'Shop now',
+    ctaLabelBn: typeof c.ctaLabelBn === 'string' ? c.ctaLabelBn : 'কিনুন',
+    bgTheme: c.bgTheme === 'gold' ? 'gold' : 'green',
+  };
+}
 function extractSeoParagraphs(
   config: Record<string, unknown> | null | undefined,
   locale: 'bn' | 'en',

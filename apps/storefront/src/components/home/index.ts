@@ -17,3 +17,5 @@ export { SeoTextBlock } from './SeoTextBlock';
 export type { SeoTextBlockProps } from './SeoTextBlock';
 export { HeroSlider } from './HeroSlider';
 export type { HeroSliderProps } from './HeroSlider';
+export { EidMegaSale } from './EidMegaSale';
+export type { EidMegaSaleProps, EidMegaSaleConfig } from './EidMegaSale';
