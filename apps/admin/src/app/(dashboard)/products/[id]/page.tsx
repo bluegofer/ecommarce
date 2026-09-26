@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { PageHeader, StatusChip, Modal, useToast } from '@/components/ui';
+import { MediaUploader, type MediaItem } from '@/components/catalog/media-uploader';
 import { useMutation, useQuery, useUpload } from '@/lib/hooks';
 import { formatPoisha, cn } from '@/lib/utils';
 

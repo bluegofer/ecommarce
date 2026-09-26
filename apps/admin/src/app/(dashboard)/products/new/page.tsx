@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, Plus, X } from 'lucide-react';
 import { PageHeader, useToast } from '@/components/ui';
+import { MediaUploader, type MediaItem } from '@/components/catalog/media-uploader';
 import { useMutation, useQuery } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 
@@ -84,6 +85,7 @@ export default function NewProductPage() {
   const [deliveryTimeEn, setDeliveryTimeEn] = useState('');
   const [deliveryTimeBn, setDeliveryTimeBn] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
 
   // Status
   const [status, setStatus] = useState<ProductStatus>('DRAFT');
@@ -163,6 +165,32 @@ export default function NewProductPage() {
 
     try {
       const created = await createMutation.mutate(payload);
+
+      // Sub-step 3.5 — attach any selected media (upload already done browser-side).
+      if (mediaItems.length > 0) {
+        for (let mi = 0; mi < mediaItems.length; mi++) {
+          const item = mediaItems[mi];
+          if (!item) continue;
+          try {
+            await fetch(
+              `/api/v1/products/${created.id}/media`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                  url: item.url,
+                  type: item.kind === 'video' ? 'VIDEO' : 'IMAGE',
+                  altText: item.altText,
+                  sortOrder: mi,
+                }),
+              },
+            );
+          } catch {
+            /* non-fatal: user can re-attach from edit page */
+          }
+        }
+      }
       toast.success('Product created', 'Now add variants and media.');
       router.push(`/products/${created.id}`);
     } catch (err) {
@@ -381,6 +409,17 @@ export default function NewProductPage() {
               className={cn(inputCls, 'font-mono text-[13px]')}
             />
           </Field>
+        </section>
+
+        {/* ── MEDIA (images + video) ─────────────────────────────── */}
+        <section className="card p-5 space-y-5">
+          <h2 className="text-sm font-semibold text-slate-800">Product images &amp; video</h2>
+          <p className="text-[12.5px] text-slate-500">
+            Upload up to 8 images (each ≤ 5 MB) and one video (≤ 50 MB).
+            Images are auto-resized to WebP in your browser and uploaded directly to S3.
+            The first image becomes the main gallery image.
+          </p>
+          <MediaUploader value={mediaItems} onChange={setMediaItems} />
         </section>
 
         {/* ── STATUS & PUBLISHING ────────────────────────────────── */}
