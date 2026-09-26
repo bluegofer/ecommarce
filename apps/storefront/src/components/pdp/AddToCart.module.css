@@ -70,3 +70,27 @@ html[lang="bn"] .qtyLabel,
 html[lang="bn"] .addBtn,
 html[lang="bn"] .buyBtn,
 html[lang="bn"] .notifyBtn { font-family: var(--sk-font-bn); }
+/* T1-6 wishlist heart — sits below Add/Buy */
+.heartBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin-top: 8px;
+  border: 1px solid var(--sk-border, #d0d7de);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 150ms cubic-bezier(0.2, 0.6, 0.2, 1),
+    background 150ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.heartBtn:hover {
+  border-color: var(--sk-heart, #ef4444);
+  background: #fff5f5;
+}
+.heartBtn[aria-pressed='true'] {
+  border-color: var(--sk-heart, #ef4444);
+  background: #fff0f0;
+}

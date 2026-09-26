@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { AuthProvider } from '@/lib/auth/context';
 import { CartProvider } from '@/lib/cart/context';
+import { WishlistProvider } from '@/lib/wishlist/context';
 import { SavedProvider } from '@/lib/cart/saved-context';
 import { ToastProvider } from '@/lib/ui/toast-context';
 import { ToastViewport } from '@/components/ui';
@@ -33,6 +34,7 @@ export default function LocaleLayout({
         }}
       />
       <AuthProvider>
+        <WishlistProvider>
         <CartProvider>
           <SavedProvider>
             <ToastProvider>
@@ -42,6 +44,7 @@ export default function LocaleLayout({
             </ToastProvider>
           </SavedProvider>
         </CartProvider>
+        </WishlistProvider>
       </AuthProvider>
     </>
   );

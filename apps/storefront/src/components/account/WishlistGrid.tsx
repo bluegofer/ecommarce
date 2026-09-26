@@ -1,12 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  getAll as getWishlist,
-  remove as removeFromWishlist,
-  type WishlistEntry,
-} from '@/lib/wishlist/storage';
+import { useWishlist } from '@/lib/wishlist/context';
 import styles from './WishlistGrid.module.css';
 
 export interface WishlistGridLabels {
@@ -25,23 +20,13 @@ export interface WishlistGridProps {
 }
 
 export function WishlistGrid({ locale, labels }: WishlistGridProps) {
-  const [items, setItems] = useState<WishlistEntry[]>([]);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setItems(getWishlist());
-    setHydrated(true);
-    const onChange = () => setItems(getWishlist());
-    window.addEventListener('skymart:wishlist-changed', onChange);
-    return () => window.removeEventListener('skymart:wishlist-changed', onChange);
-  }, []);
+  const { items, hydrated, remove } = useWishlist();
 
   const fmtPrice = (poisha: number) =>
     `৳${(poisha / 100).toLocaleString(locale === 'bn' ? 'bn-BD' : 'en-BD')}`;
 
   const handleRemove = (productId: string) => {
-    removeFromWishlist(productId);
-    setItems(getWishlist());
+    void remove(productId);
   };
 
   if (!hydrated) return null;

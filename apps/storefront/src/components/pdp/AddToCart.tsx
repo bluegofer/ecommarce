@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useCart } from '@/lib/cart/context';
+import { useWishlist } from '@/lib/wishlist/context';
 import { useToast } from '@/lib/ui/toast-context';
 import { track } from '@/lib/analytics/events';
 import { QtyStepper } from './QtyStepper';
@@ -26,6 +27,8 @@ export interface AddToCartProps {
     inStock: string;
     addedToCart: string;
     lowStock: string; // with {n}
+    wishlistAdd: string;
+    wishlistRemove: string;
   };
 }
 
@@ -45,6 +48,8 @@ export function AddToCart({
   const [submitting, setSubmitting] = useState(false);
   const { addItem } = useCart();
   const { show } = useToast();
+  const wishlist = useWishlist();
+  const wishlisted = wishlist.has(productId);
 
   const inStock = stock > 0 && variantId !== null;
 
@@ -129,6 +134,34 @@ export function AddToCart({
             {labels.notifyMe}
           </button>
         )}
+
+      {/* Wishlist heart (T1-6) */}
+      <button
+        type="button"
+        className={styles.heartBtn}
+        aria-pressed={wishlisted}
+        aria-label={wishlisted ? labels.wishlistRemove : labels.wishlistAdd}
+        onClick={() =>
+          void wishlist.toggle({
+            productId,
+            slug,
+            titleEn: title,
+            titleBn: title,
+            imageUrl: thumbnailUrl,
+            minPricePoisha: pricePoisha,
+            addedAt: new Date().toISOString(),
+          })
+        }
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill={wishlisted ? 'var(--sk-heart)' : 'none'} aria-hidden="true">
+          <path
+            d="M12 21s-7-4.35-9.5-9.1A5.5 5.5 0 0 1 12 5.5a5.5 5.5 0 0 1 9.5 6.4C19 16.65 12 21 12 21z"
+            stroke="var(--sk-heart)"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
       </div>
     </div>
   );

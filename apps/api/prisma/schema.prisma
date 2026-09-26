@@ -41,6 +41,7 @@ model User {
   auditLogs         AuditLog[]
   notificationPrefs NotificationPreference?
   oauthAccounts     OAuthAccount[]
+  wishlistItems     WishlistItem[]
 
   posSessionsOpened           PosSession[]    @relation("PosSessionOpenedBy")
   posSessionsClosed           PosSession[]    @relation("PosSessionClosedBy")
@@ -369,6 +370,8 @@ model Product {
   variants        Variant[]
   media           ProductMedia[]
   attributeValues ProductAttributeValue[]
+
+  wishlistItems WishlistItem[]
 
   @@index([categoryId, status])
   @@index([status, publishedAt])
@@ -994,8 +997,8 @@ model Order {
   cancelledAt           DateTime?
 
   // Manual rider assignment (TDD Appendix A section A.4)
-  riderName       String?  @db.VarChar(120)
-  riderPhone      String?  @db.VarChar(20)
+  riderName       String?   @db.VarChar(120)
+  riderPhone      String?   @db.VarChar(20)
   riderAssignedAt DateTime?
 
   createdAt DateTime @default(now())
@@ -2441,4 +2444,24 @@ model StockTransferItem {
   @@unique([transferId, variantId])
   @@index([variantId])
   @@map("stock_transfer_items")
+}
+
+// ────────────────────────────────────────────────────────────────
+// Wishlist (T1-6 fix) — server-backed for signed-in users.
+// Guest wishlist lives in localStorage (lib/wishlist/storage.ts).
+// Merge happens on auth transition per DECISIONS.md Step-8.7 pattern.
+// ────────────────────────────────────────────────────────────────
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String   @db.Uuid
+  productId String
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId, addedAt])
+  @@index([productId])
+  @@map("wishlist_items")
 }

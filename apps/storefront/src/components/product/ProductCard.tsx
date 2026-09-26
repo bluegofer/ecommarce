@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { PriceBlock } from '@/components/ui/PriceBlock';
 import { RatingStars } from '@/components/ui/RatingStars';
 import { useCart } from '@/lib/cart/context';
+import { useWishlist } from '@/lib/wishlist/context';
 import { useToast } from '@/lib/ui/toast-context';
 import { track } from '@/lib/analytics/events';
 import styles from './ProductCard.module.css';
@@ -13,6 +14,8 @@ import styles from './ProductCard.module.css';
 export interface ProductCardProps {
   /** Product/variant identifiers. */
   variantId: string;
+  /** Optional product id (for wishlist sync to server); falls back to variantId. */
+  productId?: string;
   slug: string;
   title: string;
   thumbnailUrl: string | null;
@@ -55,7 +58,7 @@ export interface ProductCardProps {
 
 export function ProductCard(props: ProductCardProps) {
   const {
-    variantId, slug, title, thumbnailUrl,
+    variantId, productId, slug, title, thumbnailUrl,
     pricePoisha, listPricePoisha,
     ratingAverage, ratingCount,
     inStock, lowStock, lowStockQty,
@@ -64,8 +67,10 @@ export function ProductCard(props: ProductCardProps) {
     locale, t,
   } = props;
 
-  const [wishlisted, setWishlisted] = useState(false);
   const { addItem } = useCart();
+  const wishlist = useWishlist();
+  const effectiveProductId = productId ?? variantId;
+  const wishlisted = wishlist.has(effectiveProductId);
   const { show: showToast } = useToast();
 
   const handleAdd = () => {
@@ -93,7 +98,15 @@ export function ProductCard(props: ProductCardProps) {
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setWishlisted((v) => !v);
+    void wishlist.toggle({
+      productId: effectiveProductId,
+      slug,
+      titleEn: title,
+      titleBn: title,
+      imageUrl: thumbnailUrl,
+      minPricePoisha: pricePoisha,
+      addedAt: new Date().toISOString(),
+    });
   };
 
   const detailHref = `/${locale}/p/${slug}`;

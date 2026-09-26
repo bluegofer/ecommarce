@@ -3,6 +3,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../../database/prisma.service';
 import { OtpService } from '../auth/otp.service';
 import type { ChangePhoneDto } from './dto/change-phone.dto';
+import type { AddWishlistItemDto, MergeWishlistDto } from './dto/wishlist.dto';
 
 export interface MeProfileDto {
   userId: string;
@@ -40,6 +41,15 @@ export interface UpsertAddressDto {
   line1: string;
   line2?: string;
   isDefault?: boolean;
+}
+export interface WishlistItemDto {
+  productId: string;
+  slug: string;
+  titleEn: string;
+  titleBn: string;
+  imageUrl: string | null;
+  minPricePoisha: number;
+  addedAt: string;
 }
 
 @Injectable()
@@ -312,6 +322,119 @@ export class MeService {
       line1: a.line1,
       line2: a.line2,
       isDefault: a.isDefault,
+    };
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // Wishlist (T1-6)
+  // ────────────────────────────────────────────────────────────
+
+  async listWishlist(userId: string): Promise<WishlistItemDto[]> {
+    const rows = await this.prisma.wishlistItem.findMany({
+      where: { userId },
+      orderBy: { addedAt: 'desc' },
+      include: {
+        product: {
+          include: {
+            media: { orderBy: { sortOrder: 'asc' }, take: 1 },
+            variants: {
+              where: { isActive: true },
+              orderBy: { pricePoisha: 'asc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+    return rows.map((r) => this.toWishlistDto(r));
+  }
+
+  async addWishlistItem(userId: string, dto: AddWishlistItemDto): Promise<WishlistItemDto> {
+    const product = await this.prisma.product.findUnique({
+      where: { id: dto.productId },
+      select: { id: true },
+    });
+    if (!product) throw new NotFoundException('product not found');
+
+    const row = await this.prisma.wishlistItem.upsert({
+      where: { userId_productId: { userId, productId: dto.productId } },
+      create: { userId, productId: dto.productId },
+      update: {}, // idempotent — no duplicate insert
+      include: {
+        product: {
+          include: {
+            media: { orderBy: { sortOrder: 'asc' }, take: 1 },
+            variants: {
+              where: { isActive: true },
+              orderBy: { pricePoisha: 'asc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+    return this.toWishlistDto(row);
+  }
+
+  async removeWishlistItem(userId: string, productId: string): Promise<{ ok: true }> {
+    await this.prisma.wishlistItem.deleteMany({ where: { userId, productId } });
+    return { ok: true };
+  }
+
+  /**
+   * Merge guest (localStorage) wishlist into the signed-in user's server
+   * wishlist. Idempotent — re-merging the same items is a no-op.
+   * Called once after login / OAuth completion (DECISIONS.md Step-8.7
+   * pattern, applied to wishlist).
+   */
+  async mergeWishlist(userId: string, dto: MergeWishlistDto): Promise<{ merged: number }> {
+    if (!dto.items?.length) return { merged: 0 };
+
+    // Filter to existing products only — a guest cart may reference
+    // products that were unpublished since.
+    const productIds = Array.from(new Set(dto.items.map((i) => i.productId)));
+    const existing = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true },
+    });
+    const validIds = new Set(existing.map((p) => p.id));
+
+    const rows = dto.items.filter((i) => validIds.has(i.productId));
+
+    if (rows.length === 0) return { merged: 0 };
+
+    // createMany with skipDuplicates — atomic, idempotent, one round-trip.
+    await this.prisma.wishlistItem.createMany({
+      data: rows.map((i) => ({
+        userId,
+        productId: i.productId,
+      })),
+      skipDuplicates: true,
+    });
+
+    return { merged: rows.length };
+  }
+
+  private toWishlistDto(r: {
+    productId: string;
+    addedAt: Date;
+    product: {
+      slug: string;
+      titleEn: string;
+      titleBn: string;
+      media: { url: string }[];
+      variants: { pricePoisha: number }[];
+    };
+  }): WishlistItemDto {
+    const firstVariant = r.product.variants[0];
+    return {
+      productId: r.productId,
+      slug: r.product.slug,
+      titleEn: r.product.titleEn,
+      titleBn: r.product.titleBn,
+      imageUrl: r.product.media[0]?.url ?? null,
+      minPricePoisha: firstVariant?.pricePoisha ?? 0,
+      addedAt: r.addedAt.toISOString(),
     };
   }
 }

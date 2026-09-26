@@ -6,6 +6,7 @@ import {
   ChangePhoneDto,
   VerifyCurrentPhoneDto,
 } from './dto/change-phone.dto';
+import { AddWishlistItemDto, MergeWishlistDto } from './dto/wishlist.dto';
 import { CurrentUser, type AuthUser } from '../../common/decorators/current-user.decorator';
 
 interface UpdateProfileBody {
@@ -73,5 +74,38 @@ export class MeController {
   @Delete('addresses/:id')
   deleteAddress(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.me.deleteAddress(user.userId, id);
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // Wishlist (T1-6)
+  // ────────────────────────────────────────────────────────────
+
+  @Get('wishlist')
+  listWishlist(@CurrentUser() user: AuthUser) {
+    return this.me.listWishlist(user.userId);
+  }
+
+  @Post('wishlist')
+  addWishlist(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: AddWishlistItemDto,
+  ) {
+    return this.me.addWishlistItem(user.userId, dto);
+  }
+
+  @Delete('wishlist/:productId')
+  removeWishlist(
+    @CurrentUser() user: AuthUser,
+    @Param('productId') productId: string,
+  ) {
+    return this.me.removeWishlistItem(user.userId, productId);
+  }
+
+  @Post('wishlist/merge')
+  mergeWishlist(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: MergeWishlistDto,
+  ) {
+    return this.me.mergeWishlist(user.userId, dto);
   }
 }
