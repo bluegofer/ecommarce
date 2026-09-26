@@ -17,6 +17,7 @@ export default function AccountLayout({
     home: bn ? 'হোম' : 'Home',
     overview: bn ? 'সংক্ষিপ্ত' : 'Overview',
     orders: bn ? 'আমার অর্ডার' : 'Your Orders',
+    returns: bn ? 'ফেরত ও রিফান্ড' : 'Returns & Refunds',
     wishlist: bn ? 'উইশলিস্ট' : 'Wishlist',
     addresses: bn ? 'ঠিকানা' : 'Addresses',
     settings: bn ? 'সেটিংস' : 'Settings',

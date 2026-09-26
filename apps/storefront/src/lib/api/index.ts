@@ -27,3 +27,6 @@ export type {
 export type * from './types';
 export { paymentsApi } from './payments';
 export type { PaymentInitiateInput, PaymentInitiateResult } from './payments';
+
+export { returnsApi } from './returns';
+export type { MyReturnItem } from './returns';

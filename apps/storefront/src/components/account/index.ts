@@ -33,3 +33,6 @@ export type { AddressBookProps, AddressBookLabels } from './AddressBook';
 
 export { ProfileSettings } from './ProfileSettings';
 export type { ProfileSettingsProps, ProfileSettingsLabels } from './ProfileSettings';
+
+export { ReturnsList } from './ReturnsList';
+export type { ReturnsListLabels, ReturnsListProps } from './ReturnsList';

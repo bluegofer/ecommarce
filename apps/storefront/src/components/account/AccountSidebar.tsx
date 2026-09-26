@@ -8,6 +8,7 @@ export interface AccountSidebarLabels {
   home: string;
   overview: string;
   orders: string;
+  returns: string;
   wishlist: string;
   addresses: string;
   settings: string;
