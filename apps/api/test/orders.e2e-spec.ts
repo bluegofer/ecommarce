@@ -95,16 +95,24 @@ describe('Orders (e2e)', () => {
   // AC-78 — State machine
   // -------------------------------------------------------------------------
 
-  it('AC-78a: legal transition PLACED → CONFIRMED succeeds and writes history', async () => {
+  it('AC-78a: legal transition PLACED → PENDING_VERIFICATION → VERIFIED → CONFIRMED succeeds and writes history', async () => {
     const { orderId } = await placeOrder();
-    const res = await request(app.getHttpServer())
-      .patch(`/api/v1/orders/${orderId}/status`)
-      .set('Authorization', `Bearer ${admin.accessToken}`)
-      .send({ status: 'CONFIRMED' })
-      .expect(200);
-    expect(res.body.status).toBe('CONFIRMED');
-    expect(res.body.statusHistory.length).toBeGreaterThanOrEqual(2);
-    expect(res.body.statusHistory[1].toStatus).toBe('CONFIRMED');
+    for (const next of ['PENDING_VERIFICATION', 'VERIFIED', 'CONFIRMED'] as const) {
+      const r = await request(app.getHttpServer())
+        .patch(`/api/v1/orders/${orderId}/status`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ status: next })
+        .expect(200);
+      expect(r.body.status).toBe(next);
+    }
+    const fresh = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { statusHistory: true },
+    });
+    expect(fresh?.status).toBe('CONFIRMED');
+    expect(fresh?.statusHistory.length).toBeGreaterThanOrEqual(3);
+    const lastEvent = fresh?.statusHistory[fresh.statusHistory.length - 1];
+    expect(lastEvent?.toStatus).toBe('CONFIRMED');
   });
 
   it('AC-78b: illegal transition PLACED → SHIPPED is rejected', async () => {
@@ -118,9 +126,19 @@ describe('Orders (e2e)', () => {
     expect(fresh?.status).toBe('PLACED');
   });
 
-  it('AC-78c: full happy path PLACED→CONFIRMED→PROCESSING→SHIPPED→DELIVERED', async () => {
+  it('AC-78c: full happy path through the new verification pipeline', async () => {
     const { orderId } = await placeOrder();
-    for (const next of ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'] as const) {
+    const flow = [
+      'PENDING_VERIFICATION',
+      'VERIFIED',
+      'CONFIRMED',
+      'PROCESSING',
+      'SHIPPED',
+      'IN_TRANSIT',
+      'OUT_FOR_DELIVERY',
+      'DELIVERED',
+    ] as const;
+    for (const next of flow) {
       await request(app.getHttpServer())
         .patch(`/api/v1/orders/${orderId}/status`)
         .set('Authorization', `Bearer ${admin.accessToken}`)

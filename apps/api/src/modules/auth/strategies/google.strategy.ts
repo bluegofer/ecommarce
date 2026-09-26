@@ -32,11 +32,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor() {
     const configured = isGoogleOAuthConfigured();
 
+    // passport-google-oauth20 validates the clientID format even when we
+    // don't intend to use the strategy. Use syntactically-valid placeholder
+    // values so the API boots in local dev / CI when real Google credentials
+    // are absent. GoogleOAuthGuard refuses requests with 503 in that case.
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID ?? 'not-configured',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'not-configured',
+      clientID:
+        process.env.GOOGLE_CLIENT_ID ||
+        '000000000000-dummyplaceholder0000000000.apps.googleusercontent.com',
+      clientSecret:
+        process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret-placeholder',
       callbackURL:
-        process.env.GOOGLE_REDIRECT_URI ?? 'http://localhost/not-configured',
+        process.env.GOOGLE_REDIRECT_URI ||
+        'http://localhost:4000/api/v1/auth/google/callback',
       scope: ['email', 'profile'],
       passReqToCallback: false,
     });
