@@ -1580,3 +1580,76 @@ future TDD revision. Code-wide search-replace will be a separate phase.
 
 Phase B done → verify locally (lint + typecheck) → commit → CI → staging test.
 Phase C (advanced menu builder) and Phase D (full product form) follow.
+
+---
+
+## Session A-G Close-Out (2026-09-26/27)
+
+**Status:** COMPLETE - all TIER 1, 2, and 3 tasks closed in a single working session.
+
+### Commits Delivered (step-42 -> step-55)
+
+| Step | Scope |
+|---|---|
+| step-42 | Order confirmation 404 (T1-5) + OAuth password hide (T1-7) + invoice brand (T2-4) |
+| step-43 / 43.1 | Server-backed wishlist + guest-to-user merge (T1-6) |
+| step-44 | Customer-facing invoice download (T2-4 complete) |
+| step-45 | Real dashboard metrics + chart + recent orders (T1-3) |
+| step-46 | Inventory adjust sends delta + valid reason codes (T2-1) |
+| step-47 | Demo RBAC users for role-matrix testing (T2-3) |
+| step-48 | Register prisma db seed script (uses tsx) |
+| step-49 / 50 / 51 | A.5 chain 4 fix + e2e proof + verification report (T1-1, T1-2) |
+| step-52 | Announcement bar + mega-menu distinct backgrounds (T2-6, T2-7) |
+| step-53 | Returns page + account sidebar link (T2-8) |
+| step-54 | Branded Home breadcrumb + auth-aware invoice download (T2-5, invoice-issue) |
+| step-55 | Shipping & Delivery Policy page + footer link (T3-4) |
+
+### TDD Appendix A section A.5 - All Four Chains Proven
+
+| # | Chain | Test Spec | Result |
+|---|---|---|---|
+| 1 | POS -> Inventory -> Accounting | test/pos/pos.integration.spec.ts | PASS |
+| 2 | Purchase -> Inventory -> Supplier AP | test/purchase/grn.integration.spec.ts | PASS |
+| 3 | HR -> Attendance -> Payroll -> Accounts | test/hr/payroll.integration.spec.ts | PASS |
+| 4 | Website Orders -> Inventory -> Accounting | test/chains/chain-4-orders-accounting.spec.ts | PASS |
+
+**Test evidence:** 4 suites, 17 tests, real Postgres. See docs/chains-verification.md.
+
+### Chain 4 - Root Cause Summary
+
+Prepaid orders (bKash/Nagad/SSLCommerz) had no revenue hook - the only hook was
+postRevenueOnDelivery (COD-correct). Fixed: new PaymentsService.postRevenueOnPaid()
+idempotent via (sourceType=ORDER, sourceId=orderId), wired into applyWebhook after
+PAID status flip, non-COD only. AccountingModule now imported by PaymentsModule.
+
+### Staging State (verified 2026-09-27)
+
+- CMS pages: 7 (about-us, contact, faq, privacy-policy, refund-policy, shipping-policy, terms-of-service)
+- RBAC demo users: 8 (one per non-SUPER_ADMIN role)
+- Chart of accounts: 14 ledger accounts
+- Demo branches: MAIN + CTG with registers
+- Demo supplier / employee / departments / shifts seeded
+
+### Known Follow-Ups (deferred, additive only)
+
+| # | Item |
+|---|---|
+| F-1 | Refund -> ledger reversal hook |
+| F-2 | Unreconciled courier settlements count (dashboard) |
+| F-3 | Guest invoice PDF via email attachment |
+| F-4 | ProductCard callers pass productId prop (guest wishlist OK; server sync partial) |
+| F-5 | inventory_adjustments=2 trace (cosmetic) |
+| F-6 | CI concurrency hardening for deploy-staging |
+
+None block Step 16 UAT.
+
+### Remaining Business-Owned (Client)
+
+Per TDD section 17 + Step-16 unblock conditions:
+- Payment merchant accounts (bKash, Nagad, SSLCommerz) - D-21
+- Pathao courier account - D-22
+- SMS aggregator decision - D-09
+- Production domain / DNS / AWS account ownership - D-03, D-18, D-20
+- SES production access confirmation
+
+**Return trigger for production launch:** all client credentials delivered.
