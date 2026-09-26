@@ -99,7 +99,7 @@ export class PayrollService {
 
       // Fetch all active employees with a salary structure
       const employees = await tx.employee.findMany({
-        where: { status: 'ACTIVE', salaryStructure: { isNot: null } },
+        where: { status: 'ACTIVE', NOT: { salaryStructure: null } },
         include: { salaryStructure: true },
       });
 

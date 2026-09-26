@@ -167,11 +167,11 @@ export default function OrderDetailPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="card overflow-hidden">
             <div className="px-5 py-3.5 border-b border-border">
-              <h3 className="font-semibold text-slate-900">Items ({data.items.length})</h3>
+              <h3 className="font-semibold text-slate-900">Items ({(data.items ?? []).length})</h3>
             </div>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-border">
-                {data.items.map((it) => (
+                {(data.items ?? []).map((it) => (
                   <tr key={it.id}>
                     <td className="px-5 py-3">
                       <div className="font-medium text-slate-800">{it.title}</div>
@@ -192,7 +192,7 @@ export default function OrderDetailPage() {
           <div className="card p-5">
             <h3 className="font-semibold text-slate-900 mb-4">Status timeline</h3>
             <ol className="space-y-3">
-              {data.statusHistory.map((h, i) => (
+              {(data.statusHistory ?? []).map((h, i) => (
                 <li key={i} className="flex gap-3">
                   <span className="w-5 h-5 mt-0.5 grid place-items-center rounded-full bg-sky-100 text-sky-700 shrink-0">
                     <span className="w-2 h-2 rounded-full bg-sky-600" />

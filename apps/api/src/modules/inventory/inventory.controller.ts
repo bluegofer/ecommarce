@@ -8,6 +8,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AdjustStockDto, ReserveStockDto } from '@ecommarce/types';
+import { AdjustStockInputDto } from './dto/adjust-stock.dto';
 import type { Response } from 'express';
 
 interface RequestUser {
@@ -40,8 +41,8 @@ export class InventoryController {
 
   @Roles('SUPER_ADMIN', 'CATALOG_MANAGER')
   @Post('adjust')
-  adjust(@Body() dto: AdjustStockDto, @CurrentUser() user: RequestUser | null) {
-    return this.adjustments.adjust(dto, user?.userId ?? null);
+  adjust(@Body() dto: AdjustStockInputDto, @CurrentUser() user: RequestUser | null) {
+    return this.adjustments.adjust(dto as unknown as AdjustStockDto, user?.userId ?? null);
   }
 
   @Roles('SUPER_ADMIN', 'CATALOG_MANAGER', 'ORDER_SUPPORT')
