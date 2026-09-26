@@ -81,13 +81,17 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   }, [signedIn]);
 
   // Hydrate: guest → localStorage | user → API
+  // Bug 2B fix: require BOTH signedIn AND a live accessToken before
+  // touching /me/wishlist. Avoids 401 when the auth hint lingers but the
+  // silent refresh has not yet returned a token.
   useEffect(() => {
     if (authLoading) return; // wait for auth to settle
+    if (signedIn && !accessToken) return; // hint only — wait for refresh
 
     let cancelled = false;
 
     (async () => {
-      if (!signedIn) {
+      if (!signedIn || !accessToken) {
         // Guest
         const local = getLocalWishlist();
         if (!cancelled) {

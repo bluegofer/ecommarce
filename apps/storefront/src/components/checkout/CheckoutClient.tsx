@@ -1,9 +1,11 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/context';
 import { useToast } from '@/lib/ui/toast-context';
+import { useAuth } from '@/lib/auth/context';
 import { api, ApiError, paymentsApi } from '@/lib/api';
 import { track } from '@/lib/analytics/events';
 import { CheckoutStepper } from './CheckoutStepper';
@@ -98,6 +100,8 @@ export function CheckoutClient({ locale, labels }: CheckoutClientProps) {
   const router = useRouter();
   const cart = useCart();
   const { show: showToast } = useToast();
+  const auth = useAuth();
+  const [showSignInHint, setShowSignInHint] = useState(true);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [address, setAddress] = useState<CheckoutAddress>(INITIAL_ADDRESS);
