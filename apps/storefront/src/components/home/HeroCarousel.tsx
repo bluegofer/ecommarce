@@ -11,6 +11,17 @@ export interface HeroSlide {
   ctaHref: string;
   ctaLabelEn: string;
   ctaLabelBn: string;
+  /** NEW (U-3, optional) — modern 2-tile design fields. */
+  badgeTextEn?: string;
+  badgeTextBn?: string;
+  eyebrowEn?: string;
+  eyebrowBn?: string;
+  subtitleEn?: string;
+  subtitleBn?: string;
+  sideTileImage?: string;
+  sideTileCtaHref?: string;
+  sideTileLabelEn?: string;
+  sideTileLabelBn?: string;
 }
 
 export interface HeroCarouselProps {

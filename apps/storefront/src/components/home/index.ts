@@ -15,3 +15,5 @@ export type { PromoBannersProps, PromoBanner } from './PromoBanners';
 
 export { SeoTextBlock } from './SeoTextBlock';
 export type { SeoTextBlockProps } from './SeoTextBlock';
+export { HeroSlider } from './HeroSlider';
+export type { HeroSliderProps } from './HeroSlider';

@@ -5,6 +5,7 @@ import { catalogApi, cmsApi } from '@/lib/api';
 import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
 import {
   HeroCarousel,
+  HeroSlider,
   CategoryTiles,
   DealStrip,
   ProductCarousel,
@@ -286,7 +287,7 @@ function renderSection({
     case 'HERO_CAROUSEL': {
       const slides = extractHeroSlides(section.config);
       if (slides.length === 0) return null;
-      return <HeroCarousel key={section.id} slides={slides} locale={locale} autoplayMs={6000} />;
+      return <HeroSlider key={section.id} slides={slides} locale={locale} autoplayMs={6000} />;
     }
     case 'DEAL_STRIP': {
       const dealEndsAt = extractDealEndsAt(section.config) ?? defaultDealEnd();
