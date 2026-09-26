@@ -16,12 +16,17 @@ export const revalidate = 3600;
  * Step 14.1 — prebuild the top 100 product slugs at build time.
  * Remaining products fall back to on-demand ISR on first request.
  */
-export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+export async function generateStaticParams(): Promise<
+  Array<{ locale: string; slug: string }>
+> {
   try {
     const rows = await catalogApi.getStaticSlugs(100);
-    return rows.map((r) => ({ slug: r.slug }));
+    const out: Array<{ locale: string; slug: string }> = [];
+    for (const locale of ['bn', 'en']) {
+      for (const r of rows) out.push({ locale, slug: r.slug });
+    }
+    return out;
   } catch {
-    // Build must not fail if the API is unreachable — dynamic fallback is fine.
     return [];
   }
 }

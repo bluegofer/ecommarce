@@ -23,10 +23,16 @@ export const dynamic = 'force-dynamic';
  * Step 14.2 — prebuild top-N category slugs. Combined with CDN caching this
  * makes unfiltered PLP loads fast while keeping filtered variants dynamic.
  */
-export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+export async function generateStaticParams(): Promise<
+  Array<{ locale: string; slug: string }>
+> {
   try {
     const rows = await catalogApi.getStaticCategorySlugs(50);
-    return rows.map((r) => ({ slug: r.slug }));
+    const out: Array<{ locale: string; slug: string }> = [];
+    for (const locale of ['bn', 'en']) {
+      for (const r of rows) out.push({ locale, slug: r.slug });
+    }
+    return out;
   } catch {
     return [];
   }
