@@ -80,3 +80,50 @@ html[lang="bn"] .fieldLabel,
 html[lang="bn"] .input,
 html[lang="bn"] .saveBtn,
 html[lang="bn"] .note { font-family: var(--sk-font-bn); }
+
+/* ── Phone change / verify flow (added step-34) ── */
+
+.phoneActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.phoneFlow {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--sk-neutral-bg, #F1F5F9);
+  border-radius: var(--sk-radius-md, 8px);
+  border: 1px solid var(--sk-divider, #E2E8F0);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linkBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--sk-info, #25729A);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.linkBtn:hover { text-decoration: underline; }
+.linkBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.errorText {
+  color: var(--sk-error-text, #A11C1C);
+  font-size: 12.5px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+html[lang="bn"] .linkBtn,
+html[lang="bn"] .errorText,
+html[lang="bn"] .phoneActions {
+  font-family: var(--sk-font-bn);
+}

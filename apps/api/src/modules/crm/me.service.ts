@@ -1,6 +1,8 @@
 // apps/api/src/modules/crm/me.service.ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { OtpService } from '../auth/otp.service';
+import type { ChangePhoneDto } from './dto/change-phone.dto';
 
 export interface MeProfileDto {
   userId: string;
@@ -41,7 +43,10 @@ export interface UpsertAddressDto {
 
 @Injectable()
 export class MeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly otp: OtpService,
+  ) {}
 
   /** Resolve the Customer for the logged-in user. Auto-create if missing. */
   private async resolveCustomer(userId: string) {
@@ -111,6 +116,75 @@ export class MeService {
         fullName: data.fullName ?? undefined,
         email: data.email === undefined ? undefined : data.email,
       },
+    });
+
+    return this.getProfile(userId);
+  }
+
+  /**
+   * Change the authenticated user's phone number.
+   * Precondition: caller must have already requested OTP for `newPhone`
+   * via POST /auth/otp/request.
+   * On success: updates user.phone + user.phoneVerifiedAt + customer.phone.
+   */
+  async changePhone(userId: string, dto: ChangePhoneDto): Promise<MeProfileDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('user not found');
+
+    const newPhone = dto.newPhone.trim();
+    if (newPhone === user.phone) {
+      throw new BadRequestException('New phone is the same as current phone');
+    }
+
+    // Uniqueness — another user already owns this phone?
+    const existing = await this.prisma.user.findUnique({
+      where: { phone: newPhone },
+    });
+    if (existing && existing.id !== user.id) {
+      throw new BadRequestException(
+        'This phone is already registered to another account',
+      );
+    }
+
+    // Verify OTP — throws BadRequestException on failure
+    await this.otp.verify(newPhone, dto.otp);
+
+    // Apply change (single transaction: user + customer)
+    const { customer } = await this.resolveCustomer(userId);
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { phone: newPhone, phoneVerifiedAt: new Date() },
+      }),
+      this.prisma.customer.update({
+        where: { id: customer.id },
+        data: { phone: newPhone },
+      }),
+    ]);
+
+    return this.getProfile(userId);
+  }
+
+  /**
+   * Verify the currently-held phone.
+   * Precondition: caller must have already requested OTP for their current
+   * phone via POST /auth/otp/request.
+   * On success: sets user.phoneVerifiedAt to now.
+   */
+  async verifyCurrentPhone(userId: string, otp: string): Promise<MeProfileDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('user not found');
+
+    if (user.phoneVerifiedAt) {
+      // Already verified — idempotent success
+      return this.getProfile(userId);
+    }
+
+    await this.otp.verify(user.phone, otp);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { phoneVerifiedAt: new Date() },
     });
 
     return this.getProfile(userId);

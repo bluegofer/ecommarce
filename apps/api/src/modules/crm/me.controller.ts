@@ -2,6 +2,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { MeService, type UpsertAddressDto } from './me.service';
+import {
+  ChangePhoneDto,
+  VerifyCurrentPhoneDto,
+} from './dto/change-phone.dto';
 import { CurrentUser, type AuthUser } from '../../common/decorators/current-user.decorator';
 
 interface UpdateProfileBody {
@@ -22,6 +26,29 @@ export class MeController {
   @Patch()
   updateProfile(@CurrentUser() user: AuthUser, @Body() body: UpdateProfileBody) {
     return this.me.updateProfile(user.userId, body);
+  }
+
+  /**
+   * Change phone with OTP verification.
+   * Prerequisite: caller must have requested OTP for `newPhone`
+   * via POST /auth/otp/request.
+   */
+  @Post('phone/change')
+  changePhone(@CurrentUser() user: AuthUser, @Body() dto: ChangePhoneDto) {
+    return this.me.changePhone(user.userId, dto);
+  }
+
+  /**
+   * Verify the currently-held phone.
+   * Prerequisite: caller must have requested OTP for their current phone
+   * via POST /auth/otp/request.
+   */
+  @Post('phone/verify')
+  verifyCurrentPhone(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: VerifyCurrentPhoneDto,
+  ) {
+    return this.me.verifyCurrentPhone(user.userId, dto.otp);
   }
 
   @Get('addresses')

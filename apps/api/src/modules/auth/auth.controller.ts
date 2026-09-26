@@ -18,6 +18,7 @@ import { Request, Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RequestOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { TotpConfirmDto, TotpVerifyDto, TotpDisableDto } from './dto/totp.dto';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
@@ -32,32 +33,14 @@ import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import type { GoogleProfileNormalized } from './strategies/google.strategy';
 
 const REFRESH_COOKIE = 'refresh_token';
-// Same refresh cookie is used by both storefront and admin (same parent domain
-// nolimitshopping.com). The admin middleware (apps/admin/src/middleware.ts)
-// checks for this exact cookie name. F-11 from step-15.9.
 const REFRESH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-// Cookie domain — leading dot makes it visible to ALL subdomains
-// (nolimitshopping.com, admin.nolimitshopping.com, api.nolimitshopping.com).
-// Without this, the cookie defaults to the host that set it (api.nolimitshopping.com)
-// and the admin middleware can never see it → infinite redirect to /login.
 const COOKIE_DOMAIN =
   process.env.NODE_ENV === 'production' ? '.nolimitshopping.com' : undefined;
 
-// SameSite policy for the refresh cookie.
-// - 'none' is required because admin.nolimitshopping.com (frontend) and
-//   api.nolimitshopping.com (API) are DIFFERENT origins from the browser's
-//   perspective, even though they share the same parent domain. 'lax' blocks
-//   the cookie on cross-origin XHR/fetch calls like POST /auth/refresh, which
-//   caused every admin page to bounce with 401 after login.
-// - 'none' is only valid with Secure=true, which we set in production.
-// - HttpOnly + Domain=.nolimitshopping.com + Path=/ keep the cookie scoped
-//   to our own subdomains only.
 const COOKIE_SAME_SITE: 'lax' | 'none' | 'strict' =
   process.env.NODE_ENV === 'production' ? 'none' : 'lax';
 
-// Refresh + logout throttles (F-10 from step-15.9): previously unlimited,
-// which allowed slow-loris style refresh flooding. Now bounded per IP.
 const REFRESH_THROTTLE = { default: { limit: 30, ttl: 60_000 } };
 const LOGOUT_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
 const TOTP_VERIFY_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
@@ -72,7 +55,7 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60_000 } }) // F-04: prevent bulk account creation
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('register')
   async register(
     @Body() dto: RegisterDto,
@@ -83,7 +66,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 3, ttl: 60_000 } }) // F-04: prevent SMS bombing (real per-SMS cost)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @Post('otp/request')
   @HttpCode(200)
   async requestOtp(
@@ -94,7 +77,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60_000 } }) // F-04: OTP brute-force protection
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('otp/verify')
   @HttpCode(200)
   async verifyOtp(@Body() dto: VerifyOtpDto): Promise<{ ok: true }> {
@@ -104,7 +87,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60_000 } }) // F-04: brute-force protection
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(200)
   async login(
@@ -121,7 +104,6 @@ export class AuthController {
       req.ip,
     );
 
-    // F-07 + F-13 (step-15.9): staff accounts are challenged for TOTP.
     if (result.kind === 'totp-required') {
       return {
         ok: true,
@@ -131,8 +113,6 @@ export class AuthController {
       };
     }
 
-    // Any successful full login (customer or staff-must-enroll) issues the
-    // rotating refresh cookie. Cookie flags are the current safe defaults.
     req.res?.cookie?.(REFRESH_COOKIE, result.refreshToken, {
       httpOnly: true,
       sameSite: COOKIE_SAME_SITE,
@@ -158,13 +138,6 @@ export class AuthController {
     };
   }
 
-  /**
-   * F-13 (step-15.9): completes the staff 2FA challenge.
-   * The temp token from POST /auth/login is provided as a Bearer; the 6-digit
-   * TOTP code is in the body. On success we issue the normal access + rotating
-   * refresh pair and set the same refresh cookie the storefront uses, so the
-   * admin middleware sees a valid session on the next request.
-   */
   @Public()
   @UseGuards(TempTokenGuard)
   @Throttle(TOTP_VERIFY_THROTTLE)
@@ -203,12 +176,6 @@ export class AuthController {
     };
   }
 
-  /**
-   * Enrolls TOTP for the currently logged-in staff member.
-   * Returns the otpauth URL QR (data URL) + raw secret so the admin UI can
-   * display it. The secret is not active until /auth/totp/confirm succeeds
-   * with a live 6-digit code (prevents locking the user out on a bad scan).
-   */
   @Post('totp/enroll')
   @HttpCode(200)
   async totpEnroll(
@@ -242,7 +209,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle(REFRESH_THROTTLE) // F-10 (step-15.9)
+  @Throttle(REFRESH_THROTTLE)
   @Post('refresh')
   @HttpCode(200)
   async refresh(
@@ -273,7 +240,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle(LOGOUT_THROTTLE) // F-10 (step-15.9)
+  @Throttle(LOGOUT_THROTTLE)
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request): Promise<{ ok: true }> {
@@ -285,6 +252,20 @@ export class AuthController {
       path: '/',
       domain: COOKIE_DOMAIN,
     });
+    return { ok: true };
+  }
+
+  @Post('change-password')
+  @HttpCode(200)
+  async changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ ok: true }> {
+    await this.auth.changePassword(
+      user.userId,
+      dto.currentPassword,
+      dto.newPassword,
+    );
     return { ok: true };
   }
 
@@ -300,14 +281,6 @@ export class AuthController {
     };
   }
 
-  // ============================================================
-  // Google OAuth — TDD Appendix C §C.5
-  // ============================================================
-
-  /**
-   * Step 1: redirect the browser to Google's consent screen.
-   * Passport owns the redirect; no body is returned by NestJS.
-   */
   @Public()
   @UseGuards(GoogleOAuthGuard)
   @Get('google')
@@ -315,15 +288,6 @@ export class AuthController {
     // Passport handles the redirect to Google.
   }
 
-  /**
-   * Step 2: Google redirects back with ?code=&state=. Passport exchanges
-   * the code for a profile; we then issue the same access + rotating refresh
-   * tokens as a normal login, set the refresh cookie, and redirect the browser
-   * to the storefront callback route.
-   *
-   * TDD §C.3: new Google users must fill in a phone number post-signup
-   * (`needs_phone=1` tells the storefront to prompt).
-   */
   @Public()
   @UseGuards(GoogleOAuthGuard)
   @Get('google/callback')

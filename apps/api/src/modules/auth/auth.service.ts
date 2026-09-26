@@ -1,7 +1,9 @@
 // apps/api/src/modules/auth/auth.service.ts
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -96,6 +98,42 @@ export class AuthService {
     });
 
     return { userId: user.id };
+  }
+
+  /**
+   * Change password for the currently-authenticated user.
+   * Revokes all refresh tokens on success (security best practice).
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ ok: true }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('user not found');
+
+    if (!user.passwordHash) {
+      throw new BadRequestException(
+        'This account uses Google sign-in. Password change is not available.',
+      );
+    }
+
+    const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('Current password is incorrect');
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash },
+    });
+
+    // Revoke all refresh tokens — forces re-login on all devices
+    await this.prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+
+    return { ok: true };
   }
 
   async markPhoneVerified(phone: string): Promise<void> {
