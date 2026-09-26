@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Breadcrumbs } from '@/components/layout';
 import { ProfileSettings, type ProfileSettingsLabels } from '@/components/account';
 import { isLocale, type Locale } from '@/lib/i18n';
@@ -41,6 +41,7 @@ export default function SettingsPage({ params }: { params: { locale: string } })
     confirmPassword: bn ? 'নিশ্চিত করুন' : 'Confirm password',
     updatePassword: bn ? 'পাসওয়ার্ড আপডেট করুন' : 'Update password',
     passwordNote: bn ? 'কমপক্ষে ৮ অক্ষর, সংখ্যা ও অক্ষর মিশ্রিত' : 'At least 8 characters, mix letters and numbers',
+    passwordGoogleNote: bn ? 'আপনি Google দিয়ে সাইন-ইন করেছেন — আলাদা পাসওয়ার্ড নেই।' : 'You signed in with Google — no separate password is set.',
     loading: bn ? 'লোড হচ্ছে…' : 'Loading…',
     errorText: bn ? 'লোড করা যায়নি' : 'Could not load',
     invalidEmail: bn ? 'সঠিক ইমেইল দিন' : 'Enter a valid email',

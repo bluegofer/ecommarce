@@ -14,6 +14,7 @@ export interface MeProfileDto {
   emailVerified: boolean;
   totalOrders: number;
   totalSpentPoisha: number;
+  hasPassword: boolean;
 }
 
 export interface MeAddressDto {
@@ -75,6 +76,7 @@ export class MeService {
     return {
       userId: user.id,
       customerId: customer.id,
+      hasPassword: user.passwordHash !== null,
       phone: user.phone,
       email: user.email,
       fullName: user.fullName,

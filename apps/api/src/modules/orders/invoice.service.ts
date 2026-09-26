@@ -14,7 +14,7 @@ export class InvoiceService {
     const order = await this.loadOrder(orderId);
     const lines: string[] = [];
     lines.push('========================================');
-    lines.push('  SkyMart — TAX INVOICE');
+    lines.push('  NoLimitShopping — TAX INVOICE');
     lines.push('========================================');
     lines.push(`Order #: ${order.orderNumber}`);
     lines.push(`Date: ${order.placedAt.toISOString()}`);
@@ -42,7 +42,7 @@ export class InvoiceService {
     lines.push(`  Delivery Charge:  ৳${(order.deliveryChargePoisha / 100).toFixed(2)}`);
     lines.push(`  TOTAL:            ৳${(order.totalPoisha / 100).toFixed(2)}`);
     lines.push('');
-    lines.push('Thank you for shopping with SkyMart.');
+    lines.push('Thank you for shopping with NoLimitShopping.');
 
     // Sanity check: itemized math must match
     const computedSubtotal = order.items.reduce((s, i) => s + i.lineTotalPoisha, 0);

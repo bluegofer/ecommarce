@@ -12,6 +12,7 @@ export interface MeProfile {
   emailVerified: boolean;
   totalOrders: number;
   totalSpentPoisha: number;
+  hasPassword: boolean;
 }
 
 export interface MeAddress {

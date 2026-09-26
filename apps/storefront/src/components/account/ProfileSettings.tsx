@@ -41,6 +41,7 @@ export interface ProfileSettingsLabels {
   confirmPassword: string;
   updatePassword: string;
   passwordNote: string;
+  passwordGoogleNote?: string;
   loading: string;
   errorText: string;
   invalidEmail: string;
@@ -501,6 +502,7 @@ export function ProfileSettings({ locale, labels }: ProfileSettingsProps) {
         </div>
       </section>
 
+      {profile.hasPassword ? (
       <section className={styles.card}>
         <h2 className={styles.h2}>{labels.sectionPassword}</h2>
         <p className={styles.note}>{labels.passwordNote}</p>
@@ -536,6 +538,16 @@ export function ProfileSettings({ locale, labels }: ProfileSettingsProps) {
           {pwSaved ? <span className={styles.saved}>{labels.saved}</span> : null}
         </div>
       </section>
+      ) : (
+        <section className={styles.card}>
+          <h2 className={styles.h2}>{labels.sectionPassword}</h2>
+          <p className={styles.note}>
+            {labels.passwordGoogleNote ?? (locale === 'bn'
+              ? 'আপনি Google দিয়ে সাইন-ইন করেছেন — আলাদা পাসওয়ার্ড নেই।'
+              : 'You signed in with Google — no separate password is set.')}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
