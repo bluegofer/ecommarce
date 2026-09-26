@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Header, Footer, AppDownloadBanner } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import { AccountLayoutClient, type AccountSidebarLabels } from '@/components/account';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
 import { catalogApi, cmsApi } from '@/lib/api';
@@ -105,7 +105,6 @@ export default async function AccountLayout({
         {children}
       </AccountLayoutClient>
 
-      <AppDownloadBanner locale={locale} />
       <Footer locale={locale} />
     </>
   );

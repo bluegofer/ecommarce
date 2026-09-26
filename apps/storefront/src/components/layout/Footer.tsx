@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BRAND } from '@/lib/brand';
 import styles from './Footer.module.css';
 import { NewsletterSignup } from './NewsletterSignup';
+import { AppDownloadBanner } from './AppDownloadBanner';
 
 export interface FooterProps {
   locale: 'bn' | 'en';
@@ -14,6 +15,7 @@ export function Footer({ locale }: FooterProps) {
 
   return (
     <footer className={styles.footer}>
+      <AppDownloadBanner locale={locale} />
       <a href="#top" className={styles.backTop}>
         {t('Back to top', 'উপরে ফিরে যান')}
       </a>
