@@ -29,7 +29,9 @@ type SectionType =
   | 'PROMO_BANNER'
   | 'WIDE_BANNER'
   | 'RECOMMENDED'
-  | 'SEO_TEXT';
+  | 'SEO_TEXT'
+  | 'CATEGORY_SHOP_ROW'
+  | 'HERO_PRODUCT_ROW';
 
 interface HeroSlideConfig {
   imageUrl: string;
@@ -42,6 +44,43 @@ interface HeroSlideConfig {
 
 interface BannerConfig {
   imageUrl: string;
+  ctaHref: string;
+}
+
+interface ShopRowItemCfg {
+  labelEn: string;
+  labelBn: string;
+  imageUrl: string;
+  href: string;
+}
+interface ShopRowTileCfg {
+  titleEn: string;
+  titleBn: string;
+  subtitleEn: string;
+  subtitleBn: string;
+  seeAllHref: string;
+  items: ShopRowItemCfg[];
+}
+interface HeroProductHeroCfg {
+  badgeEn: string;
+  badgeBn: string;
+  titleEn: string;
+  titleBn: string;
+  subtitleEn: string;
+  subtitleBn: string;
+  ctaLabelEn: string;
+  ctaLabelBn: string;
+  ctaHref: string;
+  bgColor: string;
+  imageUrl: string;
+}
+interface HeroProductCardCfg {
+  titleEn: string;
+  titleBn: string;
+  imageUrl: string;
+  href: string;
+  ctaLabelEn: string;
+  ctaLabelBn: string;
   ctaHref: string;
 }
 
@@ -104,6 +143,8 @@ const TYPE_LABEL: Record<SectionType, string> = {
   WIDE_BANNER: 'Wide campaign banner',
   RECOMMENDED: 'Recommended for you grid',
   SEO_TEXT: 'Collapsible SEO text block',
+  CATEGORY_SHOP_ROW: 'Category shop row (Amazon style)',
+  HERO_PRODUCT_ROW: 'Hero + product cards row',
 };
 
 const ALL_TYPES: SectionType[] = [
@@ -118,6 +159,8 @@ const ALL_TYPES: SectionType[] = [
   'WIDE_BANNER',
   'RECOMMENDED',
   'SEO_TEXT',
+  'CATEGORY_SHOP_ROW',
+  'HERO_PRODUCT_ROW',
 ];
 
 const BANNER_MAX: Partial<Record<SectionType, number>> = {
@@ -144,6 +187,9 @@ interface AddFormState {
   singleCategoryId: string;
   multiCategoryIds: string[];
   productsPerCategory: number;
+  shopRowTiles: ShopRowTileCfg[];
+  heroProductHero: HeroProductHeroCfg;
+  heroProductCards: HeroProductCardCfg[];
 }
 
 const EMPTY_SLIDE: HeroSlideConfig = {
@@ -176,10 +222,46 @@ const EMPTY_FORM: AddFormState = {
   singleCategoryId: '',
   multiCategoryIds: [],
   productsPerCategory: 8,
+  shopRowTiles: [],
+  heroProductHero: {
+    badgeEn: '', badgeBn: '',
+    titleEn: '', titleBn: '',
+    subtitleEn: '', subtitleBn: '',
+    ctaLabelEn: '', ctaLabelBn: '',
+    ctaHref: '',
+    bgColor: '#0C2B3D',
+    imageUrl: '',
+  },
+  heroProductCards: [],
 };
 
 function sectionLabel(s: Section): string {
   return s.titleEn ?? s.titleBn ?? TYPE_LABEL[s.sectionType] ?? s.sectionType;
+}
+
+function newShopRowItem(): ShopRowItemCfg {
+  return { labelEn: '', labelBn: '', imageUrl: '', href: '' };
+}
+function newShopRowTile(): ShopRowTileCfg {
+  return {
+    titleEn: '',
+    titleBn: '',
+    subtitleEn: '',
+    subtitleBn: '',
+    seeAllHref: '',
+    items: [newShopRowItem(), newShopRowItem(), newShopRowItem(), newShopRowItem()],
+  };
+}
+function newHeroProductCard(): HeroProductCardCfg {
+  return {
+    titleEn: '',
+    titleBn: '',
+    imageUrl: '',
+    href: '',
+    ctaLabelEn: '',
+    ctaLabelBn: '',
+    ctaHref: '',
+  };
 }
 
 function flattenCategories(nodes: CategoryNode[], depth = 0): Array<{ id: string; name: string; depth: number }> {
@@ -308,6 +390,66 @@ export default function CmsPage() {
       config = {
         categoryIds: form.multiCategoryIds,
         perCategoryLimit: form.productsPerCategory || 4,
+      };
+    } else if (form.sectionType === 'CATEGORY_SHOP_ROW') {
+      const validTiles = form.shopRowTiles
+        .map((t) => ({
+          titleEn: t.titleEn.trim(),
+          titleBn: t.titleBn.trim(),
+          subtitleEn: t.subtitleEn.trim(),
+          subtitleBn: t.subtitleBn.trim(),
+          seeAllHref: t.seeAllHref.trim(),
+          items: t.items
+            .filter((it) => it.imageUrl.trim() && it.href.trim())
+            .map((it) => ({
+              labelEn: it.labelEn.trim(),
+              labelBn: it.labelBn.trim(),
+              imageUrl: it.imageUrl.trim(),
+              href: it.href.trim(),
+            })),
+        }))
+        .filter((t) => t.titleEn && t.items.length > 0);
+      if (validTiles.length === 0) {
+        toast.error('Missing tiles', 'Add at least 1 tile with title (en) + at least 1 item (image + link)');
+        return;
+      }
+      config = { tiles: validTiles };
+    } else if (form.sectionType === 'HERO_PRODUCT_ROW') {
+      const h = form.heroProductHero;
+      if (!h.titleEn.trim() || !h.ctaHref.trim()) {
+        toast.error('Missing hero', 'Hero needs title (en) + CTA link');
+        return;
+      }
+      const validCards = form.heroProductCards
+        .filter((c) => c.imageUrl.trim() && c.href.trim())
+        .map((c) => ({
+          titleEn: c.titleEn.trim(),
+          titleBn: c.titleBn.trim(),
+          imageUrl: c.imageUrl.trim(),
+          href: c.href.trim(),
+          ctaLabelEn: c.ctaLabelEn.trim(),
+          ctaLabelBn: c.ctaLabelBn.trim(),
+          ctaHref: c.ctaHref.trim(),
+        }));
+      if (validCards.length === 0) {
+        toast.error('Missing product cards', 'Add at least 1 card with image + link');
+        return;
+      }
+      config = {
+        hero: {
+          badgeEn: h.badgeEn.trim(),
+          badgeBn: h.badgeBn.trim(),
+          titleEn: h.titleEn.trim(),
+          titleBn: h.titleBn.trim(),
+          subtitleEn: h.subtitleEn.trim(),
+          subtitleBn: h.subtitleBn.trim(),
+          ctaLabelEn: h.ctaLabelEn.trim(),
+          ctaLabelBn: h.ctaLabelBn.trim(),
+          ctaHref: h.ctaHref.trim(),
+          bgColor: h.bgColor.trim() || '#0C2B3D',
+          imageUrl: h.imageUrl.trim(),
+        },
+        products: validCards,
       };
     } else if (
       form.sectionType === 'PROMO_TILES' ||
@@ -1039,6 +1181,542 @@ export default function CmsPage() {
           )}
 
           {/* SEO_TEXT */}
+          {form.sectionType === 'CATEGORY_SHOP_ROW' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-slate-700">Tiles (3–4)</label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, shopRowTiles: [...f.shopRowTiles, newShopRowTile()] }))
+                  }
+                  className="text-sm font-medium text-sky-700 hover:underline"
+                >
+                  + Add tile
+                </button>
+              </div>
+              {form.shopRowTiles.length === 0 && (
+                <p className="text-xs text-slate-500">No tiles yet. Click "Add tile" to start.</p>
+              )}
+              {form.shopRowTiles.map((tile, ti) => (
+                <div key={`tile-${ti}`} className="border border-border rounded p-3 space-y-2 bg-slate-50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-600">Tile #{ti + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          shopRowTiles: f.shopRowTiles.filter((_, i) => i !== ti),
+                        }))
+                      }
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      placeholder="Title (EN) *"
+                      value={tile.titleEn}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.shopRowTiles];
+                          next[ti] = { ...next[ti]!, titleEn: e.target.value };
+                          return { ...f, shopRowTiles: next };
+                        })
+                      }
+                      className="input"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Title (BN)"
+                      value={tile.titleBn}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.shopRowTiles];
+                          next[ti] = { ...next[ti]!, titleBn: e.target.value };
+                          return { ...f, shopRowTiles: next };
+                        })
+                      }
+                      className="input"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Subtitle (EN)"
+                      value={tile.subtitleEn}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.shopRowTiles];
+                          next[ti] = { ...next[ti]!, subtitleEn: e.target.value };
+                          return { ...f, shopRowTiles: next };
+                        })
+                      }
+                      className="input"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Subtitle (BN)"
+                      value={tile.subtitleBn}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.shopRowTiles];
+                          next[ti] = { ...next[ti]!, subtitleBn: e.target.value };
+                          return { ...f, shopRowTiles: next };
+                        })
+                      }
+                      className="input"
+                    />
+                    <input
+                      type="text"
+                      placeholder="See-all link (e.g. /c/electronics)"
+                      value={tile.seeAllHref}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.shopRowTiles];
+                          next[ti] = { ...next[ti]!, seeAllHref: e.target.value };
+                          return { ...f, shopRowTiles: next };
+                        })
+                      }
+                      className="input col-span-2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium text-slate-600">Items (4 max)</span>
+                    {tile.items.map((item, ii) => (
+                      <div key={`item-${ti}-${ii}`} className="grid grid-cols-[80px_1fr_1fr_1fr] gap-2 items-center">
+                        <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
+                          {item.imageUrl ? (
+                            <>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setForm((f) => {
+                                    const next = [...f.shopRowTiles];
+                                    const items = [...next[ti]!.items];
+                                    items[ii] = { ...items[ii]!, imageUrl: '' };
+                                    next[ti] = { ...next[ti]!, items };
+                                    return { ...f, shopRowTiles: next };
+                                  })
+                                }
+                                className="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-5 h-5 grid place-items-center"
+                                aria-label="Remove image"
+                              >
+                                ×
+                              </button>
+                            </>
+                          ) : (
+                            <label className="w-full h-full grid place-items-center text-[10px] text-slate-500 cursor-pointer hover:bg-slate-50">
+                              Upload
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const res = await uploadMutation.upload(file);
+                                    if (res && res.url) {
+                                      setForm((f) => {
+                                        const next = [...f.shopRowTiles];
+                                        const items = [...next[ti]!.items];
+                                        items[ii] = { ...items[ii]!, imageUrl: res.url };
+                                        next[ti] = { ...next[ti]!, items };
+                                        return { ...f, shopRowTiles: next };
+                                      });
+                                      toast.success('Image uploaded');
+                                    }
+                                  } catch (err) {
+                                    toast.error('Upload failed', err instanceof Error ? err.message : 'Unknown');
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Label EN"
+                          value={item.labelEn}
+                          onChange={(e) =>
+                            setForm((f) => {
+                              const next = [...f.shopRowTiles];
+                              const items = [...next[ti]!.items];
+                              items[ii] = { ...items[ii]!, labelEn: e.target.value };
+                              next[ti] = { ...next[ti]!, items };
+                              return { ...f, shopRowTiles: next };
+                            })
+                          }
+                          className="input"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Label BN"
+                          value={item.labelBn}
+                          onChange={(e) =>
+                            setForm((f) => {
+                              const next = [...f.shopRowTiles];
+                              const items = [...next[ti]!.items];
+                              items[ii] = { ...items[ii]!, labelBn: e.target.value };
+                              next[ti] = { ...next[ti]!, items };
+                              return { ...f, shopRowTiles: next };
+                            })
+                          }
+                          className="input"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Link (e.g. /c/mobile-phones)"
+                          value={item.href}
+                          onChange={(e) =>
+                            setForm((f) => {
+                              const next = [...f.shopRowTiles];
+                              const items = [...next[ti]!.items];
+                              items[ii] = { ...items[ii]!, href: e.target.value };
+                              next[ti] = { ...next[ti]!, items };
+                              return { ...f, shopRowTiles: next };
+                            })
+                          }
+                          className="input"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {form.sectionType === 'HERO_PRODUCT_ROW' && (
+            <div className="space-y-4">
+              <div className="border border-border rounded p-3 space-y-2 bg-slate-50">
+                <span className="text-xs font-semibold text-slate-600">Hero (left column)</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="Badge EN"
+                    value={form.heroProductHero.badgeEn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, badgeEn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Badge BN"
+                    value={form.heroProductHero.badgeBn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, badgeBn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Title EN *"
+                    value={form.heroProductHero.titleEn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, titleEn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Title BN"
+                    value={form.heroProductHero.titleBn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, titleBn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subtitle EN"
+                    value={form.heroProductHero.subtitleEn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, subtitleEn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subtitle BN"
+                    value={form.heroProductHero.subtitleBn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, subtitleBn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="CTA label EN"
+                    value={form.heroProductHero.ctaLabelEn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, ctaLabelEn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="CTA label BN"
+                    value={form.heroProductHero.ctaLabelBn}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, ctaLabelBn: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="CTA link (e.g. /deals) *"
+                    value={form.heroProductHero.ctaHref}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, ctaHref: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Background color (hex, e.g. #1A6FD9)"
+                    value={form.heroProductHero.bgColor}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        heroProductHero: { ...f.heroProductHero, bgColor: e.target.value },
+                      }))
+                    }
+                    className="input"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
+                    {form.heroProductHero.imageUrl ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={form.heroProductHero.imageUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm((f) => ({
+                              ...f,
+                              heroProductHero: { ...f.heroProductHero, imageUrl: '' },
+                            }))
+                          }
+                          className="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-5 h-5 grid place-items-center"
+                          aria-label="Remove image"
+                        >
+                          ×
+                        </button>
+                      </>
+                    ) : (
+                      <label className="w-full h-full grid place-items-center text-[10px] text-slate-500 cursor-pointer hover:bg-slate-50">
+                        Hero img
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const res = await uploadMutation.upload(file);
+                              if (res && res.url) {
+                                setForm((f) => ({
+                                  ...f,
+                                  heroProductHero: { ...f.heroProductHero, imageUrl: res.url },
+                                }));
+                                toast.success('Hero image uploaded');
+                              }
+                            } catch (err) {
+                              toast.error('Upload failed', err instanceof Error ? err.message : 'Unknown');
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Optional hero background image. Leave empty for solid color.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-slate-700">Product cards (4 max)</label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      heroProductCards: [...f.heroProductCards, newHeroProductCard()],
+                    }))
+                  }
+                  className="text-sm font-medium text-sky-700 hover:underline"
+                >
+                  + Add card
+                </button>
+              </div>
+              {form.heroProductCards.length === 0 && (
+                <p className="text-xs text-slate-500">No cards yet. Click "Add card".</p>
+              )}
+              {form.heroProductCards.map((card, ci) => (
+                <div key={`card-${ci}`} className="border border-border rounded p-3 space-y-2 bg-slate-50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-600">Card #{ci + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          heroProductCards: f.heroProductCards.filter((_, i) => i !== ci),
+                        }))
+                      }
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
+                      {card.imageUrl ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setForm((f) => {
+                                const next = [...f.heroProductCards];
+                                next[ci] = { ...next[ci]!, imageUrl: '' };
+                                return { ...f, heroProductCards: next };
+                              })
+                            }
+                            className="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-5 h-5 grid place-items-center"
+                            aria-label="Remove image"
+                          >
+                            ×
+                          </button>
+                        </>
+                      ) : (
+                        <label className="w-full h-full grid place-items-center text-[10px] text-slate-500 cursor-pointer hover:bg-slate-50">
+                          Upload
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                const res = await uploadMutation.upload(file);
+                                if (res && res.url) {
+                                  setForm((f) => {
+                                    const next = [...f.heroProductCards];
+                                    next[ci] = { ...next[ci]!, imageUrl: res.url };
+                                    return { ...f, heroProductCards: next };
+                                  });
+                                  toast.success('Image uploaded');
+                                }
+                              } catch (err) {
+                                toast.error('Upload failed', err instanceof Error ? err.message : 'Unknown');
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 flex-1">
+                      <input
+                        type="text"
+                        placeholder="Title EN *"
+                        value={card.titleEn}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = [...f.heroProductCards];
+                            next[ci] = { ...next[ci]!, titleEn: e.target.value };
+                            return { ...f, heroProductCards: next };
+                          })
+                        }
+                        className="input"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Title BN"
+                        value={card.titleBn}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = [...f.heroProductCards];
+                            next[ci] = { ...next[ci]!, titleBn: e.target.value };
+                            return { ...f, heroProductCards: next };
+                          })
+                        }
+                        className="input"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Link *"
+                        value={card.href}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = [...f.heroProductCards];
+                            next[ci] = { ...next[ci]!, href: e.target.value };
+                            return { ...f, heroProductCards: next };
+                          })
+                        }
+                        className="input"
+                      />
+                      <input
+                        type="text"
+                        placeholder="CTA label (optional)"
+                        value={card.ctaLabelEn}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = [...f.heroProductCards];
+                            next[ci] = { ...next[ci]!, ctaLabelEn: e.target.value };
+                            return { ...f, heroProductCards: next };
+                          })
+                        }
+                        className="input"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {form.sectionType === 'SEO_TEXT' && (
             <div className="border-t border-border pt-3 mt-3">
               <div className="flex items-center justify-between mb-2">

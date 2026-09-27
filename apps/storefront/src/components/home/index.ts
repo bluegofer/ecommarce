@@ -19,3 +19,8 @@ export { HeroSlider } from './HeroSlider';
 export type { HeroSliderProps } from './HeroSlider';
 export { EidMegaSale } from './EidMegaSale';
 export type { EidMegaSaleProps, EidMegaSaleConfig } from './EidMegaSale';
+
+export { CategoryShopRow } from './CategoryShopRow';
+export type { CategoryShopRowConfig, ShopRowTile, ShopRowItem } from './CategoryShopRow';
+export { HeroProductRow } from './HeroProductRow';
+export type { HeroProductRowConfig, HeroProductHero, HeroProductCard } from './HeroProductRow';

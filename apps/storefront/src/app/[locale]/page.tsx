@@ -12,7 +12,11 @@ import {
   PromoBanners,
   SeoTextBlock,
   EidMegaSale,
+  CategoryShopRow,
+  HeroProductRow,
   type HeroSlide,
+  type CategoryShopRowConfig,
+  type HeroProductRowConfig,
 } from '@/components/home';
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 import { buildHeaderNavLinks } from '@/lib/cms/nav';
@@ -332,6 +336,16 @@ function renderSection({
         />
       );
     }
+    case 'CATEGORY_SHOP_ROW': {
+      const cfg = extractCategoryShopRowConfig(section.config);
+      if (!cfg || cfg.tiles.length === 0) return null;
+      return <CategoryShopRow key={section.id} config={cfg} locale={locale} />;
+    }
+    case 'HERO_PRODUCT_ROW': {
+      const cfg = extractHeroProductRowConfig(section.config);
+      if (!cfg) return null;
+      return <HeroProductRow key={section.id} config={cfg} locale={locale} />;
+    }
     case 'CATEGORY_GRID': {
       const categoryIds = extractMultiCategoryIds(section.config);
       if (categoryIds.length === 0) return null;
@@ -605,4 +619,68 @@ function placeholderSvg(label: string, bg: string, fg: string): string {
     text +
     '</svg>';
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+// ── Step-80: section config extractors ──
+function extractCategoryShopRowConfig(raw: unknown): CategoryShopRowConfig | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const cfg = raw as Partial<CategoryShopRowConfig>;
+  const tiles = Array.isArray(cfg.tiles) ? cfg.tiles : [];
+  const validTiles = tiles
+    .filter((t) => t && typeof t === 'object')
+    .map((t) => ({
+      titleEn: String(t.titleEn ?? ''),
+      titleBn: String(t.titleBn ?? ''),
+      subtitleEn: t.subtitleEn ? String(t.subtitleEn) : undefined,
+      subtitleBn: t.subtitleBn ? String(t.subtitleBn) : undefined,
+      seeAllHref: String(t.seeAllHref ?? ''),
+      items: (Array.isArray(t.items) ? t.items : [])
+        .filter((it) => it && typeof it === 'object')
+        .map((it) => ({
+          labelEn: String(it.labelEn ?? ''),
+          labelBn: String(it.labelBn ?? ''),
+          imageUrl: String(it.imageUrl ?? ''),
+          href: String(it.href ?? ''),
+        })),
+    }))
+    .filter((t) => t.titleEn && t.items.length > 0);
+  if (validTiles.length === 0) return null;
+  return {
+    bgTheme: cfg.bgTheme,
+    tiles: validTiles,
+  };
+}
+
+function extractHeroProductRowConfig(raw: unknown): HeroProductRowConfig | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const cfg = raw as Partial<HeroProductRowConfig>;
+  const h = cfg.hero;
+  if (!h || typeof h !== 'object') return null;
+  const hero: HeroProductRowConfig['hero'] = {
+    badgeEn: h.badgeEn ? String(h.badgeEn) : undefined,
+    badgeBn: h.badgeBn ? String(h.badgeBn) : undefined,
+    titleEn: String(h.titleEn ?? ''),
+    titleBn: String(h.titleBn ?? ''),
+    subtitleEn: h.subtitleEn ? String(h.subtitleEn) : undefined,
+    subtitleBn: h.subtitleBn ? String(h.subtitleBn) : undefined,
+    ctaLabelEn: String(h.ctaLabelEn ?? ''),
+    ctaLabelBn: String(h.ctaLabelBn ?? ''),
+    ctaHref: String(h.ctaHref ?? ''),
+    bgColor: String(h.bgColor ?? '#0C2B3D'),
+    imageUrl: h.imageUrl ? String(h.imageUrl) : undefined,
+  };
+  if (!hero.titleEn || !hero.ctaHref) return null;
+  const products = (Array.isArray(cfg.products) ? cfg.products : [])
+    .filter((p) => p && typeof p === 'object')
+    .map((p) => ({
+      titleEn: String(p.titleEn ?? ''),
+      titleBn: String(p.titleBn ?? ''),
+      imageUrl: String(p.imageUrl ?? ''),
+      href: String(p.href ?? ''),
+      ctaLabelEn: p.ctaLabelEn ? String(p.ctaLabelEn) : undefined,
+      ctaLabelBn: p.ctaLabelBn ? String(p.ctaLabelBn) : undefined,
+      ctaHref: p.ctaHref ? String(p.ctaHref) : undefined,
+    }))
+    .filter((p) => p.imageUrl && p.href);
+  if (products.length === 0) return null;
+  return { hero, products };
 }

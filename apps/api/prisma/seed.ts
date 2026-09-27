@@ -676,6 +676,7 @@ async function main() {
   await seedCmsDemo();
   console.log('Seed complete');
   await seedStep79Extension(); // Step-79: Amazon-style HEADER menu + 3 new top cats
+  await seedStep80Extension(); // Step-80: Amazon-style demo sections
 }
 
 main()
@@ -920,5 +921,170 @@ async function seedStep79Extension() {
     console.log(`Step-79 seed: HEADER menu rebuilt — ${parentsCreated} parents, ${childrenCreated} children`);
   } else {
     console.log('Step-79 seed: HEADER menu already has Amazon-style items — skipping rebuild');
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP80_SEED_EXTENSION — Amazon-style demo sections
+// Idempotent: skip if a section with same key already exists.
+// ═══════════════════════════════════════════════════════════════════
+async function seedStep80Extension() {
+  // ── 1. CATEGORY_SHOP_ROW — Amazon row 1 style ─────────────────
+  const shopRowKey = 'home-shop-row-1';
+  const existing1 = await prisma.cmsSection.findFirst({ where: { key: shopRowKey } });
+  if (!existing1) {
+    const maxPos1 = await prisma.cmsSection.findFirst({
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    });
+    const nextPos1 = (maxPos1?.position ?? 0) + 1;
+    await prisma.cmsSection.create({
+      data: {
+        key: shopRowKey,
+        sectionType: 'CATEGORY_SHOP_ROW',
+        titleEn: 'Shop by category',
+        titleBn: 'ক্যাটাগরি অনুযায়ী কিনুন',
+        position: nextPos1,
+        isVisible: true,
+        config: {
+          bgTheme: 'default',
+          tiles: [
+            {
+              titleEn: 'Shop electronics from NoLimit',
+              titleBn: 'নো লিমিট থেকে ইলেকট্রনিক্স',
+              subtitleEn: 'Top picks under ৳50,000',
+              subtitleBn: '৳৫০,০০০-এর নিচে সেরা পছন্দ',
+              seeAllHref: '/c/electronics',
+              items: [
+                { labelEn: 'Mobile Phones', labelBn: 'মোবাইল ফোন', imageUrl: 'https://picsum.photos/seed/elec-mobile/300/300', href: '/c/mobile-phones' },
+                { labelEn: 'Laptops',       labelBn: 'ল্যাপটপ',      imageUrl: 'https://picsum.photos/seed/elec-laptop/300/300', href: '/c/laptops' },
+                { labelEn: 'Headphones',    labelBn: 'হেডফোন',       imageUrl: 'https://picsum.photos/seed/elec-head/300/300',  href: '/c/headphones' },
+                { labelEn: 'Cameras',       labelBn: 'ক্যামেরা',     imageUrl: 'https://picsum.photos/seed/elec-cam/300/300',   href: '/c/cameras' },
+              ],
+            },
+            {
+              titleEn: 'Fashion essentials',
+              titleBn: 'ফ্যাশন এssentials',
+              subtitleEn: 'New styles this week',
+              subtitleBn: 'এই সপ্তাহের নতুন স্টাইল',
+              seeAllHref: '/c/fashion',
+              items: [
+                { labelEn: 'Men',   labelBn: 'পুরুষ', imageUrl: 'https://picsum.photos/seed/fash-men/300/300',   href: '/c/men' },
+                { labelEn: 'Women', labelBn: 'নারী',  imageUrl: 'https://picsum.photos/seed/fash-women/300/300', href: '/c/women' },
+                { labelEn: 'Shoes', labelBn: 'জুতা',  imageUrl: 'https://picsum.photos/seed/fash-shoes/300/300', href: '/c/shoes' },
+                { labelEn: 'Bags',  labelBn: 'ব্যাগ', imageUrl: 'https://picsum.photos/seed/fash-bags/300/300',  href: '/c/bags' },
+              ],
+            },
+            {
+              titleEn: 'Home & Kitchen',
+              titleBn: 'হোম ও কিচেন',
+              subtitleEn: 'Upgrade your space',
+              subtitleBn: 'ঘর সাজান',
+              seeAllHref: '/c/home-kitchen',
+              items: [
+                { labelEn: 'Cookware',   labelBn: 'কুকওয়্যার',  imageUrl: 'https://picsum.photos/seed/home-cook/300/300',    href: '/c/cookware' },
+                { labelEn: 'Furniture',  labelBn: 'ফার্নিচার',   imageUrl: 'https://picsum.photos/seed/home-furn/300/300',    href: '/c/furniture' },
+                { labelEn: 'Home Decor', labelBn: 'হোম ডেকর',   imageUrl: 'https://picsum.photos/seed/home-decor/300/300',   href: '/c/decor' },
+                { labelEn: 'Bedding',    labelBn: 'বেডিং',       imageUrl: 'https://picsum.photos/seed/home-bed/300/300',     href: '/c/bedding' },
+              ],
+            },
+            {
+              titleEn: 'Grocery picks',
+              titleBn: 'গ্রোসারি পছন্দ',
+              subtitleEn: 'Daily essentials',
+              subtitleBn: 'প্রতিদিনের প্রয়োজন',
+              seeAllHref: '/c/grocery',
+              items: [
+                { labelEn: 'Rice & Grain', labelBn: 'চাল ও শস্য', imageUrl: 'https://picsum.photos/seed/groc-rice/300/300',  href: '/c/grocery' },
+                { labelEn: 'Snacks',       labelBn: 'স্ন্যাকস',    imageUrl: 'https://picsum.photos/seed/groc-snack/300/300', href: '/c/grocery' },
+                { labelEn: 'Beverages',    labelBn: 'পানীয়',      imageUrl: 'https://picsum.photos/seed/groc-bev/300/300',   href: '/c/grocery' },
+                { labelEn: 'Spices',       labelBn: 'মশলা',        imageUrl: 'https://picsum.photos/seed/groc-spice/300/300', href: '/c/grocery' },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    console.log('Step-80 seed: CATEGORY_SHOP_ROW created');
+  } else {
+    console.log('Step-80 seed: CATEGORY_SHOP_ROW already exists — skipping');
+  }
+
+  // ── 2. HERO_PRODUCT_ROW — Amazon row 2 style ───────────────────
+  const heroRowKey = 'home-hero-product-row-1';
+  const existing2 = await prisma.cmsSection.findFirst({ where: { key: heroRowKey } });
+  if (!existing2) {
+    const maxPos2 = await prisma.cmsSection.findFirst({
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    });
+    const nextPos2 = (maxPos2?.position ?? 0) + 1;
+    await prisma.cmsSection.create({
+      data: {
+        key: heroRowKey,
+        sectionType: 'HERO_PRODUCT_ROW',
+        titleEn: 'Featured this week',
+        titleBn: 'এই সপ্তাহের ফিচার',
+        position: nextPos2,
+        isVisible: true,
+        config: {
+          hero: {
+            badgeEn: 'Exclusively for members',
+            badgeBn: 'শুধু সদস্যদের জন্য',
+            titleEn: 'Big Deals drop this weekend',
+            titleBn: 'এই সপ্তাহান্তে বড় ডিল',
+            subtitleEn: 'Up to 60% off on selected items',
+            subtitleBn: 'নির্বাচিত পণ্যে ৬০% পর্যন্ত ছাড়',
+            ctaLabelEn: 'Shop deals',
+            ctaLabelBn: 'ডিল দেখুন',
+            ctaHref: '/deals',
+            bgColor: '#1A6FD9',
+            imageUrl: 'https://picsum.photos/seed/hero-bg/800/600',
+          },
+          products: [
+            {
+              titleEn: 'Wireless Headphones',
+              titleBn: 'ওয়্যারলেস হেডফোন',
+              imageUrl: 'https://picsum.photos/seed/card-head/300/300',
+              href: '/c/headphones',
+              ctaLabelEn: 'Shop now',
+              ctaLabelBn: 'এখনই কিনুন',
+              ctaHref: '/c/headphones',
+            },
+            {
+              titleEn: 'Smart Watches',
+              titleBn: 'স্মার্ট ওয়াচ',
+              imageUrl: 'https://picsum.photos/seed/card-watch/300/300',
+              href: '/c/smart-watches',
+              ctaLabelEn: 'Explore',
+              ctaLabelBn: 'দেখুন',
+              ctaHref: '/c/smart-watches',
+            },
+            {
+              titleEn: 'Men\'s Sneakers',
+              titleBn: 'পুরুষদের স্নিকার',
+              imageUrl: 'https://picsum.photos/seed/card-shoe/300/300',
+              href: '/c/shoes',
+              ctaLabelEn: 'Shop now',
+              ctaLabelBn: 'এখনই কিনুন',
+              ctaHref: '/c/shoes',
+            },
+            {
+              titleEn: 'Home Decor Picks',
+              titleBn: 'হোম ডেকর',
+              imageUrl: 'https://picsum.photos/seed/card-decor/300/300',
+              href: '/c/decor',
+              ctaLabelEn: 'Explore',
+              ctaLabelBn: 'দেখুন',
+              ctaHref: '/c/decor',
+            },
+          ],
+        },
+      },
+    });
+    console.log('Step-80 seed: HERO_PRODUCT_ROW created');
+  } else {
+    console.log('Step-80 seed: HERO_PRODUCT_ROW already exists — skipping');
   }
 }
