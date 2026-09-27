@@ -1289,8 +1289,7 @@ export default function CmsPage() {
                         <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
                           {item.imageUrl ? (
                             <>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                           <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
                               <button
                                 type="button"
                                 onClick={() =>
@@ -1521,8 +1520,7 @@ export default function CmsPage() {
                   <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
                     {form.heroProductHero.imageUrl ? (
                       <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                                               <img
                           src={form.heroProductHero.imageUrl}
                           alt=""
                           className="w-full h-full object-cover"
@@ -1613,8 +1611,7 @@ export default function CmsPage() {
                     <div className="relative w-20 h-20 border rounded overflow-hidden bg-white">
                       {card.imageUrl ? (
                         <>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                   <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() =>
