@@ -33,4 +33,9 @@ export class NewsletterController {
   unsubscribe(@Param('email') email: string) {
     return this.svc.unsubscribe(email);
   }
-}
+
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MARKETING_MANAGER')
+  @Delete('subscribers/:id')
+  deleteById(@Param('id') id: string) {
+    return this.svc.deleteById(id);
+  }}

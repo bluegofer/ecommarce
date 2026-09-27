@@ -81,4 +81,7 @@ export class NewsletterService {
   async count() {
     return this.prisma.newsletterSubscriber.count({ where: { isActive: true } });
   }
-}
+
+  async deleteById(id: string) {
+    return this.prisma.newsletterSubscriber.delete({ where: { id } });
+  }}

@@ -615,6 +615,8 @@ async function seedDemoRoleUsers() {
     { phone: '+8801700000016', email: 'purchase@bluegofer.local',  fullName: 'Demo Purchase Manager',      roleCode: 'PURCHASE_MANAGER' },
     { phone: '+8801700000017', email: 'pos@bluegofer.local',       fullName: 'Demo Store POS Staff',       roleCode: 'STORE_POS_STAFF' },
     { phone: '+8801700000018', email: 'hr@bluegofer.local',        fullName: 'Demo HR Manager',            roleCode: 'HR_MANAGER' },
+    { phone: '+8801700000010', email: 'admin2@bluegofer.local',    fullName: 'Demo Admin',                 roleCode: 'ADMIN' },
+    { phone: '+8801700000019', email: 'editor@bluegofer.local',    fullName: 'Demo Editor',                roleCode: 'EDITOR' },
   ];
 
   let created = 0;
@@ -677,6 +679,7 @@ async function main() {
   console.log('Seed complete');
   await seedStep79Extension(); // Step-79: Amazon-style HEADER menu + 3 new top cats
   await seedStep80Extension(); // Step-80: Amazon-style demo sections
+  await seedStep81Templates(); // Step-81: notification templates (order lifecycle + refund)
 }
 
 main()
@@ -1087,4 +1090,131 @@ async function seedStep80Extension() {
   } else {
     console.log('Step-80 seed: HERO_PRODUCT_ROW already exists — skipping');
   }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP81_SEED_EXTENSION — Transactional notification templates
+// (order lifecycle + refund) — bn + en, SMS + EMAIL channels.
+// Idempotent — safe to re-run.
+// ═══════════════════════════════════════════════════════════════════
+async function seedStep81Templates() {
+  type TemplateSeed = {
+    key: string;
+    channel: 'SMS' | 'EMAIL';
+    subjectEn?: string;
+    subjectBn?: string;
+    bodyEn: string;
+    bodyBn: string;
+  };
+
+  const templates: TemplateSeed[] = [
+    // ── ORDER PLACED ─────────────────────────────────────────────
+    {
+      key: 'order.placed', channel: 'SMS',
+      bodyEn: 'NoLimitShopping: Order {{orderNumber}} received. Total ৳{{total}}. We will notify you when confirmed.',
+      bodyBn: 'NoLimitShopping: অর্ডার {{orderNumber}} পেয়েছি। মোট ৳{{total}}। কনফার্ম হলে জানাব।',
+    },
+    {
+      key: 'order.placed', channel: 'EMAIL',
+      subjectEn: 'Order {{orderNumber}} placed — NoLimitShopping',
+      subjectBn: 'অর্ডার {{orderNumber}} সম্পন্ন — NoLimitShopping',
+      bodyEn: 'Hi {{customerName}},\n\nThanks for your order! Order {{orderNumber}} has been received.\n\nTotal: ৳{{total}}\nItems: {{itemCount}}\n\nWe will confirm shortly.\n\n— NoLimitShopping',
+      bodyBn: 'প্রিয় {{customerName}},\n\nআপনার অর্ডারের জন্য ধন্যবাদ! অর্ডার {{orderNumber}} পেয়েছি।\n\nমোট: ৳{{total}}\nপণ্য: {{itemCount}}\n\nশীঘ্রই কনফার্ম করব।\n\n— NoLimitShopping',
+    },
+
+    // ── ORDER CONFIRMED ──────────────────────────────────────────
+    {
+      key: 'order.confirmed', channel: 'SMS',
+      bodyEn: 'NoLimitShopping: Order {{orderNumber}} confirmed. Preparing for dispatch.',
+      bodyBn: 'NoLimitShopping: অর্ডার {{orderNumber}} কনফার্ম হয়েছে। প্রস্তুতি চলছে।',
+    },
+    {
+      key: 'order.confirmed', channel: 'EMAIL',
+      subjectEn: 'Order {{orderNumber}} confirmed',
+      subjectBn: 'অর্ডার {{orderNumber}} কনফার্মড',
+      bodyEn: 'Hi {{customerName}},\n\nYour order {{orderNumber}} is confirmed and being prepared.\n\nTotal: ৳{{total}}',
+      bodyBn: 'প্রিয় {{customerName}},\n\nআপনার অর্ডার {{orderNumber}} কনফার্ম হয়েছে।\n\nমোট: ৳{{total}}',
+    },
+
+    // ── ORDER SHIPPED ────────────────────────────────────────────
+    {
+      key: 'order.shipped', channel: 'SMS',
+      bodyEn: 'NoLimitShopping: Order {{orderNumber}} shipped via {{courier}}. Track: {{trackingUrl}}',
+      bodyBn: 'NoLimitShopping: অর্ডার {{orderNumber}} পাঠানো হয়েছে ({{courier}})। ট্র্যাক: {{trackingUrl}}',
+    },
+    {
+      key: 'order.shipped', channel: 'EMAIL',
+      subjectEn: 'Order {{orderNumber}} shipped',
+      subjectBn: 'অর্ডার {{orderNumber}} পাঠানো হয়েছে',
+      bodyEn: 'Hi {{customerName}},\n\nYour order {{orderNumber}} is on the way via {{courier}}.\n\nTracking: {{trackingUrl}}',
+      bodyBn: 'প্রিয় {{customerName}},\n\nআপনার অর্ডার {{orderNumber}} রওনা হয়েছে {{courier}}-এর মাধ্যমে।\n\nট্র্যাকিং: {{trackingUrl}}',
+    },
+
+    // ── OUT FOR DELIVERY ─────────────────────────────────────────
+    {
+      key: 'order.out_for_delivery', channel: 'SMS',
+      bodyEn: 'NoLimitShopping: Order {{orderNumber}} is out for delivery. Please keep ৳{{codAmount}} ready if COD.',
+      bodyBn: 'NoLimitShopping: অর্ডার {{orderNumber}} ডেলিভারির জন্য বের হয়েছে। COD হলে ৳{{codAmount}} প্রস্তুত রাখুন।',
+    },
+    {
+      key: 'order.out_for_delivery', channel: 'EMAIL',
+      subjectEn: 'Order {{orderNumber}} out for delivery',
+      subjectBn: 'অর্ডার {{orderNumber}} ডেলিভারির পথে',
+      bodyEn: 'Hi {{customerName}},\n\nYour order {{orderNumber}} is out for delivery today.',
+      bodyBn: 'প্রিয় {{customerName}},\n\nআপনার অর্ডার {{orderNumber}} আজ ডেলিভারির পথে।',
+    },
+
+    // ── ORDER DELIVERED ──────────────────────────────────────────
+    {
+      key: 'order.delivered', channel: 'SMS',
+      bodyEn: 'NoLimitShopping: Order {{orderNumber}} delivered. Thanks for shopping! Rate us: {{reviewUrl}}',
+      bodyBn: 'NoLimitShopping: অর্ডার {{orderNumber}} ডেলিভারি সম্পন্ন। কিনতে ধন্যবাদ! রেটিং দিন: {{reviewUrl}}',
+    },
+    {
+      key: 'order.delivered', channel: 'EMAIL',
+      subjectEn: 'Order {{orderNumber}} delivered — Please review',
+      subjectBn: 'অর্ডার {{orderNumber}} ডেলিভারড — রিভিউ দিন',
+      bodyEn: 'Hi {{customerName}},\n\nYour order {{orderNumber}} was delivered. We hope you love it!\n\nLeave a review: {{reviewUrl}}',
+      bodyBn: 'প্রিয় {{customerName}},\n\nআপনার অর্ডার {{orderNumber}} ডেলিভার হয়েছে। পছন্দ হয়েছে কিনা জানান!\n\nরিভিউ: {{reviewUrl}}',
+    },
+
+    // ── REFUND PROCESSED ─────────────────────────────────────────
+    {
+      key: 'refund.processed', channel: 'SMS',
+      bodyEn: 'NoLimitShopping: Refund of ৳{{amount}} for order {{orderNumber}} initiated to your {{method}}.',
+      bodyBn: 'NoLimitShopping: অর্ডার {{orderNumber}}-এর জন্য ৳{{amount}} রিফান্ড {{method}}-এ প্রেরণ করা হয়েছে।',
+    },
+    {
+      key: 'refund.processed', channel: 'EMAIL',
+      subjectEn: 'Refund initiated for order {{orderNumber}}',
+      subjectBn: 'অর্ডার {{orderNumber}}-এর রিফান্ড প্রেরিত',
+      bodyEn: 'Hi {{customerName}},\n\nA refund of ৳{{amount}} for order {{orderNumber}} has been initiated to your {{method}}.\n\nAllow 3-7 business days.',
+      bodyBn: 'প্রিয় {{customerName}},\n\nঅর্ডার {{orderNumber}}-এর জন্য ৳{{amount}} রিফান্ড {{method}}-এ প্রেরণ করা হয়েছে।\n\n৩-৭ কর্মদিবস লাগতে পারে।',
+    },
+  ];
+
+  let created = 0;
+  let skipped = 0;
+
+  for (const t of templates) {
+    const exists = await prisma.notificationTemplate.findUnique({
+      where: { key_channel: { key: t.key, channel: t.channel } },
+    });
+    if (exists) { skipped++; continue; }
+    await prisma.notificationTemplate.create({
+      data: {
+        key: t.key,
+        channel: t.channel,
+        subjectEn: t.subjectEn,
+        subjectBn: t.subjectBn,
+        bodyEn: t.bodyEn,
+        bodyBn: t.bodyBn,
+        isActive: true,
+      },
+    });
+    created++;
+  }
+
+  console.log(`Step-81 templates: ${created} created, ${skipped} skipped (idempotent)`);
 }

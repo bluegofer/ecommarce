@@ -131,6 +131,7 @@ const NAV_SECTIONS: NavSection[] = [
         ],
       },
       { label: 'Notifications', href: '/notifications', icon: Bell },
+      { label: 'Newsletter', href: '/newsletter', icon: Mail },
     ],
   },
   {
