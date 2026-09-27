@@ -4,7 +4,7 @@
 // - POST /courier/webhook/:provider      (public — signature verified inside)
 //
 // Consignment creation is exposed as POST /orders/:id/dispatch (see orders.controller).
-import { BadRequestException, Controller, Get, Headers, HttpCode, Param, Post, Query, RawBodyRequest, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Param, Post, Query, RawBodyRequest, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { CourierService } from './courier.service';
@@ -57,4 +57,30 @@ export class CourierController {
     const result = await this.courier.handleWebhook(upper, rawBody, signature);
     return result;
   }
-}
+
+  // ── Step-84 (D-2): admin settlement management ──
+
+  @Roles('SUPER_ADMIN', 'FINANCE_READONLY', 'FINANCE_MANAGER', 'ORDER_SUPPORT')
+  @Get('settlements/unreconciled')
+  async unreconciled() {
+    return this.courier.listUnreconciled();
+  }
+
+  @Roles('SUPER_ADMIN', 'FINANCE_READONLY', 'FINANCE_MANAGER', 'ORDER_SUPPORT')
+  @Get('settlements/all')
+  async allSettlements() {
+    return this.courier.listAllSettlements();
+  }
+
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER')
+  @Post('settlements/:id/mark-reconciled')
+  @HttpCode(200)
+  async markReconciled(
+    @Param('id') id: string,
+    @Body() body: { receivedPoisha: number; notes?: string | null },
+    @Req() req: Request,
+  ) {
+    // userId from JWT (attached by AuthGuard)
+    const userId = (req as unknown as { user?: { sub?: string } }).user?.sub ?? 'system';
+    return this.courier.markReconciled(id, body.receivedPoisha, body.notes, userId);
+  }}

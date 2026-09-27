@@ -226,4 +226,74 @@ export class CourierService {
 
     return this.syncTracking(shipment.id).then(() => ({ ok: true }));
   }
-}
+
+  // ── Step-84 (D-2): unreconciled courier settlements ──
+
+  async listUnreconciled(): Promise<
+    Array<{
+      id: string;
+      courierCode: string;
+      periodStart: Date;
+      periodEnd: Date;
+      expectedPoisha: number;
+      receivedPoisha: number;
+      orderCount: number;
+      status: string;
+      notes: string | null;
+      createdAt: Date;
+    }>
+  > {
+    return this.prisma.courierSettlement.findMany({
+      where: { status: { in: ['PENDING', 'PARTIAL', 'DISCREPANCY'] } },
+      orderBy: { periodStart: 'desc' },
+    });
+  }
+
+  async listAllSettlements(): Promise<
+    Array<{
+      id: string;
+      courierCode: string;
+      periodStart: Date;
+      periodEnd: Date;
+      expectedPoisha: number;
+      receivedPoisha: number;
+      orderCount: number;
+      status: string;
+      reconciledAt: Date | null;
+      notes: string | null;
+    }>
+  > {
+    return this.prisma.courierSettlement.findMany({
+      orderBy: { periodStart: 'desc' },
+      take: 200,
+    });
+  }
+
+  async markReconciled(
+    id: string,
+    receivedPoisha: number,
+    notes: string | null | undefined,
+    byUserId: string,
+  ) {
+    const existing = await this.prisma.courierSettlement.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('settlement not found');
+    if (receivedPoisha < 0) throw new BadRequestException('receivedPoisha must be >= 0');
+
+    const status =
+      receivedPoisha >= existing.expectedPoisha
+        ? 'RECONCILED'
+        : receivedPoisha > 0
+          ? 'PARTIAL'
+          : 'PENDING';
+
+    return this.prisma.courierSettlement.update({
+      where: { id },
+      data: {
+        receivedPoisha,
+        status,
+        notes: notes === undefined ? existing.notes : notes,
+        reconciledAt: status === 'RECONCILED' ? new Date() : existing.reconciledAt,
+        reconciledBy: status === 'RECONCILED' ? byUserId : existing.reconciledBy,
+      },
+    });
+  }}

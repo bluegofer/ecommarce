@@ -1,6 +1,7 @@
 // apps/api/src/modules/notifications/notifications.module.ts
 import { Module } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
+import { PushController } from './push.controller';
 import { TemplatesController } from './templates.controller';
 import { DispatchService } from './dispatch.service';
 import { DispatchController } from './dispatch.controller';
@@ -11,8 +12,11 @@ import { MessagingModule } from '../messaging/messaging.module';
 
 @Module({
   imports: [MessagingModule],
-  controllers: [TemplatesController, DispatchController, BackInStockController],
-  providers: [TemplatesService, DispatchService, BackInStockService, SchedulersService],
-  exports: [TemplatesService, DispatchService, BackInStockService],
+  controllers: [
+    PushController,TemplatesController, DispatchController, BackInStockController],
+  providers: [
+    TemplatesService, DispatchService, BackInStockService, SchedulersService],
+  exports: [
+    TemplatesService, DispatchService, BackInStockService],
 })
 export class NotificationsModule {}

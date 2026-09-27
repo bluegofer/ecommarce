@@ -80,15 +80,28 @@ export class DispatchService {
           idempotencyKey,
         });
       } else if (dto.channel === 'PUSH') {
-        result = await this.messaging.sendPush({
-          subscriptionEndpoint: dto.recipient,
-          subscriptionKeysP256dh: '',
-          subscriptionKeysAuth: '',
-          title: subject ?? 'Notification',
-          body,
-          url: undefined,
-          idempotencyKey,
+        // Look up subscription keys in DB (endpoint = dto.recipient)
+        const sub = await this.prisma.pushSubscription.findUnique({
+          where: { endpoint: dto.recipient },
         });
+        if (!sub || !sub.isActive) {
+          result = {
+            ok: false,
+            providerMessageId: undefined,
+            error: 'no active push subscription for endpoint',
+            raw: {},
+          };
+        } else {
+          result = await this.messaging.sendPush({
+            subscriptionEndpoint: sub.endpoint,
+            subscriptionKeysP256dh: sub.p256dh,
+            subscriptionKeysAuth: sub.auth,
+            title: subject ?? 'Notification',
+            body,
+            url: (dto.variables['url'] as string | undefined) ?? '/',
+            idempotencyKey,
+          });
+        }
       } else {
         result = { ok: false, providerMessageId: undefined, error: `unknown channel ${dto.channel}`, raw: {} };
       }

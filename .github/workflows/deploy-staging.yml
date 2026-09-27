@@ -113,6 +113,7 @@ jobs:
             --comment "GitHub Actions deploy ${{ github.sha }}" \
             --parameters commands='[
               "set -e",
+              "echo STEP82_ROBUSTNESS — hardened deploy",
               "cd /home/ssm-user/apps/ecommarce",
               "git fetch origin && git reset --hard origin/staging",
               "df -h / | tail -1",
@@ -120,10 +121,14 @@ jobs:
               "df -h / | tail -1",
               "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}",
               "docker compose -f docker-compose.prod.yml pull",
-              "docker compose -f docker-compose.prod.yml up -d --force-recreate",
+              "docker stop bluegofer-api bluegofer-storefront bluegofer-admin 2>/dev/null || true",
+              "docker rm bluegofer-api bluegofer-storefront bluegofer-admin 2>/dev/null || true",
+              "docker compose -f docker-compose.prod.yml up -d --remove-orphans",
+              "sleep 5",
               "docker exec -w /app/apps/api bluegofer-api npx prisma migrate deploy",
-              "sleep 10",
-              "docker compose -f docker-compose.prod.yml ps"
+              "sleep 5",
+              "docker compose -f docker-compose.prod.yml ps",
+              "echo STEP82_DEPLOY_COMPLETE"
             ]' \
             --query "Command.CommandId" \
             --output text)

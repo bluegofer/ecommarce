@@ -10,6 +10,7 @@ import {
   Package,
   ReceiptText,
   Truck,
+  Wallet,
   CreditCard,
   Users,
   RotateCcw,
@@ -94,7 +95,14 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Sales',
     items: [
       { label: 'Orders', href: '/orders', icon: ReceiptText },
-      { label: 'Delivery', href: '/delivery', icon: Truck },
+      {
+        label: 'Delivery',
+        icon: Truck,
+        children: [
+          { label: 'Overview', href: '/delivery', icon: Truck },
+          { label: 'Settlements', href: '/delivery/settlements', icon: Wallet },
+        ],
+      },
       { label: 'Payments', href: '/payments', icon: CreditCard },
     ],
   },
