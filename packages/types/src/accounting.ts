@@ -15,7 +15,8 @@ export type JournalSourceType =
   | 'PAYROLL'
   | 'POS_SALE'
   | 'MANUAL'
-  | 'REVERSAL';
+  | 'REVERSAL'
+  | 'REFUND';
 export type PaymentAccountKind = 'CASH' | 'BANK' | 'MFS';
 export type IncomeExpenseType = 'INCOME' | 'EXPENSE';
 export type DueStatus = 'OPEN' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'WRITTEN_OFF';

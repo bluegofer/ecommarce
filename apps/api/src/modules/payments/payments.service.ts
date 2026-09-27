@@ -159,16 +159,25 @@ export class PaymentsService {
     const result = await adapter.refund(input);
 
     if (result.ok) {
-      const newRefunded = payment.refundedPoisha + amountPoisha;
-      await this.prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          refundedPoisha: newRefunded,
-          status: newRefunded >= payment.amountPoisha ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
-        },
-      });
-    }
-    return result;
+        await this.prisma.$transaction(async (tx) => {
+          const newRefunded = payment.refundedPoisha + amountPoisha;
+          await tx.payment.update({
+            where: { id: payment.id },
+            data: {
+              refundedPoisha: newRefunded,
+              status: newRefunded >= payment.amountPoisha ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+            },
+          });
+          await this.ledger.postRefund({
+            refundSourceId: `refund:${payment.id}:${idempotencyKey}`,
+            amountPoisha,
+            paymentMethod: payment.method,
+            reason,
+            tx,
+          });
+        });
+      }
+      return result;
   }
 
   private buildRedirectForReuse(provider: PaymentProvider, ref: string): string | undefined {

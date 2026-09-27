@@ -1714,6 +1714,7 @@ enum JournalSourceType {
   POS_SALE
   MANUAL
   REVERSAL
+    REFUND
 }
 
 enum PaymentAccountKind {

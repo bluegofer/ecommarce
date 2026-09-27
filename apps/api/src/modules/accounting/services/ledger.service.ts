@@ -243,4 +243,77 @@ export class LedgerService {
       return reversal;
     });
   }
-}
+
+  /**
+   * Step-83 (F-1): Post a balanced reversal entry when a refund is issued.
+   *
+   *   Dr  Sales Revenue (4000-SALES)     — refund amount
+   *   Cr  Cash/MFS/Bank (by method)      — refund amount
+   *
+   * Idempotent via sourceType=REFUND + sourceId (caller supplies).
+   * Runs inside the caller's transaction when `tx` is provided.
+   */
+  async postRefund(input: {
+    refundSourceId: string;
+    amountPoisha: number;
+    paymentMethod: string;
+    reason?: string;
+    originalEntryId?: string;
+    tx?: Prisma.TransactionClient;
+  }) {
+    if (input.amountPoisha <= 0) {
+      throw new BadRequestException('Refund amount must be > 0');
+    }
+    const client = input.tx ?? this.prisma;
+
+    const existing = await client.journalEntry.findFirst({
+      where: {
+        sourceType: 'REFUND' as JournalSourceType,
+        sourceId: input.refundSourceId,
+      },
+      include: { lines: true },
+    });
+    if (existing) return existing;
+
+    const creditCode = this.creditAccountForMethod(input.paymentMethod);
+
+    const revenueAccount = await client.ledgerAccount.findUnique({
+      where: { code: '4000-SALES' },
+    });
+    const creditAccount = await client.ledgerAccount.findUnique({
+      where: { code: creditCode },
+    });
+    if (!revenueAccount) throw new NotFoundException('Ledger account 4000-SALES not found');
+    if (!creditAccount) throw new NotFoundException(`Ledger account ${creditCode} not found`);
+
+    return this.postEntry(
+      {
+        entryDate: new Date().toISOString(),
+        description: `Refund — ${input.paymentMethod}${
+          input.reason ? ` — ${input.reason}` : ''
+        }`,
+        sourceType: 'REFUND' as JournalSourceType,
+        sourceId: input.refundSourceId,
+        reversalOfId: input.originalEntryId,
+        lines: [
+          { ledgerAccountId: revenueAccount.id, debit: input.amountPoisha, credit: 0 },
+          { ledgerAccountId: creditAccount.id, debit: 0, credit: input.amountPoisha },
+        ],
+      },
+      { tx: input.tx, status: 'POSTED' as JournalEntryStatus },
+    );
+  }
+
+  /** Map payment method → ledger account code on the credit side of a refund. */
+  private creditAccountForMethod(method: string): string {
+    switch (method) {
+      case 'BKASH':
+      case 'NAGAD':
+        return '1020-MFS';
+      case 'SSLCOMMERZ':
+        return '1010-BANK';
+      case 'COD':
+      default:
+        return '1000-CASH';
+    }
+  }}
