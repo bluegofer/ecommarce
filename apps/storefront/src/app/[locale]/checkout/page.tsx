@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { buildHeaderNavLinks } from '@/lib/cms/nav';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi } from '@/lib/api';
@@ -175,15 +176,9 @@ function headerLabels(t: ReturnType<typeof getDictionary>, locale: 'bn' | 'en') 
   };
 }
 
-function navLinks(t: ReturnType<typeof getDictionary>, locale: 'bn' | 'en') {
-  return [
-    { label: t['nav.deals'], href: `/${locale}/deals` },
-    { label: t['nav.best'], href: `/${locale}/c/electronics` },
-    { label: t['nav.new'], href: `/${locale}/c/electronics` },
-    { label: 'Electronics', href: `/${locale}/c/electronics` },
-    { label: 'Fashion', href: `/${locale}/c/fashion` },
-    { label: 'Home & Kitchen', href: `/${locale}/c/home-kitchen` },
-  ];
+// Step-79: legacy helper kept for backward compat — no longer used by page body
+function navLinks(_t: ReturnType<typeof getDictionary>, locale: 'bn' | 'en') {
+  return buildHeaderNavLinks(locale, null);
 }
 
 function footerLabels(t: ReturnType<typeof getDictionary>) {

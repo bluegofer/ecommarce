@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { buildHeaderNavLinks } from '@/lib/cms/nav';
 import { Header, Footer } from '@/components/layout';
 import { AccountLayoutClient, type AccountSidebarLabels } from '@/components/account';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
@@ -36,24 +37,8 @@ export default async function AccountLayout({
     signOut: bn ? 'সাইন আউট' : 'Sign Out',
   };
 
-  const cmsNavLinks =
-    headerMenu && headerMenu.items.length > 0
-      ? headerMenu.items
-          .filter((it) => it.isActive)
-          .map((it) => ({
-            label: bn ? it.labelBn : it.labelEn,
-            href: it.url.startsWith('http') ? it.url : `/${locale}${it.url}`,
-          }))
-      : null;
-
-  const navLinks = cmsNavLinks ?? [
-    { label: t['nav.deals'], href: `/${locale}/deals` },
-    { label: t['nav.best'], href: `/${locale}/c/electronics` },
-    { label: t['nav.new'], href: `/${locale}/c/electronics` },
-    { label: 'Electronics', href: `/${locale}/c/electronics` },
-    { label: 'Fashion', href: `/${locale}/c/fashion` },
-    { label: 'Home & Kitchen', href: `/${locale}/c/home-kitchen` },
-  ];
+  // Step-79: shared helper
+  const navLinks = buildHeaderNavLinks(locale, headerMenu);
 
   return (
     <>

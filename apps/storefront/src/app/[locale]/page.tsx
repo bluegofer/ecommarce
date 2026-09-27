@@ -15,6 +15,7 @@ import {
   type HeroSlide,
 } from '@/components/home';
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
+import { buildHeaderNavLinks } from '@/lib/cms/nav';
 
 export const revalidate = 5;
 
@@ -112,25 +113,8 @@ export default async function HomePage({ params }: { params: { locale: string } 
   const sortedSections = [...feed.sections].sort((a, b) => a.position - b.position);
   const activeAnnouncement = feed.announcements[0];
 
-  // ── Header nav links ──
-  const cmsNavLinks =
-    headerMenu && headerMenu.items.length > 0
-      ? headerMenu.items
-          .filter((it) => it.isActive)
-          .map((it) => ({
-            label: locale === 'bn' ? it.labelBn : it.labelEn,
-            href: it.url.startsWith('http') ? it.url : `/${locale}${it.url}`,
-          }))
-      : null;
-
-  const navLinks = cmsNavLinks ?? [
-    { label: t['nav.deals'], href: `/${locale}/deals` },
-    { label: t['nav.best'], href: `/${locale}/c/electronics` },
-    { label: t['nav.new'], href: `/${locale}/c/electronics` },
-    { label: 'Electronics', href: `/${locale}/c/electronics` },
-    { label: 'Fashion', href: `/${locale}/c/fashion` },
-    { label: 'Home & Kitchen', href: `/${locale}/c/home-kitchen` },
-  ];
+  // ── Header nav links (Step-79: shared helper) ──
+  const navLinks = buildHeaderNavLinks(locale, headerMenu);
 
   // ── Footer columns ──
   const cmsFooterColumns =

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { buildHeaderNavLinks } from '@/lib/cms/nav';
 import { notFound } from 'next/navigation';
 import { getDictionary, isLocale, interpolate } from '@/lib/i18n';
 import { Header, Footer, Breadcrumbs } from '@/components/layout';
@@ -17,14 +18,8 @@ export default function LocaleHomePage({ params }: { params: { locale: string } 
   const locale = params.locale;
   const t = getDictionary(locale);
 
-  const navLinks = [
-    { label: t['nav.deals'], href: `/${locale}/deals` },
-    { label: t['nav.best'], href: `/${locale}/s?k=best` },
-    { label: t['nav.new'], href: `/${locale}/s?k=new` },
-    { label: 'Electronics', href: `/${locale}/c/electronics` },
-    { label: 'Fashion', href: `/${locale}/c/fashion` },
-    { label: 'Home & Kitchen', href: `/${locale}/c/home` },
-  ];
+  // Step-79: shared helper
+  const navLinks = buildHeaderNavLinks(locale, null);
 
   return (
     <>

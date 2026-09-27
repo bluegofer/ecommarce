@@ -17,7 +17,7 @@ import { MenuItemModal } from '@/components/catalog/menu-item-modal';
 import type { CmsMenuDto, CmsMenuItemDto, CmsMenuLocation } from '@ecommarce/types';
 
 const LOCATIONS: Array<{ key: CmsMenuLocation; label: string; hint: string }> = [
-  { key: 'HEADER', label: 'Header', hint: 'Top navigation bar + drawer menu' },
+  { key: 'HEADER', label: 'Header', hint: 'Desktop top navigation (all storefront pages) — Step-79 CMS-driven' },
   { key: 'FOOTER', label: 'Footer', hint: 'Footer columns' },
   { key: 'MOBILE', label: 'Mobile', hint: 'Mobile drawer (hamburger) menu' },
 ];

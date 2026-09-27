@@ -675,6 +675,7 @@ async function main() {
   await seedDemoRoleUsers();
   await seedCmsDemo();
   console.log('Seed complete');
+  await seedStep79Extension(); // Step-79: Amazon-style HEADER menu + 3 new top cats
 }
 
 main()
@@ -749,4 +750,175 @@ async function seedPosDemo(prisma: PrismaClient) {
     }
   }
   console.log(`POS demo seed: ${created} branch_stock rows created`);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP79_SEED_EXTENSION — Amazon-style HEADER menu + 3 new top cats
+// Idempotent: re-run safe (upsert pattern).
+// ═══════════════════════════════════════════════════════════════════
+async function seedStep79Extension() {
+  // ---- 1. New top-level categories -------------------------------
+  const newTopCats = [
+    { slug: 'grocery',        nameEn: 'Grocery',         nameBn: 'গ্রোসারি' },
+    { slug: 'beauty-health',  nameEn: 'Beauty & Health', nameBn: 'বিউটি ও হেলথ' },
+    { slug: 'toys-baby',      nameEn: 'Toys & Baby',     nameBn: 'টয় ও বেবি' },
+  ];
+  let catsCreated = 0;
+  for (const c of newTopCats) {
+    const exists = await prisma.category.findFirst({ where: { slug: c.slug } });
+    if (exists) continue;
+    await prisma.category.create({
+      data: {
+        slug: c.slug,
+        nameEn: c.nameEn,
+        nameBn: c.nameBn,
+        parentId: null,
+        sortOrder: 100,
+      },
+    });
+    catsCreated++;
+  }
+  console.log(`Step-79 seed: ${catsCreated} top-level categories created`);
+
+  // ---- 2. Sub-categories under existing top cats ------------------
+  const subCats = [
+    { parentSlug: 'electronics',  slug: 'mobile-phones', nameEn: 'Mobile Phones', nameBn: 'মোবাইল ফোন' },
+    { parentSlug: 'electronics',  slug: 'laptops',       nameEn: 'Laptops',       nameBn: 'ল্যাপটপ' },
+    { parentSlug: 'electronics',  slug: 'headphones',    nameEn: 'Headphones',    nameBn: 'হেডফোন' },
+    { parentSlug: 'electronics',  slug: 'smart-watches', nameEn: 'Smart Watches', nameBn: 'স্মার্ট ওয়াচ' },
+    { parentSlug: 'electronics',  slug: 'cameras',       nameEn: 'Cameras',       nameBn: 'ক্যামেরা' },
+    { parentSlug: 'fashion',      slug: 'men',           nameEn: 'Men',           nameBn: 'পুরুষ' },
+    { parentSlug: 'fashion',      slug: 'women',         nameEn: 'Women',         nameBn: 'নারী' },
+    { parentSlug: 'fashion',      slug: 'kids',          nameEn: 'Kids',          nameBn: 'শিশু' },
+    { parentSlug: 'fashion',      slug: 'shoes',         nameEn: 'Shoes',         nameBn: 'জুতা' },
+    { parentSlug: 'fashion',      slug: 'bags',          nameEn: 'Bags',          nameBn: 'ব্যাগ' },
+    { parentSlug: 'home-kitchen', slug: 'cookware',      nameEn: 'Cookware',      nameBn: 'কুকওয়্যার' },
+    { parentSlug: 'home-kitchen', slug: 'furniture',     nameEn: 'Furniture',     nameBn: 'ফার্নিচার' },
+    { parentSlug: 'home-kitchen', slug: 'decor',         nameEn: 'Home Decor',    nameBn: 'হোম ডেকর' },
+    { parentSlug: 'home-kitchen', slug: 'bedding',       nameEn: 'Bedding',       nameBn: 'বেডিং' },
+    { parentSlug: 'home-kitchen', slug: 'cleaning',      nameEn: 'Cleaning',      nameBn: 'ক্লিনিং' },
+  ];
+  let subsCreated = 0;
+  for (const s of subCats) {
+    const parent = await prisma.category.findFirst({ where: { slug: s.parentSlug } });
+    if (!parent) continue;
+    const exists = await prisma.category.findFirst({ where: { slug: s.slug } });
+    if (exists) continue;
+    await prisma.category.create({
+      data: {
+        slug: s.slug,
+        nameEn: s.nameEn,
+        nameBn: s.nameBn,
+        parentId: parent.id,
+        sortOrder: 10,
+      },
+    });
+    subsCreated++;
+  }
+  console.log(`Step-79 seed: ${subsCreated} subcategories created`);
+
+  // ---- 3. HEADER menu — Amazon-style 12 items + children ----------
+  const headerMenu = await prisma.cmsMenu.upsert({
+    where: { location: 'HEADER' },
+    create: { location: 'HEADER', name: 'Amazon-style header nav (Step-79)' },
+    update: {},
+  });
+
+  // Clear old HEADER items (safe: only touches HEADER menu; preserves others)
+  // Only delete if we need to rebuild — check by a sentinel item
+  const sentinel = await prisma.cmsMenuItem.findFirst({
+    where: { menuId: headerMenu.id, labelEn: "Today's Deals", parentId: null },
+  });
+
+  if (!sentinel) {
+    // Delete any legacy items first (Step-79 replaces old 4-item HEADER)
+    await prisma.cmsMenuItem.deleteMany({ where: { menuId: headerMenu.id } });
+
+    // Top-level items
+    const items: Array<{
+      labelEn: string; labelBn: string; url: string; sortOrder: number;
+      children?: Array<{ labelEn: string; labelBn: string; url: string }>;
+    }> = [
+      {
+        labelEn: "Today's Deals", labelBn: 'আজকের ডিল', url: '/deals', sortOrder: 0,
+      },
+      {
+        labelEn: 'New Arrivals', labelBn: 'নতুন এসেছে', url: '/new-arrivals', sortOrder: 1,
+      },
+      {
+        labelEn: 'Best Sellers', labelBn: 'বেস্ট সেলার', url: '/best-sellers', sortOrder: 2,
+      },
+      {
+        labelEn: 'Electronics', labelBn: 'ইলেকট্রনিক্স', url: '/c/electronics', sortOrder: 3,
+        children: [
+          { labelEn: 'Mobile Phones', labelBn: 'মোবাইল ফোন', url: '/c/mobile-phones' },
+          { labelEn: 'Laptops',       labelBn: 'ল্যাপটপ',      url: '/c/laptops' },
+          { labelEn: 'Headphones',    labelBn: 'হেডফোন',       url: '/c/headphones' },
+          { labelEn: 'Smart Watches', labelBn: 'স্মার্ট ওয়াচ', url: '/c/smart-watches' },
+          { labelEn: 'Cameras',       labelBn: 'ক্যামেরা',     url: '/c/cameras' },
+        ],
+      },
+      {
+        labelEn: 'Fashion', labelBn: 'ফ্যাশন', url: '/c/fashion', sortOrder: 4,
+        children: [
+          { labelEn: 'Men',   labelBn: 'পুরুষ', url: '/c/men' },
+          { labelEn: 'Women', labelBn: 'নারী',  url: '/c/women' },
+          { labelEn: 'Kids',  labelBn: 'শিশু',  url: '/c/kids' },
+          { labelEn: 'Shoes', labelBn: 'জুতা',  url: '/c/shoes' },
+          { labelEn: 'Bags',  labelBn: 'ব্যাগ', url: '/c/bags' },
+        ],
+      },
+      {
+        labelEn: 'Home & Kitchen', labelBn: 'হোম ও কিচেন', url: '/c/home-kitchen', sortOrder: 5,
+        children: [
+          { labelEn: 'Cookware',   labelBn: 'কুকওয়্যার',  url: '/c/cookware' },
+          { labelEn: 'Furniture',  labelBn: 'ফার্নিচার',   url: '/c/furniture' },
+          { labelEn: 'Home Decor', labelBn: 'হোম ডেকর',   url: '/c/decor' },
+          { labelEn: 'Bedding',    labelBn: 'বেডিং',       url: '/c/bedding' },
+          { labelEn: 'Cleaning',   labelBn: 'ক্লিনিং',     url: '/c/cleaning' },
+        ],
+      },
+      { labelEn: 'Grocery',          labelBn: 'গ্রোসারি',       url: '/c/grocery',        sortOrder: 6 },
+      { labelEn: 'Beauty & Health',  labelBn: 'বিউটি ও হেলথ',   url: '/c/beauty-health',  sortOrder: 7 },
+      { labelEn: 'Toys & Baby',      labelBn: 'টয় ও বেবি',      url: '/c/toys-baby',      sortOrder: 8 },
+      { labelEn: 'Customer Service', labelBn: 'কাস্টমার সার্ভিস', url: '/pages/contact',    sortOrder: 9 },
+      { labelEn: 'About',            labelBn: 'আমাদের সম্পর্কে',  url: '/pages/about-us',   sortOrder: 10 },
+    ];
+
+    let parentsCreated = 0;
+    let childrenCreated = 0;
+    for (const it of items) {
+      const parent = await prisma.cmsMenuItem.create({
+        data: {
+          menuId: headerMenu.id,
+          parentId: null,
+          labelEn: it.labelEn,
+          labelBn: it.labelBn,
+          url: it.url,
+          sortOrder: it.sortOrder,
+        },
+      });
+      parentsCreated++;
+      if (it.children) {
+        let childIdx = 0;
+        for (const ch of it.children) {
+          await prisma.cmsMenuItem.create({
+            data: {
+              menuId: headerMenu.id,
+              parentId: parent.id,
+              labelEn: ch.labelEn,
+              labelBn: ch.labelBn,
+              url: ch.url,
+              sortOrder: childIdx++,
+            },
+          });
+          childrenCreated++;
+        }
+      }
+    }
+    console.log(`Step-79 seed: HEADER menu rebuilt — ${parentsCreated} parents, ${childrenCreated} children`);
+  } else {
+    console.log('Step-79 seed: HEADER menu already has Amazon-style items — skipping rebuild');
+  }
 }

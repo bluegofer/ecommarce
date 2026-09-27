@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ export interface HeaderNavLink {
   label: string;
   href: string;
   opensMegaMenu?: boolean;
+  children?: HeaderNavLink[];
 }
 
 export interface HeaderLabels {
@@ -54,24 +55,22 @@ export function Header({
   const { unitCount, hydrated } = useCart();
   const totalCartCount = (hydrated ? unitCount : 0) + serverCartCount;
 
-  // Signed-in state comes from AuthProvider (client-side). Props are fallback
-  // for SSR so the header can render an accurate shell before hydration.
   const auth = useAuth();
   const isSignedIn = auth.signedIn || signedIn;
-  const displayName =
-    auth.user?.fullName || auth.user?.phone || userName;
+  const displayName = auth.user?.fullName || auth.user?.phone || userName;
 
   const [megaOpen, setMegaOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const accountRef = useRef<HTMLDivElement>(null);
+  const navWrapRef = useRef<HTMLDivElement>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const onScroll = () => {
-      setCollapsed(window.scrollY > 160);
-    };
+    const onScroll = () => setCollapsed(window.scrollY > 160);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
@@ -87,6 +86,31 @@ export function Header({
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [accountOpen]);
+
+  useEffect(() => {
+    if (!openDropdown) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (navWrapRef.current && !navWrapRef.current.contains(e.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenDropdown(null); };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openDropdown]);
+
+  const scheduleOpen = (key: string) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => setOpenDropdown(key), 120);
+  };
+  const scheduleClose = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => setOpenDropdown(null), 180);
+  };
 
   return (
     <>
@@ -177,7 +201,7 @@ export function Header({
         </div>
 
         <div className={styles.row2}>
-          <div className={styles.row2Inner}>
+          <div className={styles.row2Inner} ref={navWrapRef}>
             <button
               type="button"
               className={styles.allBtn}
@@ -188,22 +212,65 @@ export function Header({
               <span>{labels.megaMenu.mainMenu}</span>
             </button>
             <nav className={styles.navLinks} aria-label="Primary">
-              {navLinks.map((link) =>
-                link.opensMegaMenu ? (
-                  <button
-                    key={`nav-${link.href}-${link.label}`}
-                    type="button"
-                    className={styles.navLink}
-                    onClick={() => setMegaOpen(true)}
-                  >
-                    {link.label}
-                  </button>
-                ) : (
-                  <Link key={`nav-${link.href}-${link.label}`} href={link.href} className={styles.navLink}>
+              {navLinks.map((link) => {
+                const key = `nav-${link.href}-${link.label}`;
+                if (link.opensMegaMenu) {
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={styles.navLink}
+                      onClick={() => setMegaOpen(true)}
+                    >
+                      {link.label}
+                    </button>
+                  );
+                }
+                if (link.children && link.children.length > 0) {
+                  const open = openDropdown === key;
+                  return (
+                    <div
+                      key={key}
+                      className={styles.navItemWrap}
+                      onMouseEnter={() => scheduleOpen(key)}
+                      onMouseLeave={scheduleClose}
+                    >
+                      <Link
+                        href={link.href}
+                        className={[styles.navLink, open ? styles.navLinkOpen : ''].filter(Boolean).join(' ')}
+                        aria-haspopup="menu"
+                        aria-expanded={open}
+                        onFocus={() => setOpenDropdown(key)}
+                      >
+                        {link.label}
+                        <span className={styles.navCaret} aria-hidden="true">
+                          <ChevronDown />
+                        </span>
+                      </Link>
+                      {open ? (
+                        <div className={styles.dropdownPanel} role="menu">
+                          {link.children.map((child) => (
+                            <Link
+                              key={`${key}-${child.href}-${child.label}`}
+                              href={child.href}
+                              role="menuitem"
+                              className={styles.dropdownLink}
+                              onClick={() => setOpenDropdown(null)}
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                }
+                return (
+                  <Link key={key} href={link.href} className={styles.navLink}>
                     {link.label}
                   </Link>
-                ),
-              )}
+                );
+              })}
             </nav>
           </div>
         </div>
