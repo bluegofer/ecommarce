@@ -1804,3 +1804,38 @@ Per TDD section 17 + Step-16 unblock conditions:
 **Deferred (Step 16 UAT prep):**
 - Order detail page — manual status transition buttons (Verify / Confirm / Process)
 - Dispatch button — courier picker (currently hardcoded PATHAO)
+
+---
+
+## Phase E — Close-Out + Security Rotation Reminders (2026-09-28)
+
+**Status:** Phase E COMPLETE (E1-E4). E5 deferred with explicit reminders.
+
+### E1-E4 — Done
+
+| # | Item | Evidence |
+|---|---|---|
+| E1 | CI/deploy dependency marker | commit 87fda0e |
+| E2 | .gitignore patterns for .bak-step* | commit 87fda0e |
+| E3 | DECISIONS.md append step-79 → step-84 | commit 87fda0e |
+| E4 | EC2 git-sync.timer (systemd, 5-min) | active on i-02e21d2aba38958db |
+
+### E5_ROTATION_REMINDERS — Pending before Client UAT
+
+1. **VAPID keys rotation** — dev keys pasted in chat. Generate fresh pair before production:
+   node -e "const wp=require('web-push');console.log(JSON.stringify(wp.generateVAPIDKeys()))"
+   Update `.env` on EC2 + `docker compose up -d --force-recreate api`.
+
+2. **Admin password rotation** — `ChangeMe!2026` pasted multiple times. Rotate via admin UI or SSM. Also for demo users `+8801700000010`..`+8801700000019`.
+
+3. **Sentry DSN rotation** — from step-15.11. Do together with above.
+
+4. **Demo users final cleanup** — before production, either delete demo role users or rotate to real staff accounts.
+
+### Known deferred (browser-side only)
+
+- **Admin session persistence on page refresh** — server-side verified (cookie domain .nolimitshopping.com, SameSite=None, HttpOnly, refresh returns 200 + new access token via PowerShell curl test). Browser-side issue (login re-prompt on refresh) not diagnosed — no DevTools access. Likely Next.js hydration timing race between AuthProvider mount and /auth/refresh. **Not blocking** — user just re-logs in.
+
+### Phase E — Final Status
+
+COMPLETE. All housekeeping done. Staging HEAD 87fda0e deployed and CI green.
