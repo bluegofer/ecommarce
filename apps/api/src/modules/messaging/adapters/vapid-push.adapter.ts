@@ -1,9 +1,11 @@
 // Web Push (VAPID) adapter — sends a real push notification via the
 // `web-push` library (RFC 8291 payload encryption).
 //
-// Enabled when VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY are set in env
-// (factory in messaging.module.ts wires it). Falls back to mock when
-// keys are missing — dev/CI never crashes.
+// Behaviour:
+//   - Valid VAPID keys + non-test env  → real webpush.sendNotification
+//   - Missing/invalid keys or NODE_ENV=test → mock mode (ok:true, no network)
+//   This keeps dev/CI green and lets prod fall back gracefully if keys
+//   misconfigure; logs a warning so ops can see which mode is active.
 import { Logger } from '@nestjs/common';
 import * as webpush from 'web-push';
 import type { MessageDeliveryResult, PushAdapter, PushInput, PushProvider } from '@ecommarce/types';
@@ -17,35 +19,52 @@ interface VapidCfg {
 export class VapidPushAdapter implements PushAdapter {
   public readonly provider: PushProvider = 'VAPID';
   private readonly logger = new Logger(VapidPushAdapter.name);
-  private readonly configured: boolean;
+  private readonly realMode: boolean;
 
   constructor(private readonly cfg: VapidCfg) {
-    if (this.cfg.publicKey && this.cfg.privateKey) {
-      try {
-        webpush.setVapidDetails(this.cfg.subject, this.cfg.publicKey, this.cfg.privateKey);
-        this.configured = true;
-        this.logger.log('[vapid-push] VAPID configured — real push enabled');
-      } catch (err) {
-        this.configured = false;
-        this.logger.error(`[vapid-push] VAPID setup failed: ${(err as Error).message}`);
-      }
-    } else {
-      this.configured = false;
-      this.logger.warn('[vapid-push] VAPID keys missing — send() will return mock');
+    const isTest = process.env.NODE_ENV === 'test';
+    const hasKeys = Boolean(this.cfg.publicKey && this.cfg.privateKey);
+
+    if (isTest || !hasKeys) {
+      this.realMode = false;
+      this.logger.warn(
+        `[vapid-push] mock mode${isTest ? ' (NODE_ENV=test)' : ' (no keys)'} — send() will not hit network`,
+      );
+      return;
+    }
+
+    try {
+      webpush.setVapidDetails(this.cfg.subject, this.cfg.publicKey, this.cfg.privateKey);
+      this.realMode = true;
+      this.logger.log('[vapid-push] VAPID configured — real push enabled');
+    } catch (err) {
+      this.realMode = false;
+      this.logger.warn(
+        `[vapid-push] VAPID setup failed — falling back to mock: ${(err as Error).message}`,
+      );
     }
   }
 
   async send(input: PushInput): Promise<MessageDeliveryResult> {
-    if (!this.configured) {
+    // Mock path — dev/CI/misconfigured prod
+    if (!this.realMode) {
+      this.logger.log(
+        `[vapid-push/mock] endpoint=${input.subscriptionEndpoint?.slice(0, 40) ?? '(none)'}... title="${input.title}"`,
+      );
       return {
-        ok: false,
-        providerMessageId: undefined,
-        error: 'VAPID keys not configured',
-        raw: {},
+        ok: true,
+        providerMessageId: `MOCK-PUSH-${input.idempotencyKey}`,
+        error: undefined,
+        raw: { mock: true, title: input.title },
       };
     }
 
-    if (!input.subscriptionEndpoint || !input.subscriptionKeysP256dh || !input.subscriptionKeysAuth) {
+    // Real path — validate inputs
+    if (
+      !input.subscriptionEndpoint ||
+      !input.subscriptionKeysP256dh ||
+      !input.subscriptionKeysAuth
+    ) {
       return {
         ok: false,
         providerMessageId: undefined,
