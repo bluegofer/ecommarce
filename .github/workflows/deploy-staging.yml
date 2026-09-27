@@ -94,6 +94,7 @@ jobs:
 
   deploy:
     name: Deploy to EC2 via SSM
+    # STEP_E1_NEEDS_CI — run only if build job succeeded
     needs: build-and-push
     runs-on: ubuntu-latest
     timeout-minutes: 15

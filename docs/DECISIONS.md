@@ -1653,3 +1653,154 @@ Per TDD section 17 + Step-16 unblock conditions:
 - SES production access confirmation
 
 **Return trigger for production launch:** all client credentials delivered.
+
+---
+
+## Step 79 — CMS-driven desktop header nav + 2 new Amazon-style sections (2026-09-27)
+
+**Status:** COMPLETE — verified on staging.
+
+**Delivered:**
+- `lib/cms/nav.ts` — shared `buildHeaderNavLinks(locale, headerMenu)` helper
+- Amazon-style 12-item HEADER menu (falls back to hardcoded 6 if CMS empty)
+- 2 new section types: `CATEGORY_SHOP_ROW` + `HERO_PRODUCT_ROW` (Amazon homepage rows)
+- 2 new pages: `/new-arrivals`, `/best-sellers` (indexable)
+- Extended seed: 3 new top categories + 15 subcategories + 12-item HEADER menu with children
+
+**Rationale:**
+- Reused existing `HEADER` menu location (no schema change) — avoids duplicate tab for admin
+- Parallel desktop + mobile — both CMS-driven
+- Section types added as string values (no Prisma enum — `sectionType` is free-form String)
+
+**Files:** 8 modified + 4 new. Commit `2ecedb0` → `946b693`.
+
+---
+
+## Step 80 — Amazon-style CMS section types (2026-09-27)
+
+**Status:** COMPLETE — verified on staging.
+
+**Delivered:**
+- `CATEGORY_SHOP_ROW` — Amazon row-1: 3-4 tiles × 4 mini-items with image upload
+- `HERO_PRODUCT_ROW` — Amazon row-2: 1 hero card + 4 product cards with upload
+- Admin CMS editor extended: 2 new types + nested form with per-image upload
+- Storefront components with CSS Modules + responsive (horizontal scroll on mobile)
+- Idempotent seed: 2 demo section instances
+
+**Rationale:** Client requested professional Amazon-level section designs. Both types are CMS-driven — admin adds sections without code deploy.
+
+**Files:** 8 modified + 4 new. Commit `d760d49` → `946b693`.
+
+---
+
+## Step 81 — Newsletter admin + templates + demo users (2026-09-27)
+
+**Status:** COMPLETE — verified on staging.
+
+**Delivered:**
+- Admin `/newsletter` page — subscribers table + stats cards + CSV export + delete
+- Extended `NewsletterController` — `DELETE /subscribers/:id` + `deleteById()` service
+- `seedStep81Templates()` — **12 transactional templates** (order.placed, order.confirmed, order.shipped, order.out_for_delivery, order.delivered, refund.processed × SMS + EMAIL, bn+en bodies)
+- Demo users: `ADMIN` (`+8801700000010`) + `EDITOR` (`+8801700000019`), same `ChangeMe!2026`
+- Sidebar entry: Marketing → Newsletter (with Mail icon)
+
+**Rationale:** Client asked "menu UI te menu add/edit capability" (already done step-79) — extended to notifications templates. Verified newsletter signup already existed from step-76.
+
+**Files:** 5 modified + 1 new. Commit `519a4ee`.
+
+---
+
+## Step 82 — CI harden deploy-staging (2026-09-27)
+
+**Status:** COMPLETE — silent bug fixed.
+
+**Root cause:** `docker compose up -d --force-recreate` silently skipped recreate on container name conflict (orphan container from prior deploy). CI green, but containers remained stale — required manual pull each deploy.
+
+**Fix:**
+- Added `docker stop` + `docker rm` before `up -d`
+- Added `--remove-orphans` flag
+- Added `STEP82_ROBUSTNESS` log marker
+- (Post-verification: worked — subsequent deploys auto-succeeded)
+
+**Rationale:** Diagnosed after 2 manual SSM recreate cycles. Not a code issue — CI workflow gap.
+
+**Files:** 1 modified (`.github/workflows/deploy-staging.yml`).
+
+---
+
+## Step 83 — Refund → ledger reversal hook (F-1) (2026-09-27)
+
+**Status:** COMPLETE — verified live on staging.
+
+**Delivered:**
+- Prisma enum `JournalSourceType.REFUND` added (migration `20260927110554`)
+- Types package `JournalSourceType` union updated
+- `LedgerService.postRefund()` — idempotent per `(sourceType=REFUND, sourceId)` + `creditAccountForMethod()` mapper
+- `PaymentService.refund()` wrapped in `$transaction` — calls `ledger.postRefund()` after gateway success
+- Entry: `Dr 4000-SALES / Cr 1000-CASH | 1010-BANK | 1020-MFS` (by payment method)
+
+**Verified:**
+- Refund API → `{ok: true, providerRefundId: MOCK-REFUND-...}`
+- Journal entry `JE-202609-000001`: `totalDebit=10000, totalCredit=10000, balanced=true`
+- Idempotency: same key + same payload → replay; same key + different payload → 400
+
+**Files:** 4 modified + 1 new (migration). Commit `4a73f95`.
+
+---
+
+## Step 84 — VAPID push + courier settlements + CI (2026-09-27)
+
+**Status:** COMPLETE — verified live on staging.
+
+**Delivered:**
+
+**D-4 VAPID web push:**
+- `web-push` package + `@types/web-push` added to API
+- `VapidPushAdapter` — real `webpush.sendNotification` with correct reject/mock/real matrix
+  - keys missing → reject with "VAPID keys not configured" (contract preserved)
+  - keys present + `NODE_ENV=test` → mock accept
+  - keys invalid → mock fallback + warning
+  - keys valid → real send
+- `PushSubscription` Prisma model + migration
+- `PushController` — public subscribe/unsubscribe + admin count/test
+- `DispatchService` — PUSH branch looks up `p256dh`/`auth` from DB
+- VAPID keys in `.env` (local) + EC2 `.env` (via SSM `sudo tee`) + `.env.example`
+- `sw.js` — already had push + notificationclick handlers (step 8.12)
+- Endpoint `/notifications/push/vapid-public-key` verified: `enabled: true`
+
+**D-2 Courier settlements admin:**
+- `CourierSettlement` Prisma model + migration
+- `CourierService.listUnreconciled()`, `listAllSettlements()`, `markReconciled()`
+- `CourierController` — 3 new endpoints
+- Admin `/delivery/settlements` page — stats + table + reconcile modal + CSV-ready
+- Sidebar: Delivery → Overview + Settlements submenu
+
+**D-1 refund reversal:** (already shipped in step-83)
+
+**D-3 guest invoice PDF:** (already in step-13.5 — `checkout.service.ts` `sendOrderNotifications()`)
+
+**CI hardening (step-84.2 + 84.3):**
+- VAPID mock fallback for `NODE_ENV=test`
+- Reject-on-missing-keys contract preserved
+
+**Files:** 14 modified + 4 new + 1 migration. Commits `a49c4c8` → `67e0957` → `a4a81e6`.
+
+**Known follow-up (Phase E):**
+- CI workflow asymmetry — `deploy-staging.yml` doesn't wait for `ci.yml` (deploy runs even on test failure)
+
+---
+
+## Phase E — Housekeeping (2026-09-27)
+
+**Status:** IN PROGRESS.
+
+**Queue:**
+- CI/deploy dependency tightening (deploy should wait for CI)
+- `.bak-step*` cleanup + gitignore patterns
+- EC2 systemd git-sync timer (auto-heal stale checkout)
+- VAPID keys rotation reminder (keys visible in chat)
+- Admin password rotation reminder (`ChangeMe!2026` visible in chat)
+
+**Deferred (Step 16 UAT prep):**
+- Order detail page — manual status transition buttons (Verify / Confirm / Process)
+- Dispatch button — courier picker (currently hardcoded PATHAO)
