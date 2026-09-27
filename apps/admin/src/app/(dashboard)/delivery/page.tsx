@@ -37,8 +37,12 @@ export default function DeliveryPage() {
   const settlementQuery = useQuery<Settlement[]>('/api/v1/courier/settlements');
 
   // Defensive: guard against non-array responses (401/404 → null)
-  const dispatchRows = Array.isArray(dispatchQuery.data) ? dispatchQuery.data : [];
-  const settlementRows = Array.isArray(settlementQuery.data) ? settlementQuery.data : [];
+  const dispatchRows = Array.isArray(dispatchQuery.data)
+    ? dispatchQuery.data
+    : ((dispatchQuery.data as unknown as { items?: DispatchOrder[] } | null)?.items ?? []);
+  const settlementRows = Array.isArray(settlementQuery.data)
+    ? settlementQuery.data
+    : ((settlementQuery.data as unknown as { items?: Settlement[] } | null)?.items ?? []);
 
   const assignMutation = useMutation<{ id: string; courier: string }, unknown>(
     'post',
