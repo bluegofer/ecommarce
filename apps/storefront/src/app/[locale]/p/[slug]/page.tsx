@@ -121,12 +121,21 @@ export default async function ProductPage({ params }: PageProps) {
       .catch(() => ({ items: [], total: 0, page: 1, pageSize: 8, totalPages: 1 })),
   ]);
 
-  // Build gallery images: product media (via primaryImageUrl or variant media)
-  // The API currently doesn't return media per product explicitly, so we fallback
-  // to a placeholder. Step 9 admin will surface media array.
-  const images: PdpImage[] = product.primaryImageUrl
-    ? [{ url: product.primaryImageUrl, altText: locale === 'bn' ? product.titleBn : product.titleEn }]
-    : [];
+  // Step-87: build gallery from product.media[] (sorted by sortOrder);
+  // fallback to primaryImageUrl if empty.
+  const productTitle = locale === 'bn' ? product.titleBn : product.titleEn;
+  const images: PdpImage[] = (product.media ?? [])
+    .filter((m) => String(m.type ?? 'IMAGE').toUpperCase() === 'IMAGE')
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((m) => ({
+      url: m.url,
+      altText: m.altText ?? productTitle,
+    }));
+
+  if (images.length === 0 && product.primaryImageUrl) {
+    images.push({ url: product.primaryImageUrl, altText: productTitle });
+  }
 
   // Bullets and specs
   const bullets: string[] = Array.isArray(product.bulletFeatures)

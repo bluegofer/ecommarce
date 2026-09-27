@@ -25,6 +25,15 @@ export interface CategoryNode {
   children: CategoryNode[];
 }
 
+export interface ProductMediaItem {
+  id: string;
+  type: string; // 'IMAGE' | 'VIDEO'
+  url: string;
+  altText?: string | null;
+  sortOrder?: number | null;
+  variantId?: string | null;
+}
+
 export interface ProductSummary {
   id: string;
   categoryId: string;
@@ -54,6 +63,8 @@ export interface ProductSummary {
   maxCompareAtPoisha?: number | null;
   primaryImageUrl?: string | null;
   totalStock?: number;
+  // Step-87: full media array from API (step-13.3a serializer)
+  media?: ProductMediaItem[];
 }
 
 export interface VariantSummary {
