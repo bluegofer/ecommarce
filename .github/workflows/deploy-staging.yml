@@ -91,6 +91,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=https://api.nolimitshopping.com
             NEXT_PUBLIC_ADMIN_URL=https://admin.nolimitshopping.com
+            NEXT_PUBLIC_STOREFRONT_URL=https://nolimitshopping.com
 
   deploy:
     name: Deploy to EC2 via SSM
