@@ -10,7 +10,6 @@ import { VariantPicker, type VariantOption } from './VariantPicker';
 import { AddToCart } from './AddToCart';
 import { StickyTabs } from './StickyTabs';
 import { ReviewsBlock, type ReviewSummary, type ReviewItem } from './ReviewsBlock';
-import { MobileBuyBar } from './MobileBuyBar';
 import type { Dictionary } from '@/lib/i18n';
 import styles from './PdpClient.module.css';
 
@@ -300,23 +299,6 @@ export function PdpClient(props: PdpClientProps) {
         />
       </section>
 
-      {/* Mobile sticky buy bar */}
-      <MobileBuyBar
-        productId={productId}
-        variantId={activeVariant?.id ?? null}
-        slug={slug}
-        title={title}
-        thumbnailUrl={images[0]?.url ?? null}
-        pricePoisha={pricePoisha}
-        stock={stock}
-        sellerName={sellerName}
-        locale={locale}
-        labels={{
-          addToCart: dict['card.add_to_cart'],
-          outOfStock: dict['product.out_of_stock'],
-          addedToCart: dict['cart.added'],
-        }}
-      />
     </>
   );
 }

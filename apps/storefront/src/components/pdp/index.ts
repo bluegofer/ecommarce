@@ -19,7 +19,5 @@ export type { ReviewsBlockProps, ReviewSummary, ReviewItem } from './ReviewsBloc
 export { RelatedCarousel } from './RelatedCarousel';
 export type { RelatedCarouselProps } from './RelatedCarousel';
 
-export { MobileBuyBar } from './MobileBuyBar';
-export type { MobileBuyBarProps } from './MobileBuyBar';
 export { PdpClient } from './PdpClient';
 export type { PdpClientProps, PdpVariant, PdpImage } from './PdpClient';

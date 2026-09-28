@@ -164,7 +164,36 @@
     grid-template-columns: 1fr;
     padding-bottom: 72px; /* space for MobileBuyBar */
   }
-  .colBuy { display: none; }
+  .colBuy {
+    display: block;
+    position: static;
+    grid-column: 1 / -1;
+    margin-top: 12px;
+    padding: 0;
+  }
+  .buyCard {
+    position: static;
+    max-width: 100%;
+    padding: 16px;
+    border-radius: var(--sk-radius-lg);
+    box-shadow: var(--sk-shadow-1);
+    background: var(--sk-surface);
+    border: 1px solid var(--sk-border);
+  }
+  .buyPrice { margin-bottom: 12px; }
+  .buyCard button,
+  .buyCard a[role="button"] {
+    width: 100%;
+  }
+  .trust {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--sk-divider);
+  }
+  .buyCard {
+    position: static;
+    max-width: 100%;
+  }
   .title { font-size: 20px; line-height: 28px; }
 }
 
