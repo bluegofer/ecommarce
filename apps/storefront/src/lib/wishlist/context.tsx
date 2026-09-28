@@ -149,7 +149,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback(
     async (entry: WishlistEntry) => {
-      if (busy) return;
 
       // Optimistic update
       const prev = items;
@@ -180,7 +179,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const remove = useCallback(
     async (productId: string) => {
-      if (busy) return;
       const prev = items;
       setItemsState(prev.filter((e) => e.productId !== productId));
 

@@ -42,6 +42,7 @@ export function ProductCarousel({
           <div key={p.id} className={styles.item}>
             <ProductCard
               variantId={p.variants?.[0]?.id ?? p.id}
+              productId={p.id}
               slug={p.slug}
               title={locale === 'bn' ? p.titleBn : p.titleEn}
               thumbnailUrl={p.primaryImageUrl ?? null}

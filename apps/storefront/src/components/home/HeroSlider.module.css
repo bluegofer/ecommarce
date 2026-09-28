@@ -203,11 +203,24 @@
   .tileContent { padding: 28px 30px; }
 }
 @media (max-width: 639px) {
-  .slider { aspect-ratio: 3 / 4; }
-  .slide { grid-template-columns: 1fr; grid-template-rows: 2fr 1fr; gap: 8px; padding: 8px; }
-  .headline { font-size: 20px; }
+  .slider {
+    aspect-ratio: 16 / 11;
+    border-radius: 0;
+    margin-left: -24px;
+    margin-right: -24px;
+    width: calc(100% + 48px);
+  }
+  .slide {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+    padding: 0;
+  }
+  .tileSide { display: none; }
+  .tileMain { border-radius: 0; }
+  .tileContent { padding: 20px; max-width: 85%; }
+  .headline { font-size: 18px; }
   .title { font-size: 13px; }
-  .tileContent { padding: 20px; max-width: 80%; }
   .arrow { display: none; }
   .controls { bottom: 10px; }
 }

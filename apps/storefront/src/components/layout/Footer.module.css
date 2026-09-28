@@ -14,14 +14,16 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--sk-brand-900);
+  background: rgba(12, 43, 61, 0.75);
   color: #FFFFFF;
   box-shadow: 0 4px 12px rgba(12, 43, 61, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
   text-decoration: none;
 }
 .backTop:hover {
