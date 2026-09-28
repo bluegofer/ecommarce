@@ -10,6 +10,8 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { PageHeader, StatusChip, useToast } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
@@ -37,6 +39,30 @@ export default function MenusPage() {
   );
 
   const items = menuQuery.data?.items ?? [];
+
+  // Step-95: hide/show menu item (isActive toggle)
+  const handleToggleActive = async (node: CmsMenuItemDto) => {
+    try {
+      await fetch(`/api/v1/cms/menus/items/${node.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ isActive: !node.isActive }),
+      });
+      void menuQuery.refetch();
+      toast.push({
+        tone: 'success',
+        title: node.isActive ? 'Hidden from storefront' : 'Shown in storefront',
+        description: node.labelEn,
+      });
+    } catch (err) {
+      toast.push({
+        tone: 'error',
+        title: 'Toggle failed',
+        description: err instanceof Error ? err.message : 'Unknown',
+      });
+    }
+  };
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -121,6 +147,7 @@ export default function MenusPage() {
                   setCreateSubParentId(n.id);
                   setCreateOpen(true);
                 }}
+                onToggleActive={handleToggleActive}
                 location={activeLoc}
                 siblings={items}
                 onReordered={() => void menuQuery.refetch()}
@@ -189,6 +216,7 @@ function MenuItemRow({
   onEdit,
   onDelete,
   onAddSub,
+  onToggleActive,
   location,
   siblings,
   onReordered,
@@ -202,6 +230,7 @@ function MenuItemRow({
   onEdit: (n: CmsMenuItemDto) => void;
   onDelete: (n: CmsMenuItemDto) => void;
   onAddSub: (n: CmsMenuItemDto) => void;
+  onToggleActive: (n: CmsMenuItemDto) => void;
   location: CmsMenuLocation;
   siblings: CmsMenuItemDto[];
   onReordered: () => void;
@@ -252,6 +281,15 @@ function MenuItemRow({
           )}
           <button
             type="button"
+            onClick={() => onToggleActive(node)}
+            className={`p-1.5 rounded hover:bg-slate-100 ${node.isActive ? 'text-slate-500' : 'text-amber-600'}`}
+            aria-label={node.isActive ? 'Hide from storefront' : 'Show in storefront'}
+            title={node.isActive ? 'Hide' : 'Show'}
+          >
+            {node.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            type="button"
             onClick={() => onEdit(node)}
             className="p-1.5 rounded hover:bg-slate-100 text-slate-500"
             aria-label="Edit"
@@ -282,6 +320,7 @@ function MenuItemRow({
             onEdit={onEdit}
             onDelete={onDelete}
             onAddSub={onAddSub}
+            onToggleActive={onToggleActive}
             location={location}
             siblings={node.children!}
             onReordered={onReordered}
