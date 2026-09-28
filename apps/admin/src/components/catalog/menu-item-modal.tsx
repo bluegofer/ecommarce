@@ -21,6 +21,8 @@ interface MenuItemModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /** Step-89: when creating a sub-menu, pre-select this parent item. */
+  presetParentId?: string | null;
 }
 
 type LinkType = 'category' | 'page' | 'custom';
@@ -60,6 +62,7 @@ export function MenuItemModal({
   open,
   onClose,
   onSuccess,
+  presetParentId,
 }: MenuItemModalProps) {
   const toast = useToast();
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -115,9 +118,13 @@ export function MenuItemModal({
         isActive: item.isActive ?? true,
       });
     } else {
-      setForm(EMPTY);
+      // Create mode: apply preset parent (from "+ Sub" button)
+      setForm({
+        ...EMPTY,
+        parentId: presetParentId ?? null,
+      });
     }
-  }, [open, isEdit, item]);
+  }, [open, isEdit, item, presetParentId]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((p) => ({ ...p, [key]: value }));
@@ -228,7 +235,7 @@ export function MenuItemModal({
     <Modal
       open={open}
       onClose={isBusy ? () => undefined : onClose}
-      title={(isEdit ? 'Edit' : 'New') + ' menu item · ' + (location === 'HEADER' ? 'Header' : location === 'FOOTER' ? 'Footer' : 'Mobile')}
+      title={(isEdit ? 'Edit' : presetParentId ? 'New sub-menu item' : 'New') + ' · ' + (location === 'HEADER' ? 'Header' : location === 'FOOTER' ? 'Footer' : 'Mobile')}
       size="md"
       footer={
         <div className="flex items-center gap-2">

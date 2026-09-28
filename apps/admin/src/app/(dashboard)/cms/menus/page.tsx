@@ -28,6 +28,8 @@ export default function MenusPage() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CmsMenuItemDto | null>(null);
+  // Step-89: when "+ Sub" clicked, remember the parent for the create modal
+  const [createSubParentId, setCreateSubParentId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CmsMenuItemDto | null>(null);
 
   const menuQuery = useQuery<CmsMenuDto>(
@@ -115,6 +117,10 @@ export default function MenusPage() {
                 onToggle={toggle}
                 onEdit={(n) => setEditTarget(n)}
                 onDelete={(n) => setDeleteTarget(n)}
+                onAddSub={(n) => {
+                  setCreateSubParentId(n.id);
+                  setCreateOpen(true);
+                }}
                 location={activeLoc}
                 siblings={items}
                 onReordered={() => void menuQuery.refetch()}
@@ -133,10 +139,15 @@ export default function MenusPage() {
         location={activeLoc}
         item={null}
         siblings={items}
+        presetParentId={createSubParentId}
         open={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => {
+          setCreateOpen(false);
+          setCreateSubParentId(null);
+        }}
         onSuccess={() => {
           setCreateOpen(false);
+          setCreateSubParentId(null);
           void menuQuery.refetch();
         }}
       />
@@ -177,6 +188,7 @@ function MenuItemRow({
   onToggle,
   onEdit,
   onDelete,
+  onAddSub,
   location,
   siblings,
   onReordered,
@@ -189,6 +201,7 @@ function MenuItemRow({
   onToggle: (id: string) => void;
   onEdit: (n: CmsMenuItemDto) => void;
   onDelete: (n: CmsMenuItemDto) => void;
+  onAddSub: (n: CmsMenuItemDto) => void;
   location: CmsMenuLocation;
   siblings: CmsMenuItemDto[];
   onReordered: () => void;
@@ -226,6 +239,17 @@ function MenuItemRow({
             isLast={isLast}
             onDone={onReordered}
           />
+          {depth === 0 && (
+            <button
+              type="button"
+              onClick={() => onAddSub(node)}
+              className="p-1.5 rounded hover:bg-sky-50 text-sky-600"
+              aria-label="Add sub-menu item"
+              title="Add sub-menu"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onEdit(node)}
@@ -257,6 +281,7 @@ function MenuItemRow({
             onToggle={onToggle}
             onEdit={onEdit}
             onDelete={onDelete}
+            onAddSub={onAddSub}
             location={location}
             siblings={node.children!}
             onReordered={onReordered}
