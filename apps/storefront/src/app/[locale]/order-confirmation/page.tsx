@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Breadcrumbs } from '@/components/layout';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import {
   ConfirmationClient,
   type ConfirmationLabels,
@@ -111,20 +111,22 @@ export default function OrderConfirmationPage({
   }
 
   return (
-    <>
-      <Breadcrumbs
-        items={[
-          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-          { label: bn ? 'অর্ডার নিশ্চিত' : 'Order Confirmed' },
-        ]}
-        locale={locale}
-      />
-      <ConfirmationClient
-        locale={locale}
-        orderNumber={orderNumber}
-        phone={phone}
-        labels={labels}
-      />
-    </>
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 24px 48px' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'অর্ডার নিশ্চিত' : 'Order Confirmed' },
+          ]}
+          locale={locale}
+        />
+        <ConfirmationClient
+          locale={locale}
+          orderNumber={orderNumber}
+          phone={phone}
+          labels={labels}
+        />
+      </main>
+    </StorefrontShell>
   );
 }

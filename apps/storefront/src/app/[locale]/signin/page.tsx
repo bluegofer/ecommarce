@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Breadcrumbs } from '@/components/layout';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import { SignInForm, type SignInLabels } from '@/components/auth';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
@@ -38,18 +38,18 @@ export default function SignInPage({
   };
 
   return (
-    <>
-      <Breadcrumbs
-        items={[
-          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-          { label: bn ? 'সাইন ইন' : 'Sign In' },
-        ]}
-        locale={locale}
-      />
-      <main style={{ padding: '24px 16px', minHeight: '60vh' }}>
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ padding: '24px 16px', minHeight: '60vh' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'সাইন ইন' : 'Sign In' },
+          ]}
+          locale={locale}
+        />
         <GoogleAuthButton label={dict['auth.continue_with_google']} />
         <SignInForm locale={locale} labels={labels} next={searchParams.next} />
       </main>
-    </>
+    </StorefrontShell>
   );
 }

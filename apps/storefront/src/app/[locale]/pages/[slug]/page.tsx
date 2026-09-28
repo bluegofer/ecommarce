@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Breadcrumbs } from '@/components/layout';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import type { Metadata } from 'next';
 import { CmsPageRenderer, type CmsPageRendererLabels, ContactForm, type ContactFormLabels } from '@/components/content';
 import { cmsApi, ApiError, type CmsPage } from '@/lib/api';
@@ -59,21 +59,21 @@ export default async function CmsPageRoute({ params }: PageProps) {
     };
 
     return (
-      <>
-        <Breadcrumbs
-          items={[
-            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-            { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
-          ]}
-          locale={locale}
-        />
-        <main>
-          <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
+      <StorefrontShell locale={locale}>
+        <main id="main" style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 24px 48px' }}>
+          <Breadcrumbs
+            items={[
+              { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+              { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
+            ]}
+            locale={locale}
+          />
+          <h1 style={{ marginTop: 32, fontSize: 28, fontWeight: 700 }}>
             {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
           </h1>
           <ContactForm labels={labels} />
         </main>
-      </>
+      </StorefrontShell>
     );
   }
 
@@ -88,17 +88,17 @@ export default async function CmsPageRoute({ params }: PageProps) {
   };
 
   return (
-    <>
-      <Breadcrumbs
-        items={[
-          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-          { label: bn ? page.titleBn : page.titleEn },
-        ]}
-        locale={locale}
-      />
-      <main>
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 24px 48px' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? page.titleBn : page.titleEn },
+          ]}
+          locale={locale}
+        />
         <CmsPageRenderer locale={locale} page={page} labels={labels} />
       </main>
-    </>
+    </StorefrontShell>
   );
 }

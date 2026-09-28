@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Breadcrumbs } from '@/components/layout';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import { RegisterForm, type RegisterLabels } from '@/components/auth';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
@@ -49,18 +49,18 @@ export default function RegisterPage({ params }: { params: { locale: string } })
   };
 
   return (
-    <>
-      <Breadcrumbs
-        items={[
-          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-          { label: bn ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account' },
-        ]}
-        locale={locale}
-      />
-      <main style={{ padding: '24px 16px', minHeight: '60vh' }}>
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ padding: '24px 16px', minHeight: '60vh' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account' },
+          ]}
+          locale={locale}
+        />
         <GoogleAuthButton label={dict['auth.continue_with_google']} />
         <RegisterForm locale={locale} labels={labels} />
       </main>
-    </>
+    </StorefrontShell>
   );
 }

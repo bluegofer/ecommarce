@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Breadcrumbs } from '@/components/layout';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import { ContactForm, type ContactFormLabels } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
@@ -30,26 +30,26 @@ export default function ContactPage({ params }: { params: { locale: string } }) 
     hotlineTitle: bn ? 'হটলাইন' : 'Hotline',
     hotlineBody: bn ? '১৬-২৬৩ · সকাল ৮টা - রাত ১০টা' : '16-263 · 8am – 10pm daily',
     emailTitle: bn ? 'ইমেইল' : 'Email',
-    emailBody: bn ? 'cloud.bluegofer@gmail.com' : 'cloud.bluegofer@gmail.com',
+    emailBody: 'cloud.bluegofer@gmail.com',
     whatsappTitle: bn ? 'হোয়াটসঅ্যাপ' : 'WhatsApp',
-    whatsappBody: bn ? '+880 1XXX-XXXXXX' : '+880 1XXX-XXXXXX',
+    whatsappBody: '+880 1XXX-XXXXXX',
   };
 
   return (
-    <>
-      <Breadcrumbs
-        items={[
-          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-          { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
-        ]}
-        locale={locale}
-      />
-      <main>
-        <h1 style={{ maxWidth: 1080, margin: '32px auto 0', padding: '0 24px', fontSize: 28, fontWeight: 700 }}>
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 24px 48px' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'যোগাযোগ করুন' : 'Contact Us' },
+          ]}
+          locale={locale}
+        />
+        <h1 style={{ marginTop: 32, fontSize: 28, fontWeight: 700 }}>
           {bn ? 'যোগাযোগ করুন' : 'Contact Us'}
         </h1>
         <ContactForm labels={labels} />
       </main>
-    </>
+    </StorefrontShell>
   );
 }

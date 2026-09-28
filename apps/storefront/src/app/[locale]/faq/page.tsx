@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Breadcrumbs } from '@/components/layout';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import { FaqAccordion, type FaqAccordionLabels, type FaqItem } from '@/components/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 import { faqJsonLd } from '@/lib/seo/json-ld';
@@ -47,15 +47,15 @@ export default function FaqPage({ params }: { params: { locale: string } }) {
   );
 
   return (
-    <>
-      <Breadcrumbs
-        items={[
-          { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
-          { label: bn ? 'সাধারণ প্রশ্ন (FAQ)' : 'FAQ' },
-        ]}
-        locale={locale}
-      />
-      <main>
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 24px 48px' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: bn ? 'সাধারণ প্রশ্ন (FAQ)' : 'FAQ' },
+          ]}
+          locale={locale}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -65,6 +65,6 @@ export default function FaqPage({ params }: { params: { locale: string } }) {
         </h1>
         <FaqAccordion items={items} labels={labels} />
       </main>
-    </>
+    </StorefrontShell>
   );
 }

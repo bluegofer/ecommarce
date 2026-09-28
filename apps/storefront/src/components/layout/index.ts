@@ -16,3 +16,6 @@ export type { AnnouncementBarProps } from './AnnouncementBar';
 export { PopupDisplay } from './PopupDisplay';
 export { AppDownloadBanner } from './AppDownloadBanner';
 export { NewsletterSignup } from './NewsletterSignup';
+
+export { StorefrontShell } from './StorefrontShell';
+export type { StorefrontShellProps } from './StorefrontShell';
