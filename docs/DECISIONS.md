@@ -1839,3 +1839,64 @@ Per TDD section 17 + Step-16 unblock conditions:
 ### Phase E — Final Status
 
 COMPLETE. All housekeeping done. Staging HEAD 87fda0e deployed and CI green.
+
+---
+
+## Session 2026-09-28 — Storefront UI Batch 1-3 Fixes
+
+**Status:** COMPLETE — 7 issues fixed, staged, pushed.
+
+### Issues Fixed
+
+| # | Issue | Commit | Files |
+|---|-------|--------|-------|
+| 1 | Back-to-top → floating circular button | a948b5e | Footer.tsx, Footer.module.css |
+| 4 | Payment badges uniform (white bg + brand text) | a948b5e | Footer.module.css |
+| 8 | Logo vertical alignment (line-height:1) | a948b5e | Header.module.css |
+| 10 | Mobile language globe icon | a948b5e | Header.tsx, Header.module.css |
+| 2 | Mobile duplicate header rows removed | 61a603e | Header.module.css |
+| 5খ | Card heights uniform (fixed heights) | 12af15e | ProductCard.module.css |
+| 7 | Sign-out button with logout handler | 4f59575 | Header.tsx |
+
+### Commits Pushed (in order)
+
+- `a948b5e` step-98: fix(storefront): batch-1 UI fixes
+- `61a603e` step-99: fix(storefront): hide secondary nav row on mobile (issue #2)
+- `12af15e` step-100: fix(storefront): uniform card heights (issue #5)
+- `4f59575` step-101: fix(storefront): sign-out button with logout handler (issue #7)
+
+### Staging Verified
+
+- EC2 at `4f59575`, all 4 containers up (fresh deploy)
+- API health: `{"status":"ok","db":"ok","redis":"ok"}`
+- CI auto-deploy successful
+
+### Open Issues (deferred)
+
+| # | Issue | Reason |
+|---|-------|--------|
+| 3 | Hero section empty | Awaiting client handling |
+| 5ক | Section CMS-driven redesign | Large architectural change — dedicated session |
+| 6 | ৲0 price display | Skipped |
+| 9 | Bengali font render | Skipped |
+| 11 | PDP WhatsApp button | New feature |
+
+### Working Patterns Learned
+
+1. PowerShell line-array approach — Get-Content → array → WriteAllText UTF-8 no-BOM
+2. CRLF vs LF preservation — Footer/ProductCard = CRLF, Header = LF
+3. Anchor verification before edit — abort if any target line missing
+4. exit 1 PowerShell window বন্ধ করে — use nested if/else instead
+5. break 2 PowerShell-এ নেই — use flag variable
+6. Slicing bug — $array[$start..$end] careful; prefer single-line replace or insert
+7. Batch commit pattern — session-end single commit (not micro-commits)
+8. Notepad-friendly approach — user workflow: Notepad for reading, PowerShell for commands
+
+### Next Session Priority
+
+1. Browser verification of 7 issues (user screenshot)
+2. Issue 5ক — CMS-driven section redesign
+3. Issue 11 — WhatsApp button (PDP)
+4. Issue 3 — Hero empty
+5. Order detail manual status transitions
+6. Dispatch button courier picker
