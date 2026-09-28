@@ -31,18 +31,12 @@
   flex-shrink: 0;
 }
 .logo:hover { text-decoration: none; }
-.logoText { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: #FFFFFF; }
-
-.deliver {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
+.logoText {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
   color: #FFFFFF;
-  cursor: pointer;
-  padding: 4px;
-  text-align: left;
 }
 .deliverText { display: flex; flex-direction: column; line-height: 1.15; }
 .deliverTop { font-size: 11px; color: #DCF0FA; }
@@ -163,6 +157,25 @@
   padding: 4px;
   line-height: 1.15;
   text-align: left;
+}
+
+.langMobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sk-radius-sm);
+  color: #FFFFFF;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.langMobile:hover {
+  background: rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+}
+@media (min-width: 640px) {
+  .langMobile { display: none; }
 }
 .accountTop { font-size: 11px; color: #DCF0FA; }
 .accountBottom { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }

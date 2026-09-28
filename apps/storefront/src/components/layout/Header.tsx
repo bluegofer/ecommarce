@@ -144,6 +144,14 @@ export function Header({
               <span className={locale === 'en' ? styles.langActive : ''}>{labels.languageBn}</span>
             </Link>
 
+            <Link
+              href={alternateLocaleHref}
+              className={styles.langMobile}
+              aria-label={locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'}
+            >
+              <GlobeIcon />
+            </Link>
+
             <div className={styles.accountWrap} ref={accountRef}>
               <button
                 type="button"
@@ -444,6 +452,15 @@ function HamburgerIcon() {
     </svg>
   );
 }
+function GlobeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
 function ChevronDown() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
