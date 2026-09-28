@@ -311,6 +311,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex: 1;
+  justify-content: space-between;
 }
 /* Mobile: allow horizontal scroll only at small screens */
 @media (max-width: 640px) {
@@ -319,6 +321,7 @@
     scrollbar-width: none;
   }
   .navLinks::-webkit-scrollbar { display: none; }
+  /* Batch 2C: disable grow on mobile — allow scroll */   .navLinks {     flex: none;     justify-content: flex-start;   }   .navItemWrap {     flex: 0 0 auto;     justify-content: flex-start;   }   .navLink {     justify-content: flex-start;   }
 }
 
 .navLink {
@@ -335,6 +338,7 @@
   cursor: pointer;
   white-space: nowrap;
   position: relative;
+  justify-content: center;
 }
 .navLink:hover {
   text-decoration: none;
@@ -425,6 +429,8 @@ html[lang="bn"] .chip {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 1 1 0;
+  justify-content: center;
 }
 .navItemWrap:hover {
   position: relative;
