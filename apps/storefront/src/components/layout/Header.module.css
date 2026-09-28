@@ -210,6 +210,22 @@
   line-height: 1.15;
   flex-shrink: 0;
 }
+
+.accountMenuItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--sk-body);
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.accountMenuItem:hover {
+  background: var(--sk-hover-row);
+}
 .ordersTop { font-size: 11px; color: #DCF0FA; }
 .ordersBottom { font-size: 13px; font-weight: 700; }
 .orders:hover { text-decoration: none; }
@@ -382,6 +398,9 @@
   .searchSubmit { width: 40px; background: transparent; color: #FFFFFF; }
   .searchSubmit:hover { background: rgba(255, 255, 255, 0.08); }
   .cartText { display: none; }
+
+  /* Mobile: hide secondary nav row — chips row handles it */
+  .row2 { display: none; }
 }
 
 .header.collapsed .row1Inner { height: 56px; }
