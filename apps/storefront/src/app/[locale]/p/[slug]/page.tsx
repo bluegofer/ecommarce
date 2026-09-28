@@ -11,7 +11,7 @@ import { PdpClient, type PdpVariant, type PdpImage } from '@/components/pdp';
 // build time; new/renamed products trigger on-demand revalidation via
 // POST /api/revalidate (called by the admin publish flow).
 // Reviews and stock still update via time-based revalidate (1 hour).
-export const revalidate = 3600;
+export const revalidate = 60; // Step-88: 1 min timeout — admin edits reflect fast
 
 /**
  * Step 14.1 — prebuild the top 100 product slugs at build time.

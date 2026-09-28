@@ -18,6 +18,7 @@ import { PageHeader, StatusChip, Modal, useToast } from '@/components/ui';
 import { MediaUploader, type MediaItem } from '@/components/catalog/media-uploader';
 import { useMutation, useQuery, useUpload } from '@/lib/hooks';
 import { formatPoisha, cn } from '@/lib/utils';
+import { revalidateStorefront } from '@/lib/revalidate';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -194,6 +195,8 @@ export default function ProductEditorPage() {
       await updateMutation.mutate(payload);
       toast.success('Product saved');
       void refetch();
+      // Step-88: bust storefront ISR cache for this product
+      void revalidateStorefront(data?.slug || form.titleEn?.toLowerCase().replace(/\s+/g, '-'));
     } catch (e) {
       toast.error('Save failed', e instanceof Error ? e.message : 'Unknown');
     }
@@ -219,6 +222,7 @@ export default function ProductEditorPage() {
       toast.success('Image attached');
       setMediaPickerOpen(false);
       void refetch();
+      void revalidateStorefront(data?.slug);
     } catch (e) {
       toast.error('Attach failed', e instanceof Error ? e.message : 'Unknown');
     }
@@ -230,6 +234,7 @@ export default function ProductEditorPage() {
       await detachMediaMutation.mutate(mediaId);
       toast.success('Image removed');
       void refetch();
+      void revalidateStorefront(data?.slug);
     } catch (e) {
       toast.error('Remove failed', e instanceof Error ? e.message : 'Unknown');
     }
@@ -252,6 +257,7 @@ export default function ProductEditorPage() {
       });
       toast.success('Image uploaded and attached');
       void refetch();
+      void revalidateStorefront(data?.slug);
     } catch (e) {
       toast.error('Upload failed', e instanceof Error ? e.message : 'Unknown');
     }

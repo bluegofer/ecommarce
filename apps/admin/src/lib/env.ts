@@ -23,4 +23,6 @@ if (
 
 export const env = {
   apiUrl: API_URL,
+  storefrontUrl: process.env.NEXT_PUBLIC_STOREFRONT_URL ?? 'https://nolimitshopping.com',
+  revalidateSecret: process.env.NEXT_PUBLIC_REVALIDATE_SECRET ?? '',
 } as const;
