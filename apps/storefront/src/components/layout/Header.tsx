@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart/context';
 import { useAuth } from '@/lib/auth/context';
@@ -56,6 +57,14 @@ export function Header({
   const totalCartCount = (hydrated ? unitCount : 0) + serverCartCount;
 
   const auth = useAuth();
+
+  const router = useRouter();
+
+  const handleSignOut = useCallback(async () => {
+    setAccountOpen(false);
+    await auth.logout();
+    router.push(`/${locale}`);
+  }, [auth, locale, router]);
   const isSignedIn = auth.signedIn || signedIn;
   const displayName = auth.user?.fullName || auth.user?.phone || userName;
 
@@ -169,9 +178,20 @@ export function Header({
               </button>
               {accountOpen ? (
                 <div className={styles.accountMenu} role="menu">
-                  <Link href={`/${locale}/signin`} role="menuitem">
-                    {isSignedIn ? 'Sign out' : 'Sign In'}
-                  </Link>
+                  {isSignedIn ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.accountMenuItem}
+                      onClick={handleSignOut}
+                    >
+                      Sign out
+                    </button>
+                  ) : (
+                    <Link href={`/${locale}/signin`} role="menuitem">
+                      Sign In
+                    </Link>
+                  )}
                   <Link href={`/${locale}/register`} role="menuitem">
                     {isSignedIn ? 'Switch account' : 'Register'}
                   </Link>
