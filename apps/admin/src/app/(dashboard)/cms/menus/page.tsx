@@ -40,21 +40,21 @@ export default function MenusPage() {
 
   const items = menuQuery.data?.items ?? [];
 
-  // Step-95: hide/show menu item (isActive toggle)
+  // Step-95-fix: hide/show menu item (isActive toggle) via API client (Bearer auth)
+  const toggleActiveMutation = useMutation<Record<string, unknown>>(
+    'patch',
+    (input) => `/api/v1/cms/menus/items/${(input as { id: string }).id}`,
+  );
+
   const handleToggleActive = async (node: CmsMenuItemDto) => {
     try {
-      await fetch(`/api/v1/cms/menus/items/${node.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ isActive: !node.isActive }),
-      });
-      void menuQuery.refetch();
+      await toggleActiveMutation.mutate({ id: node.id, isActive: !node.isActive } as Record<string, unknown>);
       toast.push({
         tone: 'success',
         title: node.isActive ? 'Hidden from storefront' : 'Shown in storefront',
         description: node.labelEn,
       });
+      void menuQuery.refetch();
     } catch (err) {
       toast.push({
         tone: 'error',
