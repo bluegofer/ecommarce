@@ -20,6 +20,7 @@ import {
 } from '@/components/home';
 import type { CategoryNode, ProductSummary } from '@/lib/api/types';
 import { buildHeaderNavLinks } from '@/lib/cms/nav';
+import styles from './page.module.css';
 
 export const revalidate = 5;
 
@@ -211,7 +212,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
         alternateLocaleHref={`/${locale === 'bn' ? 'en' : 'bn'}`}
       />
 
-      <main id="main" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px 48px' }}>
+      <main id="main" className={styles.mainWrapper}>
 
         <h1 className="visually-hidden">
           {locale === 'bn' ? 'নো লিমিট শপিং — অনলাইনে কেনাকাটা' : 'NoLimitShopping — Shop Online in Bangladesh'}
