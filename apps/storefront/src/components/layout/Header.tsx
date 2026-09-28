@@ -316,25 +316,14 @@ export function Header({
                 );
               })}
             </nav>
+
+            {/* Batch 2B: right scroll hint (mobile only) */}
+            <div className={styles.row2ScrollHint} aria-hidden="true">
+              <ChevronRightSmall />
+            </div>
           </div>
         </div>
 
-        <div className={styles.chips}>
-          <div className={styles.chipsInner}>
-            <button
-              type="button"
-              className={styles.chip}
-              onClick={() => setMegaOpen(true)}
-            >
-              {labels.megaMenu.mainMenu}
-            </button>
-            {navLinks.slice(0, 4).map((link) => (
-              <Link key={`chip-${link.href}-${link.label}`} href={link.href} className={styles.chip}>
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </div>
       </header>
 
       <MegaMenu
@@ -542,6 +531,14 @@ function ReturnIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3 10l9-7 9 7v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
       <path d="M9 14l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChevronRightSmall() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline points="9 18 15 12 9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

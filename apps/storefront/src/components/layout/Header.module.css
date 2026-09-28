@@ -559,3 +559,71 @@ html[lang="bn"] .dropdownLink {
     display: none;
   }
 }
+
+/* ═══ Batch 2B: Mobile menu row2 visible + scroll ═══ */
+
+.row2ScrollHint {
+  display: none;
+}
+
+/* Desktop mode (min-width: 640px): hide chips, show row2 */
+@media (min-width: 640px) {
+  .chips { display: none; }
+  .row2 { display: block; }
+}
+
+/* Mobile: hide chips, show row2 with horizontal scroll + arrow hint */
+@media (max-width: 639px) {
+  .chips { display: none; }
+
+  .row2 {
+    display: block;
+    background: var(--sk-brand-900);
+  }
+
+  .row2Inner {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 40px;
+    scroll-snap-type: x proximity;
+  }
+  .row2Inner::-webkit-scrollbar { display: none; }
+
+  .allBtn {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+  .navLinks {
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding-right: 8px;
+  }
+  .navItemWrap {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+  .navLink {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* Right-side scroll hint (gradient + chevron) */
+  .row2ScrollHint {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 48px;
+    background: linear-gradient(to right, transparent 0%, var(--sk-brand-900) 60%);
+    color: #FFFFFF;
+    padding-right: 8px;
+    pointer-events: none;
+    z-index: 1;
+  }
+}
