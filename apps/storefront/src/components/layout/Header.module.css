@@ -277,14 +277,20 @@
 }
 .allBtn:hover { background: rgba(255, 255, 255, 0.08); }
 
+/* Step-97: desktop — no overflow so absolutely-positioned dropdown is not clipped */
 .navLinks {
   display: flex;
   align-items: center;
   gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
-.navLinks::-webkit-scrollbar { display: none; }
+/* Mobile: allow horizontal scroll only at small screens */
+@media (max-width: 640px) {
+  .navLinks {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .navLinks::-webkit-scrollbar { display: none; }
+}
 
 .navLink {
   display: inline-flex;
@@ -410,7 +416,7 @@ html[lang="bn"] .chip {
   border-radius: var(--sk-radius-md, 8px);
   box-shadow: 0 12px 28px rgba(12, 43, 61, 0.18);
   padding: 8px 0;
-  z-index: 40;
+  z-index: 950;
   animation: sk-fade-in 150ms cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 .dropdownLink {
