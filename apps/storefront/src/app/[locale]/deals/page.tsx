@@ -1,16 +1,13 @@
 import { notFound } from 'next/navigation';
-import { Breadcrumbs } from '@/components/layout';
+import { getDictionary, isLocale, type Locale } from '@/lib/i18n';
+import { Breadcrumbs, StorefrontShell } from '@/components/layout';
 import { DealsClient, type DealsLabels } from '@/components/deals';
-import { isLocale, type Locale } from '@/lib/i18n';
 
 export const metadata = {
   title: "Today's Deals | NoLimitShopping",
   description: 'Fresh discounts every hour on NoLimitShopping.',
 };
 
-// Step 14.2 — ISR: deals page is fully cacheable (server-synced countdown
-// comes from CMS config). Refresh every 5 minutes; admin publish triggers
-// on-demand revalidation via /api/revalidate.
 export const revalidate = 300;
 
 export default function DealsPage({ params }: { params: { locale: string } }) {
@@ -19,8 +16,8 @@ export default function DealsPage({ params }: { params: { locale: string } }) {
   const bn = locale === 'bn';
 
   const labels: DealsLabels = {
-    title: bn ? "আজকের অফার" : "Today's Deals",
-    subtitle: bn ? 'প্রতি ঘণ্টায় নতুন ডিসকাউন্ট — শেষ হওয়ার আগেই নিন' : 'Fresh discounts every hour — grab them before they\'re gone',
+    title: bn ? 'আজকের অফার' : "Today's Deals",
+    subtitle: bn ? 'প্রতি ঘণ্টায় নতুন ডিসকাউন্ট — শেষ হওয়ার আগেই নিন' : "Fresh discounts every hour — grab them before they're gone",
     filterAll: bn ? 'সব ডিল' : 'All Deals',
     filterLightning: bn ? 'লাইটনিং ডিল' : 'Lightning Deals',
     filterDealOfDay: bn ? 'ডিল অফ দ্য ডে' : 'Deal of the Day',
@@ -38,5 +35,18 @@ export default function DealsPage({ params }: { params: { locale: string } }) {
     ended: bn ? 'শেষ হয়েছে' : 'Ended',
   };
 
-  return <DealsClient locale={locale} labels={labels} />;
+  return (
+    <StorefrontShell locale={locale}>
+      <main id="main" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px 48px' }}>
+        <Breadcrumbs
+          items={[
+            { label: bn ? 'হোম' : 'Home', href: `/${locale}` },
+            { label: labels.title },
+          ]}
+          locale={locale}
+        />
+        <DealsClient locale={locale} labels={labels} />
+      </main>
+    </StorefrontShell>
+  );
 }

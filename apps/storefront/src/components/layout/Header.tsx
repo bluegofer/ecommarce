@@ -227,26 +227,22 @@ export function Header({
                   );
                 }
                 if (link.children && link.children.length > 0) {
+                  // Step-94: click-based dropdown
                   const open = openDropdown === key;
                   return (
-                    <div
-                      key={key}
-                      className={styles.navItemWrap}
-                      onMouseEnter={() => scheduleOpen(key)}
-                      onMouseLeave={scheduleClose}
-                    >
-                      <Link
-                        href={link.href}
+                    <div key={key} className={styles.navItemWrap}>
+                      <button
+                        type="button"
                         className={[styles.navLink, open ? styles.navLinkOpen : ''].filter(Boolean).join(' ')}
                         aria-haspopup="menu"
                         aria-expanded={open}
-                        onFocus={() => setOpenDropdown(key)}
+                        onClick={() => setOpenDropdown(open ? null : key)}
                       >
                         {link.label}
                         <span className={styles.navCaret} aria-hidden="true">
                           <ChevronDown />
                         </span>
-                      </Link>
+                      </button>
                       {open ? (
                         <div className={styles.dropdownPanel} role="menu">
                           {link.children.map((child) => (
