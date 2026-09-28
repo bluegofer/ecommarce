@@ -477,3 +477,85 @@ html[lang="bn"] .dropdownLink {
 @media (prefers-reduced-motion: reduce) {
   .dropdownPanel { animation: none; }
 }
+
+/* Batch 2A: Mobile header icons + search expand */
+
+.accountMobile,
+.returnsMobile {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .accountMobile,
+  .returnsMobile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--sk-radius-sm);
+    color: #FFFFFF;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .accountMobile:hover,
+  .returnsMobile:hover {
+    background: rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+  }
+
+  .header.searchExpanded .search {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--sk-brand-950);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .header.searchExpanded .searchBar {
+    flex: 1;
+    width: auto;
+    height: 40px;
+    background: #FFFFFF;
+    padding: 0;
+  }
+  .header.searchExpanded .searchInput {
+    display: block;
+    padding: 0 12px;
+  }
+  .header.searchExpanded .searchSubmit {
+    width: 48px;
+    background: var(--sk-brand-300);
+    color: var(--sk-brand-950);
+  }
+  .searchCancel {
+    display: none;
+  }
+  .header.searchExpanded .searchCancel {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .header.searchExpanded .langMobile,
+  .header.searchExpanded .accountMobile,
+  .header.searchExpanded .returnsMobile,
+  .header.searchExpanded .cart,
+  .header.searchExpanded .logo,
+  .header.searchExpanded .mobileMenuBtn {
+    display: none;
+  }
+}

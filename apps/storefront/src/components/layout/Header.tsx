@@ -72,6 +72,7 @@ export function Header({
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const accountRef = useRef<HTMLDivElement>(null);
@@ -123,7 +124,7 @@ export function Header({
 
   return (
     <>
-      <header className={[styles.header, collapsed ? styles.collapsed : ''].filter(Boolean).join(' ')}>
+      <header className={[styles.header, collapsed ? styles.collapsed : '', searchExpanded ? styles.searchExpanded : ''].filter(Boolean).join(' ')}>
         <div className={styles.row1}>
           <div className={styles.row1Inner}>
             <button
@@ -145,6 +146,7 @@ export function Header({
               placeholder={labels.searchPlaceholder}
               searchAll={labels.searchAll}
               searchInTemplate={labels.searchIn}
+              onExpandChange={setSearchExpanded}
             />
 
             <Link href={alternateLocaleHref} className={styles.lang}>
@@ -159,6 +161,24 @@ export function Header({
               aria-label={locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'}
             >
               <GlobeIcon />
+            </Link>
+
+            {/* Mobile-only: Account icon */}
+            <Link
+              href={`/${locale}/account`}
+              className={styles.accountMobile}
+              aria-label={isSignedIn ? 'Account' : 'Sign in'}
+            >
+              <UserIcon />
+            </Link>
+
+            {/* Mobile-only: Returns icon */}
+            <Link
+              href={`/${locale}/account/returns`}
+              className={styles.returnsMobile}
+              aria-label={labels.returns}
+            >
+              <ReturnIcon />
             </Link>
 
             <div className={styles.accountWrap} ref={accountRef}>
@@ -335,13 +355,17 @@ function SearchBox({
   placeholder,
   searchAll,
   searchInTemplate,
+  onExpandChange,
 }: {
   locale: 'bn' | 'en';
   placeholder: string;
   searchAll: string;
   searchInTemplate: string;
+  onExpandChange: (expanded: boolean) => void;
 }) {
   const [value, setValue] = useState('');
+  const [expanded, setExpanded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [debounced, setDebounced] = useState('');
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -389,12 +413,24 @@ function SearchBox({
       if (chosen) window.location.href = chosen.href;
       else submit(value.trim());
     } else if (e.key === 'Escape') {
+    if (expanded) { setExpanded(false); onExpandChange(false); }
       setOpen(false);
     }
   };
 
   return (
-    <div className={styles.search} ref={wrapRef} suppressHydrationWarning>
+    <div
+      className={styles.search}
+      ref={wrapRef}
+      suppressHydrationWarning
+      onClick={() => {
+        if (typeof window !== "undefined" && window.innerWidth < 640) {
+          setExpanded(true);
+          onExpandChange(true);
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }
+      }}
+    >
       <div className={styles.searchBar}>
         <input
           type="search"
@@ -408,10 +444,21 @@ function SearchBox({
           role="combobox"
           aria-controls="search-suggestions"
           aria-expanded={open}
+        ref={inputRef}
         />
         <button type="button" className={styles.searchSubmit} onClick={() => submit(value.trim())} aria-label="Search">
           <SearchIcon />
         </button>
+        {expanded ? (
+          <button
+            type="button"
+            className={styles.searchCancel}
+            onClick={() => { setExpanded(false); onExpandChange(false); setValue(""); setOpen(false); }}
+            aria-label="Cancel search"
+          >
+            Cancel
+          </button>
+        ) : null}
       </div>
 
       {open && suggestions.length > 0 ? (
@@ -477,6 +524,24 @@ function GlobeIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
       <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ReturnIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 10l9-7 9 7v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M9 14l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
