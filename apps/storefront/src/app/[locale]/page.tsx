@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { catalogApi, cmsApi } from '@/lib/api';
-import { Header, Footer, Breadcrumbs, AnnouncementBar } from '@/components/layout';
+import { Header, Footer, AnnouncementBar } from '@/components/layout';
 import {
   HeroCarousel,
   HeroSlider,
@@ -212,7 +212,6 @@ export default async function HomePage({ params }: { params: { locale: string } 
       />
 
       <main id="main" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px 48px' }}>
-        <Breadcrumbs items={[{ label: 'Home' }]} locale={locale} />
 
         <h1 className="visually-hidden">
           {locale === 'bn' ? 'নো লিমিট শপিং — অনলাইনে কেনাকাটা' : 'NoLimitShopping — Shop Online in Bangladesh'}
