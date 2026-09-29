@@ -159,3 +159,32 @@ html[lang="bn"] .h1 { line-height: 1.3; }
   flex-wrap: wrap;
   justify-content: center;
 }
+
+.searchWrap {
+  margin: 0 0 16px 0;
+  max-width: 420px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  font-size: 14px;
+  color: var(--sk-ink);
+  background: var(--sk-surface);
+  font-family: inherit;
+}
+
+.searchInput:focus {
+  outline: 2px solid var(--sk-brand-300);
+  outline-offset: 0;
+}
+
+.noMatch {
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-lg);
+  padding: 48px 24px;
+  text-align: center;
+}

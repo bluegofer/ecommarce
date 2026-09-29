@@ -17,6 +17,10 @@ export interface ReturnsListLabels {
   resolvedLabel: string;
   loading: string;
   errorText: string;
+  searchPlaceholder: string;
+  noMatchTitle: string;
+  noMatchBody: string;
+  clearSearch: string;
 }
 
 export interface ReturnsListProps {
@@ -57,6 +61,7 @@ const STATUS_LABEL_BN: Record<string, string> = {
 export function ReturnsList({ locale, labels }: ReturnsListProps) {
   const [items, setItems] = useState<MyReturnItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -92,6 +97,16 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
   if (error) return <p className={styles.state}>{error}</p>;
   if (items === null) return <p className={styles.state}>{labels.loading}</p>;
 
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? items.filter((it) => {
+        const id = it.id.toLowerCase();
+        const shortId = id.slice(-8);
+        const orderNum = (it.orderNumber ?? '').toLowerCase();
+        return id.includes(q) || shortId.includes(q) || orderNum.includes(q);
+      })
+    : items;
+
   if (items.length === 0) {
     return (
       <div className={styles.wrap}>
@@ -117,8 +132,26 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
           + {locale === 'bn' ? 'নতুন ফেরত অনুরোধ' : 'New return request'}
         </Link>
       </div>
+      <div className={styles.searchWrap}>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={labels.searchPlaceholder}
+          className={styles.searchInput}
+        />
+      </div>
+      {filtered.length === 0 ? (
+        <div className={styles.noMatch}>
+          <h2 className={styles.emptyTitle}>{labels.noMatchTitle}</h2>
+          <p className={styles.emptyBody}>{labels.noMatchBody}</p>
+          <button type="button" onClick={() => setQuery('')} className={styles.cta}>
+            {labels.clearSearch}
+          </button>
+        </div>
+      ) : (
       <ul className={styles.list}>
-        {items.map((it) => {
+        {filtered.map((it) => {
           const tone = STATUS_TONE[it.status] ?? 'neutral';
           return (
             <li key={it.id} className={styles.card}>
@@ -154,6 +187,7 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
           );
         })}
       </ul>
+      )}
     </div>
   );
 }

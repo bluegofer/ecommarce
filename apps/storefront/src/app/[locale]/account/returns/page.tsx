@@ -30,6 +30,10 @@ export default function ReturnsPage({ params }: { params: { locale: string } }) 
     resolvedLabel: bn ? 'সমাধান' : 'Resolved',
     loading: bn ? 'লোড হচ্ছে…' : 'Loading…',
     errorText: bn ? 'লোড করা যায়নি' : 'Could not load returns',
+    searchPlaceholder: bn ? 'কেস আইডি বা অর্ডার নম্বর দিয়ে খুঁজুন' : 'Search by case ID or order number',
+    noMatchTitle: bn ? 'কোনো মিল পাওয়া যায়নি' : 'No matches found',
+    noMatchBody: bn ? 'অন্য কিছু দিয়ে খুঁজে দেখুন।' : 'Try a different search term.',
+    clearSearch: bn ? 'সার্চ মুছুন' : 'Clear search',
   };
 
   return (
