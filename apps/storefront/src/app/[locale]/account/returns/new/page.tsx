@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { ReturnRequestForm } from '@/components/account/ReturnRequestForm';
@@ -19,9 +19,8 @@ interface OrderRow {
 export default function NewReturnPage({ params }: { params: { locale: string } }) {
   const router = useRouter();
   const bn = params.locale === 'bn';
-  const orderId = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('order')
-    : null;
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('order');
 
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [loading, setLoading] = useState(true);
