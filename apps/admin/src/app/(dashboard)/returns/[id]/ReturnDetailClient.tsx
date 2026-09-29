@@ -87,7 +87,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       await approveM.mutate(undefined as unknown as void);
       toast.success('Return approved');
       void q.refetch();
-    } catch (e) {
+    } catch {
       toast.error('Approve failed');
     }
   };
@@ -103,7 +103,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       setRejectModalOpen(false);
       setRejectReason('');
       void q.refetch();
-    } catch (e) {
+    } catch {
       toast.error('Reject failed');
     }
   };
@@ -115,7 +115,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       setPickedUpModalOpen(false);
       setTrackingInput('');
       void q.refetch();
-    } catch (e) {
+    } catch {
       toast.error('Update failed');
     }
   };
@@ -125,7 +125,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       await receivedM.mutate(undefined as unknown as void);
       toast.success('Marked received');
       void q.refetch();
-    } catch (e) {
+    } catch {
       toast.error('Update failed');
     }
   };
@@ -135,7 +135,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       await resolveM.mutate(undefined as unknown as void);
       toast.success('Return resolved');
       void q.refetch();
-    } catch (e) {
+    } catch {
       toast.error('Resolve failed');
     }
   };
@@ -233,7 +233,6 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {r.photoUrls.map((url, i) => (
                 <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={url}
                     alt={`Return photo ${i + 1}`}
