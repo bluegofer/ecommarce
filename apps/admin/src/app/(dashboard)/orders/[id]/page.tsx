@@ -39,7 +39,14 @@ interface OrderDetail {
   riderName: string | null;
   items: OrderLine[];
   createdAt: string;
-  statusHistory: Array<{ status: string; at: string; by: string; note?: string }>;
+  statusHistory: Array<{
+      id: string;
+      fromStatus: string | null;
+      toStatus: string;
+      actorUserId: string | null;
+      note: string | null;
+      createdAt: string;
+    }>;
 }
 
 const NEXT_STATUS: Record<string, string> = {
@@ -127,7 +134,7 @@ export default function OrderDetailPage() {
         actions={
           <>
             <StatusChip
-              label={data.status.replace(/_/g, ' ')}
+              label={(data.status ?? 'UNKNOWN').replace(/_/g, ' ')}
               tone={(ORDER_STATUS_TONE[data.status] ?? 'neutral') as StatusTone}
             />
             {data.status === 'PENDING_VERIFICATION' && (
@@ -148,12 +155,12 @@ export default function OrderDetailPage() {
                 type="button"
                 onClick={async () => {
                   await statusMutation.mutate({ status: nextStatus });
-                  toast.success(`Marked ${nextStatus.replace(/_/g, ' ')}`);
+                  toast.success(`Marked ${(nextStatus ?? '').replace(/_/g, ' ')}`);
                   void refetch();
                 }}
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
               >
-                Move to {nextStatus.replace(/_/g, ' ')}
+                Move to {(nextStatus ?? '').replace(/_/g, ' ')}
               </button>
             )}
             <button
@@ -208,10 +215,10 @@ export default function OrderDetailPage() {
                   </span>
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium text-slate-800">
-                      {h.status.replace(/_/g, ' ')}
+                      {(h.toStatus ?? 'UNKNOWN').replace(/_/g, ' ')}
                     </div>
                     <div className="text-[12px] text-slate-500">
-                      {formatDateTime(h.at)} · {h.by}
+                      {formatDateTime(h.createdAt)} · {h.actorUserId ?? 'System'}
                       {h.note && ` — ${h.note}`}
                     </div>
                   </div>
