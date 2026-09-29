@@ -136,7 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (input: LoginRequest) => {
-    const res = await api.post<{ accessToken: string }>('/auth/login', input);
+    const res = await api.post<{ accessToken: string }>('/auth/login', {
+      identifier: input.phone,
+      password: input.password,
+    });
     // API login returns tokens only — fetch user profile separately
     const profile = await api.get<AuthUser>('/auth/me', {
       headers: { Authorization: 'Bearer ' + res.accessToken },
