@@ -36,8 +36,7 @@ export default function NewReturnPage({ params }: { params: { locale: string } }
 
   useEffect(() => {
     if (!orderId) {
-      setLoading(false);
-      setError(bn ? 'অর্ডার নির্বাচন করুন' : 'No order selected');
+      router.replace(`/${params.locale}/account/orders`);
       return;
     }
     api.get<OrderRow>(`/orders/${orderId}`)

@@ -62,7 +62,7 @@ export default function ReturnDetailPage({ params }: { params: { locale: string;
           {(data.items ?? []).map((it) => (
             <li key={it.id} className={styles.item}>
               <span>{it.title}</span>
-              <code className={styles.sku}>{it.sku}</code>
+              <code className={styles.sku}>{it.sku || '—'}</code>
               <span className={styles.qty}>× {it.quantity}</span>
             </li>
           ))}
