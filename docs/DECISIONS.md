@@ -1900,3 +1900,144 @@ COMPLETE. All housekeeping done. Staging HEAD 87fda0e deployed and CI green.
 4. Issue 3 — Hero empty
 5. Order detail manual status transitions
 6. Dispatch button courier picker
+
+
+---
+
+## Session 2026-09-28 / 2026-09-29 — Storefront Batch + Return Flow + Order Workflow
+
+**Status:** COMPLETE — 27 commits pushed and deployed to staging.
+
+**Session span:** 2026-09-28 → 2026-09-29
+**Commits:** step-98 → step-124
+
+### Delivered This Session
+
+#### Storefront UI Fixes (Batch 1, 2A, 2B, 2C, 3A, 3C)
+- Back-to-top → floating circular button (step-98)
+- Payment badges uniform (white bg + brand-colored text) (step-98)
+- Logo vertical alignment (step-98)
+- Mobile language globe icon (step-98)
+- Card heights uniform — fixed instead of min-height (step-100)
+- Sign-out button with proper `auth.logout()` handler (step-101)
+- Hero section mobile edge-to-edge (step-103)
+- Mobile header icons (Account + Returns) + full-width search expand (step-104)
+- Menu redesign — chips row removed, dark row2 with scroll hint (step-105)
+- Menu items flex-grow to fill space (step-106)
+- Homepage responsive padding (step-107)
+- Mobile PDP colBuy visible + MobileBuyBar removed (step-108)
+
+#### Auth Flow Fixes
+- Login sends `identifier` field (was `phone`) — step-110
+- `/auth/me` fetch after login (was expecting user in login response) — step-109
+
+#### Return Workflow — Customer Side
+- Return items button href → `/returns/new?order=<id>` (was broken `#return`) — step-111
+- Return page orderId uses `useSearchParams()` (SSR-safe) — step-118
+- Return detail SKU visible + `/returns/new` auto-redirect when no orderId — step-121
+- Account sidebar "রিটার্ন" (Returns) menu link added — step-124
+- Storefront double `/api/v1` prefix fix (returns/new + use-presigned-upload) — step-115
+- Return form item shape fix (productTitleEn/Bn, variantSnapshot.sku)
+
+#### Return Workflow — Admin Side
+- Return detail page with 5-step workflow timeline (step-112)
+- Approve modal with refund amount (step-116)
+- Refund Method dropdown — 6 options: BKASH, NAGAD, ROCKET, BANK_TRANSFER, PROMO_CODE, STORE_CREDIT (step-119)
+- Reference input field for transaction ID / promo code (step-119)
+- Order number + customer name display in /returns list (step-120)
+- Admin /returns list cleanup — inline approve/reject removed, "View →" link (step-120)
+
+#### Order Workflow (Admin)
+- Order detail null-safety (`h.toStatus`, `h.createdAt`, `h.actorUserId`) — step-114
+- Customer detail null-safety (timeline / addresses / segmentLabels) — step-114a
+- Customer detail Orders tab (last 5 orders, clickable) — step-117
+- **Order Verify endpoint added** — was 404, frontend called but backend didn't exist (step-122)
+- **Exchange button disabled** — backend state machine lacks EXCHANGE_REQUESTED status (step-122)
+
+#### Backend Changes
+- `RefundMethod` union type in `packages/types/src/rma.ts`
+- `ReturnRequest` schema: `refundMethod String?` + `refundReference String?`
+- Migration: `20260929133240_add_refund_method` applied on staging DB
+- `ReturnsService.enrich()` method — fetches order + customer + items per request
+- `create/listMine/list/findOne` all use `enrich()`
+- `ReturnRequestDto` extended: `orderNumber`, `customerName`, `customerPhone`, `items[]`
+- `OrdersController` — added `POST /orders/:id/verify` + Post import
+- `OrdersService.verify()` — delegates to `updateStatus(id, { status: 'VERIFIED' })`
+- ESLint cleanup — removed unsupported `@next/next/no-img-element` rule reference (step-113)
+
+#### Documentation
+- `docs/order-status-flow.md` — Auto vs Manual status reference for order lifecycle
+
+### Test Data (staging)
+Customer account:
+Phone: +8801711111111
+Password: Test@1234
+
+Admin account:
+Phone: +8801700000000
+Password: Test@1234 (was Test@1234 — rotated from ChangeMe!2026 in this session)
+
+Test orders:
+TEST-RET-MUMOTVO8 (DELIVERED → RETURN_REQUESTED)
+TEST-RET-MUMSIHDR (DELIVERED, ready for return test)
+TEST-RET-MUMOTVO8 (test order created for return flow)
+
+### Nginx Config — Staging Only (NOT in repo)
+
+Applied on EC2: `location /api/ { proxy_pass http://127.0.0.1:4000; }` block in `/etc/nginx/conf.d/bluegofer.conf`.
+
+**Reason:** `NEXT_PUBLIC_API_URL` was baked empty at Docker build time, so browser-side API calls hit relative `/api/v1/*` on `nolimitshopping.com`. Nginx proxy catches and forwards to API on port 4000.
+
+**Follow-up (next session):** Commit config to `infra/nginx/bluegofer.conf` in repo, and add copy step to CI deploy workflow.
+
+### Known Outstanding
+
+| # | Item | Priority |
+|---|------|----------|
+| 1 | Customer detail — Payments tab | Medium |
+| 2 | Customer detail — Reviews tab | Medium |
+| 3 | Return resolve modal (refund vs replacement) | Medium |
+| 4 | Case ID search box (customer-side) | Low |
+| 5 | Courier choice UI (home pickup vs self drop-off) | Low |
+| 6 | Photo upload polish in return form | Low |
+| 7 | Admin order confirm/ship full workflow polish | High |
+| 8 | Admin order edit/partial cancel polish | Medium |
+| 9 | Dispatch button courier picker (currently hardcoded PATHAO) | Medium |
+| 10 | Mobile responsive audit (320/360/375/390/412/768/1024/1280/1440+) | Medium |
+| 11 | Nginx config in repo | Medium |
+| 12 | Category slug 301 admin UI | Low |
+| 13 | Product video E2E test | Low |
+| 14 | Sitemap Search Console verification | Low |
+| 15 | Admin session persistence (browser-side diagnose) | Low |
+
+### Security Rotations Pending (before production)
+
+- VAPID keys (visible in chat)
+- Admin password `ChangeMe!2026` → rotate back (currently `Test@1234`)
+- Sentry DSN (visible in chat during Step 15.11)
+- Demo users cleanup (8 RBAC demo users + test customer)
+
+### Blocked — Step 13 (client credentials pending)
+
+- bKash / Nagad / SSLCommerz merchant accounts (D-21)
+- Pathao live courier account (D-22)
+- SMS aggregator decision (D-09)
+- SES production approval (AWS Support case 178967334800250)
+- Refund gateway integration (after payment credentials)
+
+**Trigger to start Step 13:** Client provides all credentials above.
+
+### Session Commits (in order)
+
+### Open Questions for Client
+
+1. **Exchange workflow** — Need EXCHANGE_REQUESTED + EXCHANGED statuses in OrderStatus enum? Or reuse RETURN_REQUESTED with a note?
+2. **Case ID format** — Currently cuids (`cmumqx610000t2jo3335j92`). Should it be user-friendly (e.g., `RTN-2026-00001`)?
+3. **Refund method default** — Should admin be able to set a default refund method per payment method? (e.g., COD → bKash, Card → Bank)
+4. **Replacement flow** — When customer wants replacement instead of refund, should a new order be auto-created?
+
+**No blockers — informational for next session.**
+
+---
+
+**End of session entry.**
