@@ -88,6 +88,10 @@ export default function OrderDetailPage() {
     unknown
   >('patch', `/api/v1/orders/${orderId}/address`);
 
+  const dispatchMutation = useMutation<
+    { courier: string; note?: string | undefined },
+    { ok: boolean; provider: string; trackingNumber: string; trackingUrl?: string }
+  >('post', `/api/v1/orders/${orderId}/dispatch`);
   const noteMutation = useMutation<{ body: string; isCustomerVisible: boolean }, unknown>(
     'post',
     `/api/v1/orders/${orderId}/notes`,
@@ -101,6 +105,8 @@ export default function OrderDetailPage() {
   const [editAddress, setEditAddress] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editNote, setEditNote] = useState('');
+  const [dispatchCourier, setDispatchCourier] = useState<'PATHAO' | 'STEADFAST' | 'REDX'>('PATHAO');
+  const [dispatchNote, setDispatchNote] = useState('');
 
   if (loading && !data) return <div className="p-10 text-center text-slate-400">Loading order…</div>;
   if (error || !data) {
@@ -114,6 +120,20 @@ export default function OrderDetailPage() {
   }
 
   const nextStatus = NEXT_STATUS[data.status];
+
+  async function handleDispatch() {
+    try {
+      const res = await dispatchMutation.mutate({
+        courier: dispatchCourier,
+        note: dispatchNote.trim() || undefined,
+      });
+      toast.success('Dispatched via ' + res.provider + ' - ' + (res.trackingNumber ?? 'no tracking'));
+      setDispatchNote('');
+      void refetch();
+    } catch (e) {
+      toast.error('Dispatch failed', e instanceof Error ? e.message : 'Unknown');
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -374,6 +394,57 @@ export default function OrderDetailPage() {
                 </button>
               ))}
             </div>
+          </div>
+          <div className="card p-5 space-y-3">
+            <h3 className="font-semibold text-slate-900">Courier dispatch</h3>
+            <p className="text-[12px] text-slate-500">
+              Creates a consignment with the selected courier. Safe to retry (idempotent).
+            </p>
+            <div>
+              <label className="block text-[12.5px] font-medium text-slate-700 mb-1">Courier</label>
+              <select
+                value={dispatchCourier}
+                onChange={(e) => setDispatchCourier(e.target.value as 'PATHAO' | 'STEADFAST' | 'REDX')}
+                disabled={dispatchMutation.loading || !!data.trackingNumber}
+                className="w-full h-9 px-3 rounded border border-border bg-white text-sm disabled:opacity-60"
+              >
+                <option value="PATHAO">Pathao</option>
+                <option value="STEADFAST">Steadfast</option>
+                <option value="REDX">RedX</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[12.5px] font-medium text-slate-700 mb-1">Merchant note (optional)</label>
+              <input
+                type="text"
+                value={dispatchNote}
+                onChange={(e) => setDispatchNote(e.target.value)}
+                disabled={dispatchMutation.loading || !!data.trackingNumber}
+                placeholder="e.g. Fragile - handle with care"
+                className="w-full h-9 px-3 rounded border border-border bg-white text-sm disabled:opacity-60"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleDispatch}
+              disabled={dispatchMutation.loading || !!data.trackingNumber}
+              className="w-full h-9 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50"
+            >
+              {data.trackingNumber
+                ? 'Already dispatched'
+                : dispatchMutation.loading
+                  ? 'Creating consignment...'
+                  : 'Create consignment'}
+            </button>
+            {data.trackingNumber && (
+              <div className="p-3 rounded border border-success-300 bg-success-50">
+                <div className="text-[11.5px] text-success-700 font-medium">Tracking number</div>
+                <div className="font-mono text-sm text-slate-800 mt-0.5">{data.trackingNumber}</div>
+                {data.courier && (
+                  <div className="text-[11px] text-slate-500 mt-1">via {data.courier}</div>
+                )}
+              </div>
+            )}
           </div>
         </aside>
       </div>
