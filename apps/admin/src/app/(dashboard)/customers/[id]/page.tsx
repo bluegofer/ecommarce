@@ -135,7 +135,7 @@ export default function Customer360Page() {
 
           {tab === 'Timeline' && (
             <div className="card p-5">
-              {!data?.timeline || data.timeline.length === 0 ?
+              {!data.timeline || data.timeline.length === 0 ? (
                 <p className="text-center text-slate-400 py-6">No activity yet.</p>
               ) : (
                 <ol className="space-y-3">
@@ -160,7 +160,7 @@ export default function Customer360Page() {
 
           {tab === 'Addresses' && (
             <div className="card p-5 space-y-3">
-              {!data?.addresses || data.addresses.length === 0 ?
+              {!data.addresses || data.addresses.length === 0 ? (
                 <p className="text-center text-slate-400 py-6">No saved addresses.</p>
               ) : (
                 data.addresses.map((a) => (
@@ -199,7 +199,7 @@ export default function Customer360Page() {
           <div className="card p-5">
             <h3 className="font-semibold text-slate-900 mb-3">Segments</h3>
             <div className="flex flex-wrap gap-1">
-              {!data?.segmentLabels || data.segmentLabels.length === 0 ?
+              {!data.segmentLabels || data.segmentLabels.length === 0 ? (
                 <p className="text-[12.5px] text-slate-400">No segments assigned.</p>
               ) : (
                 data.segmentLabels.map((s) => (
