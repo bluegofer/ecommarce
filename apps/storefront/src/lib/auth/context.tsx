@@ -136,9 +136,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (input: LoginRequest) => {
-    const res = await api.post<LoginResponse>('/auth/login', input);
+    const res = await api.post<{ accessToken: string }>('/auth/login', input);
+    // API login returns tokens only — fetch user profile separately
+    const profile = await api.get<AuthUser>('/auth/me', {
+      headers: { Authorization: 'Bearer ' + res.accessToken },
+    });
     setAccessToken(res.accessToken);
-    setUser(res.user);
+    setUser(profile);
     writeAuthHint();
   }, []);
 
@@ -155,12 +159,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: input.password,
     });
     // Step 2: verify OTP (returns tokens per Step 2 API)
-    const res = await api.post<LoginResponse>('/auth/otp/verify', {
+    const res = await api.post<{ accessToken: string }>('/auth/otp/verify', {
       phone: input.phone,
       code: input.otp,
     });
+    // Fetch user profile separately
+    const profile = await api.get<AuthUser>('/auth/me', {
+      headers: { Authorization: 'Bearer ' + res.accessToken },
+    });
     setAccessToken(res.accessToken);
-    setUser(res.user);
+    setUser(profile);
     writeAuthHint();
   }, []);
 
