@@ -86,6 +86,97 @@ export class CustomersService {
     };
   }
 
+  async getPayments(customerId: string) {
+    const c = await this.prisma.customer.findUnique({ where: { id: customerId } });
+    if (!c) throw new NotFoundException('customer not found');
+
+    const orders = await this.prisma.order.findMany({
+      where: { customerId },
+      select: { id: true },
+    });
+    const orderIds = orders.map((o) => o.id);
+
+    const payments = orderIds.length
+      ? await this.prisma.payment.findMany({
+          where: { orderId: { in: orderIds } },
+          orderBy: { createdAt: 'desc' },
+          take: 200,
+        })
+      : [];
+
+    const paid = payments.filter((p) => p.paidAt !== null);
+    const totalPaidPoisha = paid.reduce((s, p) => s + p.amountPoisha, 0);
+    const byMethod: Record<string, number> = {};
+    for (const p of payments) {
+      byMethod[p.method] = (byMethod[p.method] ?? 0) + 1;
+    }
+
+    return {
+      stats: {
+        totalTransactions: payments.length,
+        totalPaidPoisha,
+        byMethod,
+      },
+      payments: payments.map((p) => ({
+        id: p.id,
+        orderId: p.orderId,
+        amountPoisha: p.amountPoisha,
+        method: p.method,
+        status: p.status,
+        gatewayRef: p.gatewayRef,
+        createdAt: p.createdAt.toISOString(),
+        paidAt: p.paidAt ? p.paidAt.toISOString() : null,
+      })),
+    };
+  }
+
+  async getReviews(customerId: string) {
+    const c = await this.prisma.customer.findUnique({ where: { id: customerId } });
+    if (!c) throw new NotFoundException('customer not found');
+
+    const reviews = await this.prisma.review.findMany({
+      where: { customerId },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+
+    const productIds = Array.from(new Set(reviews.map((r) => r.productId)));
+    const products = productIds.length
+      ? await this.prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, titleEn: true, titleBn: true, slug: true },
+        })
+      : [];
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    const total = reviews.length;
+    const avgRating = total === 0 ? 0 : reviews.reduce((s, r) => s + r.rating, 0) / total;
+
+    return {
+      stats: {
+        totalReviews: total,
+        avgRating,
+      },
+      reviews: reviews.map((r) => {
+        const prod = productMap.get(r.productId);
+        return {
+          id: r.id,
+          rating: r.rating,
+          title: r.title,
+          body: r.body,
+          status: r.status,
+          createdAt: r.createdAt.toISOString(),
+          product: {
+            id: r.productId,
+            titleEn: prod?.titleEn ?? '',
+            titleBn: prod?.titleBn ?? '',
+            slug: prod?.slug ?? '',
+          },
+        };
+      }),
+    };
+  }
+
   async addNote(id: string, dto: AddCustomerNoteDto, actorUserId: string | null) {
     const c = await this.prisma.customer.findUnique({ where: { id } });
     if (!c) throw new NotFoundException('customer not found');

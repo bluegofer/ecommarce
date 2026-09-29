@@ -54,7 +54,7 @@ const TIMELINE_TONE: Record<Timeline['kind'], string> = {
   FOLLOWUP: 'bg-info-100 text-info-600',
 };
 
-const TABS = ['Timeline', 'Orders', 'Addresses'] as const;
+const TABS = ['Timeline', 'Orders', 'Addresses', 'Payments', 'Reviews'] as const;
 
 export default function Customer360Page() {
   const params = useParams<{ id: string }>();
@@ -67,6 +67,33 @@ export default function Customer360Page() {
   const { data, loading, error, refetch } = useQuery<Customer360>(
     customerId ? `/api/v1/crm/customers/${customerId}/profile` : null,
   );
+
+  const paymentsQuery = useQuery<{
+    stats: { totalTransactions: number; totalPaidPoisha: number; byMethod: Record<string, number> };
+    payments: Array<{
+      id: string;
+      orderId: string;
+      amountPoisha: number;
+      method: string;
+      status: string;
+      gatewayRef: string | null;
+      createdAt: string;
+      paidAt: string | null;
+    }>;
+  }>(tab === 'Payments' ? `/api/v1/crm/customers/${params.id}/payments` : null);
+
+  const reviewsQuery = useQuery<{
+    stats: { totalReviews: number; avgRating: number };
+    reviews: Array<{
+      id: string;
+      rating: number;
+      title: string | null;
+      body: string | null;
+      status: string;
+      createdAt: string;
+      product: { id: string; titleEn: string; titleBn: string; slug: string };
+    }>;
+  }>(tab === 'Reviews' ? `/api/v1/crm/customers/${params.id}/reviews` : null);
 
   const noteMutation = useMutation<{ body: string }, unknown>(
     'post',
@@ -218,6 +245,95 @@ export default function Customer360Page() {
                     <p className="text-[13px] text-slate-600">{a.fullAddress}</p>
                   </div>
                 ))
+              )}
+            </div>
+          )}
+
+          {tab === 'Payments' && (
+            <div className="card p-5 space-y-4">
+              {paymentsQuery.loading && <p className="text-center text-slate-400 py-6">Loading…</p>}
+              {paymentsQuery.error && <p className="text-center text-danger-600 py-6">Failed to load payments.</p>}
+              {paymentsQuery.data && (
+                <>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 rounded border border-border bg-slate-50">
+                      <div className="text-[11.5px] text-slate-500">Transactions</div>
+                      <div className="text-lg font-semibold text-slate-800">{paymentsQuery.data.stats.totalTransactions}</div>
+                    </div>
+                    <div className="p-3 rounded border border-border bg-slate-50">
+                      <div className="text-[11.5px] text-slate-500">Total Paid</div>
+                      <div className="text-lg font-semibold text-slate-800">{formatPoisha(paymentsQuery.data.stats.totalPaidPoisha)}</div>
+                    </div>
+                    <div className="p-3 rounded border border-border bg-slate-50">
+                      <div className="text-[11.5px] text-slate-500">By Method</div>
+                      <div className="text-[11.5px] text-slate-600 mt-0.5">
+                        {Object.keys(paymentsQuery.data.stats.byMethod).length === 0 ? '—' : Object.entries(paymentsQuery.data.stats.byMethod).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                      </div>
+                    </div>
+                  </div>
+                  {paymentsQuery.data.payments.length === 0 ? (
+                    <p className="text-center text-slate-400 py-6">No payments yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {paymentsQuery.data.payments.map((p) => (
+                        <div key={p.id} className="p-3 rounded border border-border bg-slate-50 flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="font-mono text-[12px] text-slate-700">{p.orderId.slice(0, 12)}…</div>
+                            <div className="text-[11.5px] text-slate-500 mt-0.5">{p.method} · {formatDateTime(p.createdAt)}</div>
+                            {p.gatewayRef && <div className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">{p.gatewayRef}</div>}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="font-medium text-slate-900">{formatPoisha(p.amountPoisha)}</div>
+                            <div className="mt-1"><StatusChip label={p.status.replace(/_/g, ' ')} tone="info" /></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {tab === 'Reviews' && (
+            <div className="card p-5 space-y-4">
+              {reviewsQuery.loading && <p className="text-center text-slate-400 py-6">Loading…</p>}
+              {reviewsQuery.error && <p className="text-center text-danger-600 py-6">Failed to load reviews.</p>}
+              {reviewsQuery.data && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded border border-border bg-slate-50">
+                      <div className="text-[11.5px] text-slate-500">Total Reviews</div>
+                      <div className="text-lg font-semibold text-slate-800">{reviewsQuery.data.stats.totalReviews}</div>
+                    </div>
+                    <div className="p-3 rounded border border-border bg-slate-50">
+                      <div className="text-[11.5px] text-slate-500">Avg Rating</div>
+                      <div className="text-lg font-semibold text-slate-800">{reviewsQuery.data.stats.avgRating.toFixed(2)} / 5</div>
+                    </div>
+                  </div>
+                  {reviewsQuery.data.reviews.length === 0 ? (
+                    <p className="text-center text-slate-400 py-6">No reviews yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {reviewsQuery.data.reviews.map((r) => (
+                        <div key={r.id} className="p-3 rounded border border-border bg-slate-50">
+                          <div className="flex items-center justify-between gap-3 mb-1">
+                            <div className="text-[13px] font-medium text-slate-800 truncate">{r.product.titleEn || r.product.titleBn || '—'}</div>
+                            <div className="text-[12px] text-warning-700 font-semibold flex-shrink-0">
+                              {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                            </div>
+                          </div>
+                          {r.title && <div className="text-[12.5px] font-medium text-slate-700">{r.title}</div>}
+                          {r.body && <div className="text-[12.5px] text-slate-600 mt-0.5 whitespace-pre-wrap">{r.body}</div>}
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="text-[11px] text-slate-400">{formatDateTime(r.createdAt)}</div>
+                            <StatusChip label={r.status} tone="info" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

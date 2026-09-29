@@ -42,6 +42,18 @@ export class CustomersController {
   }
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')
+  @Get(':id/payments')
+  payments(@Param('id') id: string) {
+    return this.customers.getPayments(id);
+  }
+
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+  @Get(':id/reviews')
+  reviews(@Param('id') id: string) {
+    return this.customers.getReviews(id);
+  }
+
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.customers.findOne(id);
