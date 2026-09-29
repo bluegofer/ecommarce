@@ -77,7 +77,7 @@ export function OrderCard({ locale, order, labels }: OrderCardProps) {
               </Link>
               {order.status === 'DELIVERED' ? (
                 <Link
-                  href={`/${locale}/account/orders/${order.id}#return`}
+                  href={`/${locale}/account/returns/new?order=${order.id}`}
                   className={styles.ghostBtn}
                 >
                   {labels.returnItems}
