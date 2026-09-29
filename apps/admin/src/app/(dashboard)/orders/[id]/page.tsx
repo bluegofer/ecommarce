@@ -75,7 +75,7 @@ export default function OrderDetailPage() {
   );
 
   const verifyMutation = useMutation<void, unknown>('post', `/api/v1/orders/${orderId}/verify`);
-  const statusMutation = useMutation<{ status: string }, unknown>(
+  const statusMutation = useMutation<{ status: string; note?: string | undefined }, unknown>(
     'patch',
     `/api/v1/orders/${orderId}/status`,
   );
@@ -105,6 +105,8 @@ export default function OrderDetailPage() {
   const [editAddress, setEditAddress] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editNote, setEditNote] = useState('');
+  const [exchangeOpen, setExchangeOpen] = useState(false);
+  const [exchangeReason, setExchangeReason] = useState('');
   const [dispatchCourier, setDispatchCourier] = useState<'PATHAO' | 'STEADFAST' | 'REDX'>('PATHAO');
   const [dispatchNote, setDispatchNote] = useState('');
 
@@ -179,14 +181,54 @@ export default function OrderDetailPage() {
                 Move to {(nextStatus ?? '').replace(/_/g, ' ')}
               </button>
             )}
-            <button
-              type="button"
-              disabled
-              title="Exchange workflow coming soon — pending backend support"
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-400 cursor-not-allowed opacity-60"
-            >
-              <RefreshCcw className="w-4 h-4" /> Exchange (soon)
-            </button>
+            {data.status === 'DELIVERED' && (
+              <button
+                type="button"
+                onClick={() => setExchangeOpen(true)}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 hover:border-sky-400 hover:text-sky-700"
+              >
+                <RefreshCcw className="w-4 h-4" /> Request exchange
+              </button>
+            )}
+            {data.status === 'EXCHANGE_REQUESTED' && (
+              <>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await statusMutation.mutate({ status: 'EXCHANGE_APPROVED' });
+                    toast.success('Exchange approved');
+                    void refetch();
+                  }}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-success-600 text-white text-sm font-medium hover:bg-success-700"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Approve exchange
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await statusMutation.mutate({ status: 'EXCHANGE_REJECTED', note: 'Rejected by admin' });
+                    toast.success('Exchange rejected');
+                    void refetch();
+                  }}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-danger-300 bg-white text-sm font-medium text-danger-700 hover:bg-danger-50"
+                >
+                  <XCircle className="w-4 h-4" /> Reject
+                </button>
+              </>
+            )}
+            {data.status === 'EXCHANGE_APPROVED' && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await statusMutation.mutate({ status: 'EXCHANGED' });
+                  toast.success('Marked as exchanged');
+                  void refetch();
+                }}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+              >
+                <RefreshCcw className="w-4 h-4" /> Mark exchanged
+              </button>
+            )}
           </>
         }
       />
@@ -493,6 +535,54 @@ export default function OrderDetailPage() {
               className="w-full p-3 rounded border border-border bg-white text-sm text-slate-700 focus:border-sky-400 focus:outline-none" />
           </div>
           <p className="text-[11.5px] text-slate-500">Only editable before the order ships. All changes are logged.</p>
+        </div>
+      </Modal>
+
+      <Modal
+        open={exchangeOpen}
+        onClose={() => setExchangeOpen(false)}
+        title="Request exchange"
+        size="md"
+        footer={
+          <>
+            <button type="button" onClick={() => setExchangeOpen(false)}
+              className="h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700">Cancel</button>
+            <button
+              type="button"
+              disabled={statusMutation.loading || !exchangeReason.trim()}
+              onClick={async () => {
+                try {
+                  await statusMutation.mutate({ status: 'EXCHANGE_REQUESTED', note: exchangeReason.trim() });
+                  toast.success('Exchange requested');
+                  setExchangeOpen(false);
+                  setExchangeReason('');
+                  void refetch();
+                } catch (e) {
+                  toast.error('Request failed', e instanceof Error ? e.message : 'Unknown');
+                }
+              }}
+              className="h-9 px-4 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60"
+            >
+              {statusMutation.loading ? 'Requesting...' : 'Submit request'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-[13px] text-slate-600">
+            The order will move to <span className="font-medium text-sky-700">EXCHANGE_REQUESTED</span>.
+            Admin can then approve or reject.
+          </p>
+          <div>
+            <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">Reason *</label>
+            <textarea
+              value={exchangeReason}
+              onChange={(e) => setExchangeReason(e.target.value)}
+              rows={3}
+              placeholder="e.g. Wrong size — customer wants L instead of M"
+              className="w-full p-3 rounded border border-border bg-white text-sm text-slate-700 focus:border-sky-400 focus:outline-none"
+            />
+          </div>
         </div>
       </Modal>
     </div>
