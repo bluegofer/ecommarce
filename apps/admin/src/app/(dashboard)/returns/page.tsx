@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useState } from 'react';
 import { RotateCcw, MessageSquare, Clock } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip, useToast } from '@/components/ui';
@@ -60,7 +62,14 @@ export default function ReturnsPage() {
     {
       key: 'order',
       header: 'Order',
-      render: (r) => <code className="font-mono text-slate-800">{r.orderNumber}</code>,
+      render: (r) => (
+        <Link
+          href={`/returns/${r.id}`}
+          className="font-mono text-sky-700 hover:text-sky-900 hover:underline"
+        >
+          {r.orderNumber}
+        </Link>
+      ),
     },
     { key: 'customer', header: 'Customer', render: (r) => r.customerName },
     { key: 'reason', header: 'Reason', render: (r) => <span className="text-slate-600">{r.reason}</span> },
