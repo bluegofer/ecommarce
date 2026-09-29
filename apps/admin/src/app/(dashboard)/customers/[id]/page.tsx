@@ -28,6 +28,16 @@ interface Customer360 {
   firstOrderAt: string | null;
   lastOrderAt: string | null;
   segmentLabels: string[];
+  orderSummary: {
+      total: number;
+      last5: Array<{
+        id: string;
+        orderNumber: string;
+        status: string;
+        totalPoisha: number;
+        placedAt: string;
+      }>;
+    };
   addresses: Array<{ id: string; label: string; fullAddress: string }>;
   timeline: Timeline[];
 }
@@ -44,7 +54,7 @@ const TIMELINE_TONE: Record<Timeline['kind'], string> = {
   FOLLOWUP: 'bg-info-100 text-info-600',
 };
 
-const TABS = ['Timeline', 'Addresses'] as const;
+const TABS = ['Timeline', 'Orders', 'Addresses'] as const;
 
 export default function Customer360Page() {
   const params = useParams<{ id: string }>();
@@ -154,6 +164,42 @@ export default function Customer360Page() {
                     </li>
                   ))}
                 </ol>
+              )}
+            </div>
+          )}
+
+          {tab === 'Orders' && (
+            <div className="card p-5 space-y-3">
+              {!data.orderSummary || !data.orderSummary.last5 || data.orderSummary.last5.length === 0 ? (
+                <p className="text-center text-slate-400 py-6">No orders yet.</p>
+              ) : (
+                <>
+                  <div className="text-[12.5px] text-slate-500 mb-2">
+                    Showing {data.orderSummary.last5.length} of {data.orderSummary.total} total orders
+                  </div>
+                  {data.orderSummary.last5.map((o) => (
+                    <Link
+                      key={o.id}
+                      href={/orders/ + o.id}
+                      className="block p-3 rounded border border-border bg-slate-50 hover:border-sky-400 hover:bg-sky-50 transition"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-mono text-[13px] font-medium text-slate-800">{o.orderNumber}</div>
+                          <div className="text-[11.5px] text-slate-500 mt-0.5">
+                            {formatDateTime(o.placedAt)}
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className="font-medium text-slate-900">{formatPoisha(o.totalPoisha)}</div>
+                          <div className="mt-1">
+                            <StatusChip label={o.status.replace(/_/g, ' ')} tone="info" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </>
               )}
             </div>
           )}
