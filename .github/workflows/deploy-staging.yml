@@ -118,6 +118,8 @@ jobs:
               "echo STEP82_ROBUSTNESS — hardened deploy",
               "cd /home/ssm-user/apps/ecommarce",
               "git fetch origin && git reset --hard origin/staging",
+              "sudo cp /home/ssm-user/apps/ecommarce/infra/nginx/bluegofer.conf /etc/nginx/conf.d/bluegofer.conf",
+              "sudo nginx -t && sudo systemctl reload nginx",
               "df -h / | tail -1",
               "sudo docker system prune -af --volumes=false",
               "df -h / | tail -1",
