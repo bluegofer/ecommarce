@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   Search,
   Check,
+  Pencil,
 } from 'lucide-react';
 import { PageHeader, StatusChip, EmptyState, Modal, useToast } from '@/components/ui';
 import { useQuery, useMutation, useUpload } from '@/lib/hooks';
@@ -280,6 +281,7 @@ export default function CmsPage() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState<AddFormState>({ ...EMPTY_FORM });
+  const [editId, setEditId] = useState<string | null>(null);
   const [productSearch, setProductSearch] = useState('');
 
   const productsQuery = useQuery<PaginatedProducts>(
@@ -292,6 +294,18 @@ export default function CmsPage() {
     'patch',
     (input) => `/api/v1/cms/sections/${(input as { id: string }).id}`,
   );
+  const updateMutation = useMutation<
+    {
+      id: string;
+      key: string;
+      sectionType: SectionType;
+      titleEn?: string | undefined;
+      titleBn?: string | undefined;
+      position: number;
+      isVisible: boolean;
+    },
+    unknown
+  >('patch', (input) => `/api/v1/cms/sections/${(input as { id: string }).id}`);
   const reorderMutation = useMutation<{ orderedIds: string[] }, unknown>(
     'post',
     '/api/v1/cms/sections/reorder',
@@ -300,8 +314,8 @@ export default function CmsPage() {
     {
       key: string;
       sectionType: SectionType;
-      titleEn?: string;
-      titleBn?: string;
+      titleEn?: string | undefined;
+      titleBn?: string | undefined;
       position: number;
       config?: Record<string, unknown>;
       isVisible: boolean;
@@ -341,13 +355,49 @@ export default function CmsPage() {
   }
 
   function openAdd() {
+    setEditId(null);
     const nextPos = data && data.length > 0 ? Math.max(...data.map((s) => s.position)) + 1 : 0;
     setForm({ ...EMPTY_FORM, position: nextPos });
     setProductSearch('');
     setAddOpen(true);
   }
 
+  function openEdit(s: Section) {
+    setEditId(s.id);
+    setForm({
+      ...EMPTY_FORM,
+      sectionType: s.sectionType,
+      key: s.key,
+      titleEn: s.titleEn ?? '',
+      titleBn: s.titleBn ?? '',
+      position: s.position,
+      isVisible: s.isVisible,
+    });
+    setAddOpen(true);
+  }
+
   async function handleCreate() {
+    if (editId) {
+      try {
+        await updateMutation.mutate({
+          id: editId,
+          key: form.key.trim(),
+          sectionType: form.sectionType,
+          titleEn: form.titleEn.trim() || undefined,
+          titleBn: form.titleBn.trim() || undefined,
+          position: form.position,
+          isVisible: form.isVisible,
+        });
+        toast.success('Section updated');
+        setAddOpen(false);
+        setEditId(null);
+        setForm({ ...EMPTY_FORM });
+        void refetch();
+      } catch (e) {
+        toast.error('Update failed', e instanceof Error ? e.message : 'Unknown');
+      }
+      return;
+    }
     const key = form.key.trim();
     const titleEn = form.titleEn.trim();
     const titleBn = form.titleBn.trim();
@@ -490,8 +540,8 @@ export default function CmsPage() {
       const payload: {
         key: string;
         sectionType: SectionType;
-        titleEn?: string;
-        titleBn?: string;
+      titleEn?: string | undefined;
+      titleBn?: string | undefined;
         position: number;
         config?: Record<string, unknown>;
         isVisible: boolean;
@@ -733,6 +783,14 @@ export default function CmsPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => openEdit(s)}
+                  className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
+                  aria-label="Edit section"
+                >
+                  <Pencil className="w-4 h-4 text-slate-500" />
+                </button>
+                <button
+                  type="button"
                   onClick={async () => {
                     await toggleMutation.mutate({ id: s.id, isVisible: !s.isVisible });
                     toast.success(s.isVisible ? 'Section hidden' : 'Section visible');
@@ -764,7 +822,7 @@ export default function CmsPage() {
       <Modal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title="Add homepage section"
+        title={editId ? "Edit homepage section" : "Add homepage section"}
         size="lg"
         footer={
           <>
@@ -781,7 +839,7 @@ export default function CmsPage() {
               disabled={createMutation.loading || !form.key.trim()}
               className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-60"
             >
-              {createMutation.loading ? 'Creating…' : 'Create'}
+              {createMutation.loading ? (editId ? 'Updating...' : 'Creating...') : (editId ? 'Update' : 'Create')}
             </button>
           </>
         }
