@@ -14,7 +14,11 @@ export type OrderStatus =
   | 'FAILED'
   | 'CANCELLED'
   | 'RETURN_REQUESTED'
-  | 'RETURNED';
+  | 'RETURNED'
+  | 'EXCHANGE_REQUESTED'
+  | 'EXCHANGE_APPROVED'
+  | 'EXCHANGE_REJECTED'
+  | 'EXCHANGED';
 
 export type PaymentMethod = 'BKASH' | 'NAGAD' | 'SSLCOMMERZ' | 'COD';
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
