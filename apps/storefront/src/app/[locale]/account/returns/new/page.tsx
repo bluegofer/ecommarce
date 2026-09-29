@@ -33,7 +33,7 @@ export default function NewReturnPage({ params }: { params: { locale: string } }
       setError(bn ? 'অর্ডার নির্বাচন করুন' : 'No order selected');
       return;
     }
-    api.get<OrderRow>(`/api/v1/orders/${orderId}`)
+    api.get<OrderRow>(`/orders/${orderId}`)
       .then(setOrder)
       .catch((e) => setError(e instanceof Error ? e.message : 'Load failed'))
       .finally(() => setLoading(false));

@@ -44,7 +44,7 @@ export function usePresignedUpload() {
     filename: string,
     trackingId: string,
   ): Promise<string> {
-    const presign = await api.post<PresignResult>('/api/v1/uploads/presign', {
+    const presign = await api.post<PresignResult>('/uploads/presign', {
       filename,
       mimeType: contentType,
       sizeBytes: blob.size,
