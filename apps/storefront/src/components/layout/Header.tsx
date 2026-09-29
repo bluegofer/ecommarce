@@ -127,14 +127,6 @@ export function Header({
       <header className={[styles.header, collapsed ? styles.collapsed : '', searchExpanded ? styles.searchExpanded : ''].filter(Boolean).join(' ')}>
         <div className={styles.row1}>
           <div className={styles.row1Inner}>
-            <button
-              type="button"
-              className={styles.mobileMenuBtn}
-              aria-label={labels.megaMenu.mainMenu}
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <HamburgerIcon />
-            </button>
 
             <Link href={`/${locale}`} className={styles.logo} aria-label="NoLimitShopping home">
               <PinIcon />
