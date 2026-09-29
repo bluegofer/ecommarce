@@ -1205,6 +1205,16 @@ enum ReviewStatus {
   HIDDEN
 }
 
+enum ReturnResolutionType {
+  REFUND
+  REPLACEMENT
+}
+
+enum PickupMethod {
+  HOME_PICKUP
+  SELF_DROP_OFF
+}
+
 enum ReturnStatus {
   REQUESTED
   APPROVED
@@ -1297,6 +1307,10 @@ model ReturnRequest {
   restockedAt        DateTime?
   rejectReason       String?
   trackingNumber     String?
+  resolutionType     ReturnResolutionType?
+  pickupMethod       PickupMethod?
+  replacementVariantId String?
+  replacementNotes   String?      @db.Text
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 

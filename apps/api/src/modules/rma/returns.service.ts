@@ -21,6 +21,7 @@ import type {
   RejectReturnDto,
   ReturnRequestDto,
   ReturnStatus,
+  ResolveReturnDto,
 } from '@ecommarce/types';
 
 @Injectable()
@@ -229,25 +230,46 @@ export class ReturnsService {
    * RESOLVED — refund executed (delegates to payments interface in Step 10).
    * Here we simply record refundedAt and set the order to RETURNED.
    */
-  async resolve(id: string, actorUserId: string | null): Promise<ReturnRequestDto> {
+  async resolve(
+    id: string,
+    dto: ResolveReturnDto,
+    actorUserId: string | null,
+  ): Promise<ReturnRequestDto> {
     const request = await this.prisma.returnRequest.findUnique({ where: { id } });
     if (!request) throw new NotFoundException('return not found');
     assertReturnTransition(request.status as ReturnStatus, 'RESOLVED');
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.returnRequest.update({
-        where: { id },
-        data: { status: 'RESOLVED', refundedAt: new Date() },
-      });
+      const updateData: Record<string, unknown> = {
+        status: 'RESOLVED',
+        resolutionType: dto.resolutionType,
+      };
+      if (dto.resolutionType === 'REFUND') {
+        updateData.refundedAt = new Date();
+        if (dto.refundAmountPoisha !== undefined) updateData.refundAmountPoisha = dto.refundAmountPoisha;
+        if (dto.refundMethod) updateData.refundMethod = dto.refundMethod;
+        if (dto.refundReference !== undefined) updateData.refundReference = dto.refundReference;
+      } else {
+        if (dto.replacementVariantId) updateData.replacementVariantId = dto.replacementVariantId;
+        if (dto.replacementNotes) updateData.replacementNotes = dto.replacementNotes;
+      }
+
+      await tx.returnRequest.update({ where: { id }, data: updateData });
+
+      const resolutionNote =
+        dto.resolutionType === 'REFUND'
+          ? 'Refund processed: ' + (dto.refundMethod ?? 'n/a') + ' - ' + (dto.refundAmountPoisha ?? 0) + ' poisha'
+          : 'Replacement dispatched' + (dto.replacementVariantId ? ': variant ' + dto.replacementVariantId : '');
       await tx.returnStatusHistory.create({
         data: {
           returnRequestId: id,
           fromStatus: request.status,
           toStatus: 'RESOLVED',
           actorUserId,
-          note: 'Refund processed (payment adapter runs in Step 10)',
+          note: dto.note ?? resolutionNote,
         },
       });
+
       await tx.order.update({
         where: { id: request.orderId },
         data: { status: 'RETURNED' },
@@ -258,7 +280,7 @@ export class ReturnsService {
           fromStatus: 'RETURN_REQUESTED',
           toStatus: 'RETURNED',
           actorUserId,
-          note: 'Return resolved',
+          note: 'Return resolved (' + dto.resolutionType + ')',
         },
       });
     });
@@ -372,6 +394,10 @@ export class ReturnsService {
     restockedAt: Date | null;
     rejectReason: string | null;
     trackingNumber: string | null;
+    resolutionType?: string | null;
+    pickupMethod?: string | null;
+    replacementVariantId?: string | null;
+    replacementNotes?: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): ReturnRequestDto {
@@ -395,6 +421,10 @@ export class ReturnsService {
       restockedAt: r.restockedAt ? r.restockedAt.toISOString() : null,
       rejectReason: r.rejectReason,
       trackingNumber: r.trackingNumber,
+      resolutionType: (r.resolutionType ?? null) as ReturnRequestDto['resolutionType'],
+      pickupMethod: (r.pickupMethod ?? null) as ReturnRequestDto['pickupMethod'],
+      replacementVariantId: r.replacementVariantId ?? null,
+      replacementNotes: r.replacementNotes ?? null,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     };

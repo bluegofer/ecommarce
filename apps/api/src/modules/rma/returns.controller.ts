@@ -10,6 +10,7 @@ import type {
   MarkReturnPickedUpDto,
   RejectReturnDto,
   ReturnStatus,
+  ResolveReturnDto,
 } from '@ecommarce/types';
 
 interface RequestUser {
@@ -82,7 +83,11 @@ export class ReturnsController {
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
   @Post(':id/resolve')
-  resolve(@Param('id') id: string, @CurrentUser() user: RequestUser | null) {
-    return this.svc.resolve(id, user?.userId ?? null);
+  resolve(
+    @Param('id') id: string,
+    @Body() dto: ResolveReturnDto,
+    @CurrentUser() user: RequestUser | null,
+  ) {
+    return this.svc.resolve(id, dto, user?.userId ?? null);
   }
 }

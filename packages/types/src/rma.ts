@@ -26,6 +26,10 @@ export type RefundMethod =
   | 'PROMO_CODE'
   | 'STORE_CREDIT';
 
+export type ReturnResolutionType = 'REFUND' | 'REPLACEMENT';
+
+export type PickupMethod = 'HOME_PICKUP' | 'SELF_DROP_OFF';
+
 export type TicketStatus = 'OPEN' | 'PENDING' | 'RESOLVED';
 
 export interface ReturnRequestDto {
@@ -48,6 +52,10 @@ export interface ReturnRequestDto {
   restockedAt: string | null;
   rejectReason: string | null;
   trackingNumber: string | null;
+  resolutionType: ReturnResolutionType | null;
+  pickupMethod: PickupMethod | null;
+  replacementVariantId: string | null;
+  replacementNotes: string | null;
   createdAt: string;
   updatedAt: string;
   history?: ReturnStatusHistoryDto[];
@@ -121,4 +129,14 @@ export interface CreateTicketDto {
 export interface ReplyTicketDto {
   body: string;
   fromStaff: boolean;
+}
+
+export interface ResolveReturnDto {
+  resolutionType: ReturnResolutionType;
+  refundMethod?: RefundMethod;
+  refundReference?: string;
+  refundAmountPoisha?: number;
+  replacementVariantId?: string;
+  replacementNotes?: string;
+  note?: string;
 }
