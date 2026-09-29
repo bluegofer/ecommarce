@@ -303,6 +303,7 @@ export default function CmsPage() {
       titleBn?: string | undefined;
       position: number;
       isVisible: boolean;
+      config?: Record<string, unknown> | undefined;
     },
     unknown
   >('patch', (input) => `/api/v1/cms/sections/${(input as { id: string }).id}`);
@@ -364,7 +365,8 @@ export default function CmsPage() {
 
   function openEdit(s: Section) {
     setEditId(s.id);
-    setForm({
+    const cfg = (s.config as Record<string, unknown> | null | undefined) ?? {};
+    const nextForm: AddFormState = {
       ...EMPTY_FORM,
       sectionType: s.sectionType,
       key: s.key,
@@ -372,32 +374,37 @@ export default function CmsPage() {
       titleBn: s.titleBn ?? '',
       position: s.position,
       isVisible: s.isVisible,
-    });
+    };
+    if (s.sectionType === 'HERO_CAROUSEL') {
+      if (Array.isArray(cfg.slides) && cfg.slides.length > 0) nextForm.heroSlides = cfg.slides as HeroSlideConfig[];
+    } else if (s.sectionType === 'CATEGORY_TILES') {
+      if (Array.isArray(cfg.categoryIds)) nextForm.categoryIds = cfg.categoryIds as string[];
+    } else if (s.sectionType === 'CATEGORY_CAROUSEL') {
+      if (typeof cfg.categoryId === 'string') nextForm.singleCategoryId = cfg.categoryId;
+      if (typeof cfg.limit === 'number') nextForm.productsPerCategory = cfg.limit;
+    } else if (s.sectionType === 'CATEGORY_GRID') {
+      if (Array.isArray(cfg.categoryIds)) nextForm.multiCategoryIds = cfg.categoryIds as string[];
+      if (typeof cfg.perCategoryLimit === 'number') nextForm.productsPerCategory = cfg.perCategoryLimit;
+    } else if (s.sectionType === 'CATEGORY_SHOP_ROW') {
+      if (Array.isArray(cfg.tiles) && cfg.tiles.length > 0) nextForm.shopRowTiles = cfg.tiles as ShopRowTileCfg[];
+    } else if (s.sectionType === 'HERO_PRODUCT_ROW') {
+      if (cfg.hero) nextForm.heroProductHero = cfg.hero as HeroProductHeroCfg;
+      if (Array.isArray(cfg.products) && cfg.products.length > 0) nextForm.heroProductCards = cfg.products as HeroProductCardCfg[];
+    } else if (s.sectionType === 'PROMO_TILES' || s.sectionType === 'PROMO_BANNER' || s.sectionType === 'WIDE_BANNER') {
+      if (Array.isArray(cfg.banners) && cfg.banners.length > 0) nextForm.banners = cfg.banners as BannerConfig[];
+    } else if (s.sectionType === 'SEO_TEXT') {
+      if (Array.isArray(cfg.paragraphs) && cfg.paragraphs.length > 0) nextForm.paragraphs = cfg.paragraphs as string[];
+    } else if (s.sectionType === 'DEAL_STRIP') {
+      if (typeof cfg.endsAt === 'string') nextForm.dealEndsAt = cfg.endsAt.slice(0, 16);
+    } else if (PRODUCT_PICKER_TYPES.includes(s.sectionType)) {
+      if (Array.isArray(cfg.productIds)) nextForm.productIds = cfg.productIds as string[];
+    }
+    setForm(nextForm);
+    setProductSearch('');
     setAddOpen(true);
   }
 
   async function handleCreate() {
-    if (editId) {
-      try {
-        await updateMutation.mutate({
-          id: editId,
-          key: form.key.trim(),
-          sectionType: form.sectionType,
-          titleEn: form.titleEn.trim() || undefined,
-          titleBn: form.titleBn.trim() || undefined,
-          position: form.position,
-          isVisible: form.isVisible,
-        });
-        toast.success('Section updated');
-        setAddOpen(false);
-        setEditId(null);
-        setForm({ ...EMPTY_FORM });
-        void refetch();
-      } catch (e) {
-        toast.error('Update failed', e instanceof Error ? e.message : 'Unknown');
-      }
-      return;
-    }
     const key = form.key.trim();
     const titleEn = form.titleEn.trim();
     const titleBn = form.titleBn.trim();
@@ -555,13 +562,19 @@ export default function CmsPage() {
       if (titleBn) payload.titleBn = titleBn;
       if (config) payload.config = config;
 
-      await createMutation.mutate(payload);
-      toast.success('Section created');
+      if (editId) {
+        await updateMutation.mutate({ id: editId, ...payload });
+        toast.success('Section updated');
+      } else {
+        await createMutation.mutate(payload);
+        toast.success('Section created');
+      }
       setAddOpen(false);
+      setEditId(null);
       setForm({ ...EMPTY_FORM });
       void refetch();
     } catch (e) {
-      toast.error('Create failed', e instanceof Error ? e.message : 'Unknown');
+      toast.error(editId ? 'Update failed' : 'Create failed', e instanceof Error ? e.message : 'Unknown');
     }
   }
 
