@@ -64,6 +64,7 @@ export function ReturnRequestForm({ order, locale, onSuccess }: ReturnRequestFor
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState('DAMAGED');
   const [reasonNote, setReasonNote] = useState('');
+  const [pickupMethod, setPickupMethod] = useState<'HOME_PICKUP' | 'SELF_DROP_OFF'>('HOME_PICKUP');
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -115,6 +116,7 @@ export function ReturnRequestForm({ order, locale, onSuccess }: ReturnRequestFor
       orderId: order.id,
       itemIds: Array.from(selectedItems),
       reason,
+      pickupMethod,
     };
     if (reasonNote.trim()) payload.reasonNote = reasonNote.trim();
     if (photoUrls.length > 0) payload.photoUrls = photoUrls;
@@ -169,6 +171,38 @@ export function ReturnRequestForm({ order, locale, onSuccess }: ReturnRequestFor
           placeholder={bn ? 'বিস্তারিত লিখুন (ঐচ্ছিক)' : 'Details (optional)'}
           className={styles.textarea}
         />
+      </section>
+
+      <section className={styles.section}>
+        <h3 className={styles.h3}>{bn ? 'ফেরত পদ্ধতি' : 'Return method'}</h3>
+        <div className={styles.methodRow}>
+          <label className={`${styles.methodCard} ${pickupMethod === 'HOME_PICKUP' ? styles.methodCardActive : ''}`}>
+            <input
+              type="radio"
+              name="pickupMethod"
+              value="HOME_PICKUP"
+              checked={pickupMethod === 'HOME_PICKUP'}
+              onChange={() => setPickupMethod('HOME_PICKUP')}
+              className={styles.methodRadio}
+            />
+            <div className={styles.methodIcon}>🏠</div>
+            <div className={styles.methodTitle}>{bn ? 'হোম পিকআপ' : 'Home pickup'}</div>
+            <div className={styles.methodDesc}>{bn ? 'আমরা আপনার ঠিকানা থেকে সংগ্রহ করব' : 'We collect from your address'}</div>
+          </label>
+          <label className={`${styles.methodCard} ${pickupMethod === 'SELF_DROP_OFF' ? styles.methodCardActive : ''}`}>
+            <input
+              type="radio"
+              name="pickupMethod"
+              value="SELF_DROP_OFF"
+              checked={pickupMethod === 'SELF_DROP_OFF'}
+              onChange={() => setPickupMethod('SELF_DROP_OFF')}
+              className={styles.methodRadio}
+            />
+            <div className={styles.methodIcon}>📦</div>
+            <div className={styles.methodTitle}>{bn ? 'নিজে ড্রপ-অফ' : 'Self drop-off'}</div>
+            <div className={styles.methodDesc}>{bn ? 'আমাদের অফিসে পণ্য জমা দিন' : 'Drop at our office'}</div>
+          </label>
+        </div>
       </section>
 
       <section className={styles.section}>

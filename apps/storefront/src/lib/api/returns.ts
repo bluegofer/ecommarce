@@ -58,6 +58,7 @@ export interface CreateReturnPayload {
   reason: string;
   reasonNote?: string;
   photoUrls?: string[];
+  pickupMethod?: "HOME_PICKUP" | "SELF_DROP_OFF";
 }
 
 // ── API wrapper ──

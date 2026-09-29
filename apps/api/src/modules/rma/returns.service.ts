@@ -70,6 +70,7 @@ export class ReturnsService {
         status: 'REQUESTED',
         reason: dto.reason,
         reasonNote: dto.reasonNote ?? null,
+        pickupMethod: dto.pickupMethod ?? null,
         photoUrls: (dto.photoUrls as unknown as object) ?? undefined,
         itemIds: itemIds as unknown as object,
         history: {

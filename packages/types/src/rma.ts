@@ -77,6 +77,7 @@ export interface CreateReturnRequestDto {
   reason: ReturnReason;
   reasonNote?: string;
   photoUrls?: string[];
+  pickupMethod?: PickupMethod;
 }
 
 export interface ApproveReturnDto {

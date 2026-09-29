@@ -74,3 +74,63 @@
 .iconMed { width: 20px; height: 20px; }
 .iconSpin { width: 20px; height: 20px; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.methodRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.methodCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 2px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-surface);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.methodCard:hover {
+  border-color: var(--sk-brand-300);
+}
+
+.methodCardActive {
+  border-color: var(--sk-brand-300);
+  background: rgba(135, 206, 235, 0.15);
+}
+
+.methodRadio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.methodIcon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.methodTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sk-ink);
+  margin-bottom: 4px;
+}
+
+.methodDesc {
+  font-size: 12px;
+  color: var(--sk-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .methodRow {
+    grid-template-columns: 1fr;
+  }
+}
