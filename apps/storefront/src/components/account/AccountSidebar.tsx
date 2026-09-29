@@ -29,6 +29,7 @@ export function AccountSidebar({ locale, labels, onSignOut }: AccountSidebarProp
     { href: `/${locale}`, label: labels.home },
     { href: base, label: labels.overview },
     { href: `${base}/orders`, label: labels.orders },
+    { href: `${base}/returns`, label: labels.returns },
     { href: `${base}/wishlist`, label: labels.wishlist },
     { href: `${base}/addresses`, label: labels.addresses },
     { href: `${base}/settings`, label: labels.settings },
