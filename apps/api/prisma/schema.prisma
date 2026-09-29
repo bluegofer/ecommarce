@@ -1287,6 +1287,8 @@ model ReturnRequest {
   photoUrls          Json?
   itemIds            Json
   refundAmountPoisha Int          @default(0)
+  refundMethod       String?
+  refundReference    String?
   refundedAt         DateTime?
   restockedAt        DateTime?
   rejectReason       String?

@@ -18,6 +18,14 @@ export type ReturnReason =
   | 'QUALITY_ISSUE'
   | 'OTHER';
 
+export type RefundMethod =
+  | 'BKASH'
+  | 'NAGAD'
+  | 'ROCKET'
+  | 'BANK_TRANSFER'
+  | 'PROMO_CODE'
+  | 'STORE_CREDIT';
+
 export type TicketStatus = 'OPEN' | 'PENDING' | 'RESOLVED';
 
 export interface ReturnRequestDto {
@@ -30,6 +38,8 @@ export interface ReturnRequestDto {
   photoUrls: string[] | null;
   itemIds: string[];
   refundAmountPoisha: number;
+  refundMethod: RefundMethod | null;
+  refundReference: string | null;
   refundedAt: string | null;
   restockedAt: string | null;
   rejectReason: string | null;
@@ -59,6 +69,8 @@ export interface CreateReturnRequestDto {
 
 export interface ApproveReturnDto {
   refundAmountPoisha: number;
+  refundMethod: RefundMethod;
+  refundReference?: string;
   note?: string;
 }
 

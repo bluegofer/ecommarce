@@ -66,6 +66,8 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [approveAmount, setApproveAmount] = useState('');
   const [approveNote, setApproveNote] = useState('');
+  const [approveMethod, setApproveMethod] = useState('');
+  const [approveReference, setApproveReference] = useState('');
 
   const q = useQuery<ReturnDetail>(`/api/v1/returns/${returnId}`);
 
@@ -88,14 +90,22 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       toast.error('Enter valid refund amount (poisha)');
       return;
     }
+    if (!approveMethod) {
+      toast.error('Select refund method');
+      return;
+    }
     try {
       await api.post(`/api/v1/returns/${returnId}/approve`, {
         refundAmountPoisha: amount,
+        refundMethod: approveMethod,
+        refundReference: approveReference || undefined,
         note: approveNote || undefined,
       });
       toast.success('Return approved');
       setApproveModalOpen(false);
       setApproveAmount('');
+      setApproveMethod('');
+      setApproveReference('');
       setApproveNote('');
       void q.refetch();
     } catch {
@@ -424,6 +434,28 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
             value={approveAmount}
             onChange={(e) => setApproveAmount(e.target.value)}
             placeholder="e.g. 149000 for ৳1,490"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+          <label className="block text-sm font-medium text-slate-700">Refund Method *</label>
+          <select
+            value={approveMethod}
+            onChange={(e) => setApproveMethod(e.target.value)}
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white"
+          >
+            <option value="">Select method...</option>
+            <option value="BKASH">bKash</option>
+            <option value="NAGAD">Nagad</option>
+            <option value="ROCKET">Rocket</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+            <option value="PROMO_CODE">Promo Code</option>
+            <option value="STORE_CREDIT">Store Credit</option>
+          </select>
+          <label className="block text-sm font-medium text-slate-700">Reference (optional)</label>
+          <input
+            type="text"
+            value={approveReference}
+            onChange={(e) => setApproveReference(e.target.value)}
+            placeholder="Transaction ID / Promo code..."
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
           />
           <label className="block text-sm font-medium text-slate-700">Note (optional)</label>

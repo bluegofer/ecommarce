@@ -149,6 +149,8 @@ export class ReturnsService {
     return this.transition(id, 'APPROVED', actorUserId, {
       note: `Approved for refund of ${dto.refundAmountPoisha} poisha`,
       refundAmountPoisha: dto.refundAmountPoisha,
+      refundMethod: dto.refundMethod,
+      refundReference: dto.refundReference ?? null,
     });
   }
 
@@ -271,6 +273,8 @@ export class ReturnsService {
     extras: {
       note: string;
       refundAmountPoisha?: number;
+      refundMethod?: ReturnRequestDto['refundMethod'];
+      refundReference?: string | null;
       rejectReason?: string;
       trackingNumber?: string;
     },
@@ -289,6 +293,8 @@ export class ReturnsService {
       const data: Record<string, unknown> = { status: to };
       if (to === 'APPROVED' && extras.refundAmountPoisha !== undefined) {
         data.refundAmountPoisha = extras.refundAmountPoisha;
+        if (extras.refundMethod !== undefined) data.refundMethod = extras.refundMethod;
+        if (extras.refundReference !== undefined) data.refundReference = extras.refundReference;
       }
       if (to === 'REJECTED') data.rejectReason = extras.rejectReason ?? null;
       if (to === 'PICKED_UP' && extras.trackingNumber) {
@@ -319,6 +325,8 @@ export class ReturnsService {
     photoUrls: unknown;
     itemIds: unknown;
     refundAmountPoisha: number;
+    refundMethod: string | null;
+    refundReference: string | null;
     refundedAt: Date | null;
     restockedAt: Date | null;
     rejectReason: string | null;
@@ -336,6 +344,8 @@ export class ReturnsService {
       photoUrls: Array.isArray(r.photoUrls) ? (r.photoUrls as string[]) : null,
       itemIds: Array.isArray(r.itemIds) ? (r.itemIds as string[]) : [],
       refundAmountPoisha: r.refundAmountPoisha,
+      refundMethod: (r.refundMethod ?? null) as ReturnRequestDto['refundMethod'],
+      refundReference: r.refundReference ?? null,
       refundedAt: r.refundedAt ? r.refundedAt.toISOString() : null,
       restockedAt: r.restockedAt ? r.restockedAt.toISOString() : null,
       rejectReason: r.rejectReason,

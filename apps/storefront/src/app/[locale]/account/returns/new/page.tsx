@@ -13,7 +13,15 @@ interface OrderRow {
   id: string;
   orderNumber: string;
   status: string;
-  items: Array<{ id: string; sku: string; title: string; quantity: number }>;
+  items: Array<{
+    id: string;
+    variantSnapshot: { sku: string };
+    productTitleEn: string;
+    productTitleBn: string;
+    quantity: number;
+    unitPricePoisha: number;
+    lineTotalPoisha: number;
+  }>;
 }
 
 export default function NewReturnPage({ params }: { params: { locale: string } }) {

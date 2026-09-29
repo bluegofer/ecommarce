@@ -8,7 +8,13 @@ import styles from './ReturnRequestForm.module.css';
 interface OrderOption {
   id: string;
   orderNumber: string;
-  items: Array<{ id: string; sku: string; title: string; quantity: number }>;
+  items: Array<{
+    id: string;
+    variantSnapshot: { sku: string };
+    productTitleEn: string;
+    productTitleBn: string;
+    quantity: number;
+  }>;
 }
 
 export interface ReturnRequestFormProps {
@@ -139,8 +145,8 @@ export function ReturnRequestForm({ order, locale, onSuccess }: ReturnRequestFor
                   className={styles.checkbox}
                 />
                 <div>
-                  <div className={styles.itemTitle}>{it.title}</div>
-                  <code className={styles.sku}>{it.sku}</code>
+                  <div className={styles.itemTitle}>{bn ? it.productTitleBn : it.productTitleEn}</div>
+                  <code className={styles.sku}>{it.variantSnapshot.sku}</code>
                 </div>
                 <span className={styles.qty}>× {it.quantity}</span>
               </label>
