@@ -47,7 +47,8 @@ export interface ReturnEvent {
 
 export interface ReturnRequestDetail extends ReturnRequestSummary {
   itemIds: string[];
-  items: ReturnLineItem[];
+  items: ReturnLineItem[] | null;
+  history?: ReturnEvent[];
   timeline: ReturnEvent[];
 }
 
@@ -65,10 +66,18 @@ export const returnsApi = {
   listMine(): Promise<MyReturnItem[]> {
     return api.get<MyReturnItem[]>('/returns/me');
   },
-  create(payload: CreateReturnPayload): Promise<ReturnRequestDetail> {
-    return api.post<ReturnRequestDetail>('/returns', payload);
+  async create(payload: CreateReturnPayload): Promise<ReturnRequestDetail> {
+    const data = await api.post<ReturnRequestDetail & { history?: ReturnEvent[] }>('/returns', payload);
+    return {
+      ...data,
+      timeline: data.history ?? data.timeline ?? [],
+    };
   },
-  detail(id: string): Promise<ReturnRequestDetail> {
-    return api.get<ReturnRequestDetail>(`/returns/${id}`);
+  async detail(id: string): Promise<ReturnRequestDetail> {
+    const data = await api.get<ReturnRequestDetail & { history?: ReturnEvent[] }>(`/returns/${id}`);
+    return {
+      ...data,
+      timeline: data.history ?? data.timeline ?? [],
+    };
   },
 };

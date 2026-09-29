@@ -53,13 +53,13 @@ export default function ReturnDetailPage({ params }: { params: { locale: string;
 
       <section className={styles.card}>
         <h3 className={styles.h3}>{bn ? 'স্টেটাস' : 'Status'}</h3>
-        <ReturnTimeline events={data.timeline} locale={params.locale} />
+        <ReturnTimeline events={data.timeline ?? []} locale={params.locale} />
       </section>
 
       <section className={styles.card}>
         <h3 className={styles.h3}>{bn ? 'পণ্য' : 'Items'}</h3>
         <ul className={styles.itemList}>
-          {data.items.map((it) => (
+          {(data.items ?? []).map((it) => (
             <li key={it.id} className={styles.item}>
               <span>{it.title}</span>
               <code className={styles.sku}>{it.sku}</code>

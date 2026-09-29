@@ -95,7 +95,7 @@ export class ReturnsService {
       },
     });
 
-    return this.toDto(created);
+    return this.enrich(created);
   }
 
   async listMine(userId: string): Promise<ReturnRequestDto[]> {
@@ -106,7 +106,8 @@ export class ReturnsService {
       where: { customerId },
       orderBy: { createdAt: 'desc' },
     });
-    return rows.map((r) => this.toDto(r));
+    const enriched = await Promise.all(rows.map((r) => this.enrich(r)));
+    return enriched;
   }
 
   // -------------------------------------------------------------------------
@@ -119,7 +120,8 @@ export class ReturnsService {
       orderBy: { createdAt: 'asc' },
       take: 200,
     });
-    return rows.map((r) => this.toDto(r));
+    const enriched = await Promise.all(rows.map((r) => this.enrich(r)));
+    return enriched;
   }
 
   async findOne(id: string): Promise<ReturnRequestDto> {
@@ -128,7 +130,7 @@ export class ReturnsService {
       include: { history: { orderBy: { createdAt: 'asc' } } },
     });
     if (!row) throw new NotFoundException('return not found');
-    const dto = this.toDto(row);
+    const dto = await this.enrich(row);
     dto.history = row.history.map((h) => ({
       id: h.id,
       returnRequestId: h.returnRequestId,
@@ -315,6 +317,45 @@ export class ReturnsService {
     return this.findOne(id);
   }
 
+  private async enrich(r: {
+    id: string; orderId: string; customerId: string;
+    status: string; reason: string; reasonNote: string | null;
+    photoUrls: unknown; itemIds: unknown;
+    refundAmountPoisha: number; refundMethod: string | null; refundReference: string | null;
+    refundedAt: Date | null; restockedAt: Date | null;
+    rejectReason: string | null; trackingNumber: string | null;
+    createdAt: Date; updatedAt: Date;
+  }): Promise<ReturnRequestDto> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: r.orderId },
+      include: { items: true },
+    });
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: r.customerId },
+      select: { fullName: true, phone: true },
+    });
+
+    const itemIds = Array.isArray(r.itemIds) ? (r.itemIds as string[]) : [];
+    const matchedItems = (order?.items ?? [])
+      .filter((it) => itemIds.includes(it.id))
+      .map((it) => {
+        const snap = it.variantSnapshot as { sku?: string } | null;
+        return {
+          id: it.id,
+          sku: snap?.sku ?? '',
+          title: it.productTitleEn ?? '',
+          quantity: it.quantity,
+        };
+      });
+
+    const dto = this.toDto(r);
+    dto.orderNumber = order?.orderNumber ?? null;
+    dto.customerName = customer?.fullName ?? null;
+    dto.customerPhone = customer?.phone ?? null;
+    dto.items = matchedItems;
+    return dto;
+  }
+
   private toDto(r: {
     id: string;
     orderId: string;
@@ -337,12 +378,16 @@ export class ReturnsService {
     return {
       id: r.id,
       orderId: r.orderId,
+      orderNumber: null,
       customerId: r.customerId,
+      customerName: null,
+      customerPhone: null,
       status: r.status as ReturnStatus,
       reason: r.reason as ReturnRequestDto['reason'],
       reasonNote: r.reasonNote,
       photoUrls: Array.isArray(r.photoUrls) ? (r.photoUrls as string[]) : null,
       itemIds: Array.isArray(r.itemIds) ? (r.itemIds as string[]) : [],
+      items: null,
       refundAmountPoisha: r.refundAmountPoisha,
       refundMethod: (r.refundMethod ?? null) as ReturnRequestDto['refundMethod'],
       refundReference: r.refundReference ?? null,

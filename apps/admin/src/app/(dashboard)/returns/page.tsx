@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { useState } from 'react';
 import { RotateCcw, MessageSquare, Clock } from 'lucide-react';
-import { PageHeader, DataTable, StatusChip, useToast } from '@/components/ui';
+import { PageHeader, DataTable, StatusChip } from '@/components/ui';
 import type { Column } from '@/components/ui';
 import { useQuery, useMutation } from '@/lib/hooks';
 
@@ -44,19 +44,11 @@ const TICKET_TONE: Record<Ticket['status'], 'info' | 'warning' | 'success'> = {
 const TABS = ['Returns', 'Tickets'] as const;
 
 export default function ReturnsPage() {
-  const toast = useToast();
   const [tab, setTab] = useState<(typeof TABS)[number]>('Returns');
 
   const rmaQuery = useQuery<RmaRequest[]>('/api/v1/returns');
   const ticketsQuery = useQuery<Ticket[]>('/api/v1/tickets');
 
-  const approveMutation = useMutation<void, unknown>('post', (input) =>
-    `/api/v1/returns/${(input as unknown as string)}/approve`,
-  );
-  const rejectMutation = useMutation<{ id: string; reason: string }, unknown>(
-    'post',
-    (input) => `/api/v1/returns/${(input as { id: string }).id}/reject`,
-  );
 
   const rmaColumns: Column<RmaRequest>[] = [
     {
@@ -91,33 +83,14 @@ export default function ReturnsPage() {
       key: 'actions',
       header: '',
       align: 'right',
-      render: (r) =>
-        r.status === 'REQUESTED' ? (
-          <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                await approveMutation.mutate(r.id as unknown as void);
-                toast.success('Return approved');
-                void rmaQuery.refetch();
-              }}
-              className="text-[12.5px] font-medium text-success-700 hover:text-success-600"
-            >
-              Approve
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                await rejectMutation.mutate({ id: r.id, reason: 'Not eligible' });
-                toast.success('Return rejected');
-                void rmaQuery.refetch();
-              }}
-              className="text-[12.5px] font-medium text-danger-700 hover:text-danger-600"
-            >
-              Reject
-            </button>
-          </div>
-        ) : null,
+      render: (r) => (
+        <Link
+          href={`/returns/${r.id}`}
+          className="text-[12.5px] font-medium text-sky-700 hover:text-sky-900"
+        >
+          View →
+        </Link>
+      ),
     },
   ];
 

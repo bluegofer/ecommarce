@@ -31,12 +31,16 @@ export type TicketStatus = 'OPEN' | 'PENDING' | 'RESOLVED';
 export interface ReturnRequestDto {
   id: string;
   orderId: string;
+  orderNumber: string | null;
   customerId: string;
+  customerName: string | null;
+  customerPhone: string | null;
   status: ReturnStatus;
   reason: ReturnReason;
   reasonNote: string | null;
   photoUrls: string[] | null;
   itemIds: string[];
+  items: Array<{ id: string; sku: string; title: string; quantity: number }> | null;
   refundAmountPoisha: number;
   refundMethod: RefundMethod | null;
   refundReference: string | null;
