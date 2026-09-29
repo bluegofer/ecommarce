@@ -1,5 +1,7 @@
 'use client';
 
+import { api } from '@/lib/api';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, XCircle, Package, Truck, Check, DollarSign } from 'lucide-react';
@@ -61,14 +63,12 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
   const [pickedUpModalOpen, setPickedUpModalOpen] = useState(false);
   const [trackingInput, setTrackingInput] = useState('');
   const [rejectReason, setRejectReason] = useState('');
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [approveAmount, setApproveAmount] = useState('');
+  const [approveNote, setApproveNote] = useState('');
 
   const q = useQuery<ReturnDetail>(`/api/v1/returns/${returnId}`);
 
-  const approveM = useMutation<void, unknown>('post', () => `/api/v1/returns/${returnId}/approve`);
-  const rejectM = useMutation<void, unknown>('post', () => `/api/v1/returns/${returnId}/reject`);
-  const pickedUpM = useMutation<void, unknown>('post', () => `/api/v1/returns/${returnId}/picked-up`);
-  const receivedM = useMutation<void, unknown>('post', () => `/api/v1/returns/${returnId}/received`);
-  const resolveM = useMutation<void, unknown>('post', () => `/api/v1/returns/${returnId}/resolve`);
 
   if (q.loading && !q.data) {
     return <div className="p-10 text-center text-slate-400">Loading return…</div>;
@@ -83,9 +83,20 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
   const isRejected = r.status === 'REJECTED';
 
   const handleApprove = async () => {
+    const amount = parseInt(approveAmount, 10);
+    if (!approveAmount || isNaN(amount) || amount <= 0) {
+      toast.error('Enter valid refund amount (poisha)');
+      return;
+    }
     try {
-      await approveM.mutate(undefined as unknown as void);
+      await api.post(`/api/v1/returns/${returnId}/approve`, {
+        refundAmountPoisha: amount,
+        note: approveNote || undefined,
+      });
       toast.success('Return approved');
+      setApproveModalOpen(false);
+      setApproveAmount('');
+      setApproveNote('');
       void q.refetch();
     } catch {
       toast.error('Approve failed');
@@ -98,7 +109,9 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
       return;
     }
     try {
-      await rejectM.mutate(undefined as unknown as void);
+      await api.post(`/api/v1/returns/${returnId}/reject`, {
+        rejectReason, 
+      });
       toast.success('Return rejected');
       setRejectModalOpen(false);
       setRejectReason('');
@@ -110,7 +123,9 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
 
   const handlePickedUp = async () => {
     try {
-      await pickedUpM.mutate(undefined as unknown as void);
+      await api.post(`/api/v1/returns/${returnId}/picked-up`, {
+        trackingNumber: trackingInput || undefined,
+      });
       toast.success('Marked picked up');
       setPickedUpModalOpen(false);
       setTrackingInput('');
@@ -122,7 +137,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
 
   const handleReceived = async () => {
     try {
-      await receivedM.mutate(undefined as unknown as void);
+      await api.post(`/api/v1/returns/${returnId}/received`);
       toast.success('Marked received');
       void q.refetch();
     } catch {
@@ -132,7 +147,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
 
   const handleResolve = async () => {
     try {
-      await resolveM.mutate(undefined as unknown as void);
+      await api.post(`/api/v1/returns/${returnId}/resolve`);
       toast.success('Return resolved');
       void q.refetch();
     } catch {
@@ -253,7 +268,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
             <>
               <button
                 type="button"
-                onClick={handleApprove}
+                onClick={() => setApproveModalOpen(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-success-600 text-white text-sm font-medium hover:bg-success-700"
               >
                 <CheckCircle className="w-4 h-4" />
@@ -396,6 +411,31 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
             >
               Confirm
             </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Approve Modal */}
+      <Modal open={approveModalOpen} onClose={() => setApproveModalOpen(false)} title="Approve Return">
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-slate-700">Refund Amount (poisha)</label>
+          <input
+            type="number"
+            value={approveAmount}
+            onChange={(e) => setApproveAmount(e.target.value)}
+            placeholder="e.g. 149000 for ৳1,490"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+          <label className="block text-sm font-medium text-slate-700">Note (optional)</label>
+          <textarea
+            value={approveNote}
+            onChange={(e) => setApproveNote(e.target.value)}
+            rows={2}
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setApproveModalOpen(false)} className="px-4 py-2 rounded-md border border-slate-300 text-sm">Cancel</button>
+            <button type="button" onClick={handleApprove} className="px-4 py-2 rounded-md bg-success-600 text-white text-sm font-medium">Approve</button>
           </div>
         </div>
       </Modal>
