@@ -79,10 +79,6 @@ export default function OrderDetailPage() {
     'patch',
     `/api/v1/orders/${orderId}/status`,
   );
-  const exchangeMutation = useMutation<{ reason: string }, unknown>(
-    'post',
-    `/api/v1/orders/${orderId}/exchange`,
-  );
   const riderMutation = useMutation<{ riderName: string; riderPhone?: string }, unknown>(
     'patch',
     `/api/v1/orders/${orderId}/rider`,
@@ -165,14 +161,11 @@ export default function OrderDetailPage() {
             )}
             <button
               type="button"
-              onClick={async () => {
-                await exchangeMutation.mutate({ reason: 'Customer request' });
-                toast.success('Marked for exchange');
-                void refetch();
-              }}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50"
+              disabled
+              title="Exchange workflow coming soon — pending backend support"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-400 cursor-not-allowed opacity-60"
             >
-              <RefreshCcw className="w-4 h-4" /> Exchange
+              <RefreshCcw className="w-4 h-4" /> Exchange (soon)
             </button>
           </>
         }

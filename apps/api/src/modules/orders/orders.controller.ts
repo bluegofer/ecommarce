@@ -62,6 +62,15 @@ export class OrdersController {
   findOne(@Param('id') id: string) {
     return this.orders.findOne(id);
   }
+@Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+@Post(':id/verify')
+verify(
+  @Param('id') id: string,
+  @CurrentUser() user: RequestUser | null,
+) {
+  return this.orders.verify(id, user?.userId ?? null);
+}
+
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
   @Patch(':id/status')

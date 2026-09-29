@@ -152,6 +152,14 @@ export class OrdersService {
   // State transitions (transactional)
   // -------------------------------------------------------------------------
 
+  /**
+   * PENDING_VERIFICATION → VERIFIED
+   * Confirms order is legitimate; moves to next stage.
+   */
+  async verify(orderId: string, actorUserId: string | null): Promise<OrderDto> {
+    return this.updateStatus(orderId, { status: 'VERIFIED' }, actorUserId);
+  }
+
   async updateStatus(
     orderId: string,
     dto: UpdateOrderStatusDto,
