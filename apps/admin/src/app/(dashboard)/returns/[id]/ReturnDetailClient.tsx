@@ -34,6 +34,10 @@ interface ReturnDetail {
   createdAt: string;
   updatedAt: string;
   history?: ReturnHistory[];
+  refundMethod: string | null;
+  refundReference: string | null;
+  resolutionType: string | null;
+  replacementNotes: string | null;
 }
 
 const STATUS_TONE: Record<ReturnDetail['status'], 'info' | 'success' | 'warning' | 'danger' | 'neutral'> = {
@@ -68,6 +72,9 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
   const [approveNote, setApproveNote] = useState('');
   const [approveMethod, setApproveMethod] = useState('');
   const [approveReference, setApproveReference] = useState('');
+  const [resolveModalOpen, setResolveModalOpen] = useState(false);
+  const [resolutionType, setResolutionType] = useState<'REFUND' | 'REPLACEMENT'>('REFUND');
+  const [replacementNotes, setReplacementNotes] = useState('');
 
   const q = useQuery<ReturnDetail>(`/api/v1/returns/${returnId}`);
 
@@ -155,13 +162,23 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
     }
   };
 
-  const handleResolve = async () => {
+  const handleResolveSubmit = async () => {
     try {
-      await api.post(`/api/v1/returns/${returnId}/resolve`);
-      toast.success('Return resolved');
+      const body: Record<string, unknown> = {
+        resolutionType,
+        refundAmountPoisha: r.refundAmountPoisha || 0,
+        refundMethod: r.refundMethod || 'STORE_CREDIT',
+      };
+      if (resolutionType === 'REPLACEMENT' && replacementNotes.trim()) {
+        body.replacementNotes = replacementNotes.trim();
+      }
+      await api.post(`/api/v1/returns/${returnId}/resolve`, body);
+      toast.success(resolutionType === 'REFUND' ? 'Refund processed' : 'Replacement dispatched');
+      setResolveModalOpen(false);
+      setReplacementNotes('');
       void q.refetch();
     } catch {
-      toast.error('Resolve failed');
+      toast.error(`Resolve failed`);
     }
   };
 
@@ -320,7 +337,7 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
           {r.status === 'RECEIVED' ? (
             <button
               type="button"
-              onClick={handleResolve}
+              onClick={() => setResolveModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-success-600 text-white text-sm font-medium hover:bg-success-700"
             >
               <DollarSign className="w-4 h-4" />
@@ -468,6 +485,51 @@ export function ReturnDetailClient({ returnId }: { returnId: string }) {
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setApproveModalOpen(false)} className="px-4 py-2 rounded-md border border-slate-300 text-sm">Cancel</button>
             <button type="button" onClick={handleApprove} className="px-4 py-2 rounded-md bg-success-600 text-white text-sm font-medium">Approve</button>
+          </div>
+        </div>
+      </Modal>
+      {/* Resolve Modal */}
+      <Modal open={resolveModalOpen} onClose={() => setResolveModalOpen(false)} title="Resolve Return">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Resolution Type *</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setResolutionType('REFUND')}
+                className={`flex-1 px-4 py-3 rounded-md border text-sm font-medium ${resolutionType === 'REFUND' ? 'border-success-500 bg-success-50 text-success-700' : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'}`}
+              >
+                Refund
+              </button>
+              <button
+                type="button"
+                onClick={() => setResolutionType('REPLACEMENT')}
+                className={`flex-1 px-4 py-3 rounded-md border text-sm font-medium ${resolutionType === 'REPLACEMENT' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'}`}
+              >
+                Replacement
+              </button>
+            </div>
+          </div>
+          {resolutionType === 'REFUND' ? (
+            <div className="rounded-md bg-slate-50 border border-slate-200 p-3 space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-slate-500">Refund Amount</span><span className="font-medium">{r.refundAmountPoisha ? (r.refundAmountPoisha / 100).toFixed(2) + ' BDT' : 'n/a'}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Method</span><span className="font-medium">{r.refundMethod ?? 'set in approve step'}</span></div>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Replacement notes (optional)</label>
+              <textarea
+                value={replacementNotes}
+                onChange={(e) => setReplacementNotes(e.target.value)}
+                rows={3}
+                placeholder="e.g. Sending size L in Navy blue"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setResolveModalOpen(false)} className="px-4 py-2 rounded-md border border-slate-300 text-sm">Cancel</button>
+            <button type="button" onClick={handleResolveSubmit} className="px-4 py-2 rounded-md bg-success-600 text-white text-sm font-medium">Confirm</button>
           </div>
         </div>
       </Modal>

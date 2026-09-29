@@ -147,6 +147,7 @@ describe('RMA (e2e)', () => {
     const resolved = await request(app.getHttpServer())
       .post(`/api/v1/returns/${returnId}/resolve`)
       .set('Authorization', `Bearer ${support.accessToken}`)
+      .send({ resolutionType: 'REFUND' })
       .expect(201);
     expect(resolved.body.status).toBe('RESOLVED');
     expect(resolved.body.refundedAt).toBeTruthy();
