@@ -12,9 +12,10 @@ import { SlugRedirectsService } from './slug-redirects/slug-redirects.service';
 import { MediaController } from './media/media.controller';
 import { ImportExportService } from './import-export/import-export.service';
 import { ImportExportController } from './import-export/import-export.controller';
+import { SlugRedirectsController } from './slug-redirects/slug-redirects.controller';
 
 @Module({
-  controllers: [
+  controllers: [SlugRedirectsController, 
     CategoriesController,
     AttributesController,
     ProductsController,

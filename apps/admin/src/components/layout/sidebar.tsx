@@ -185,6 +185,7 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Profile', href: '/settings/profile', icon: Settings },
           { label: 'Audit log', href: '/settings/audit-log', icon: ShieldCheck },
           { label: 'Roles', href: '/settings/roles', icon: ShieldCheck },
+          { label: 'Redirects', href: '/settings/redirects', icon: ShieldCheck },
           { label: 'Checkout', href: '/settings/checkout', icon: Settings },
         ],
       },

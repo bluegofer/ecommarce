@@ -1,3 +1,4 @@
+import { SlugRedirectsService } from '../slug-redirects/slug-redirects.service';
 // apps/api/src/modules/catalog/categories/categories.service.ts
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
@@ -11,7 +12,10 @@ import type {
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly slugRedirects: SlugRedirectsService,
+  ) {}
 
   async create(dto: CreateCategoryDto): Promise<CategoryDto> {
     const slug = dto.slug ? slugify(dto.slug) : slugify(dto.nameEn);
@@ -57,7 +61,10 @@ export class CategoriesService {
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
     if (dto.metaTitle !== undefined) data.metaTitle = dto.metaTitle;
     if (dto.metaDescription !== undefined) data.metaDescription = dto.metaDescription;
-    if (dto.slug !== undefined) data.slug = slugify(dto.slug);
+    if (dto.slug !== undefined && current.slug !== slugify(dto.slug)) {
+      await this.slugRedirects.record(current.slug, slugify(dto.slug), 'category');
+      data.slug = slugify(dto.slug);
+    }
 
     return this.prisma.category.update({ where: { id }, data });
   }

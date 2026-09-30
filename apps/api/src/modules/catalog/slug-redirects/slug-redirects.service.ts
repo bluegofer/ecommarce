@@ -35,4 +35,9 @@ export class SlugRedirectsService {
   > {
     return this.prisma.slugRedirect.findMany({ orderBy: { createdAt: 'desc' } });
   }
+
+  async remove(id: string): Promise<{ ok: true }> {
+    await this.prisma.slugRedirect.delete({ where: { id } });
+    return { ok: true };
+  }
 }
