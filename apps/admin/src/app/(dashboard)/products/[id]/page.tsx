@@ -13,6 +13,7 @@ import {
   UploadCloud,
   Loader2,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { PageHeader, StatusChip, Modal, useToast } from '@/components/ui';
 import { MediaUploader, type MediaItem } from '@/components/catalog/media-uploader';
@@ -100,6 +101,10 @@ export default function ProductEditorPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [matrixOpen, setMatrixOpen] = useState(false);
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+  const [draftPrice, setDraftPrice] = useState('');
+  const [draftCompareAt, setDraftCompareAt] = useState('');
+  const [draftStock, setDraftStock] = useState('');
 
   const productId = params?.id;
 
@@ -130,6 +135,15 @@ export default function ProductEditorPage() {
   }, [data]);
 
   // ── Mutations ───────────────────────────────────────────────────
+  const updateVariantMutation = useMutation<
+    {
+      id: string;
+      pricePoisha: number;
+      compareAtPoisha: number | null;
+      stock: number;
+    },
+    unknown
+  >('patch', (input) => '/api/v1/variants/' + (input as { id: string }).id);
   const updateMutation = useMutation<Record<string, unknown>, ProductDetail>(
     'patch',
     `/api/v1/products/${productId}`,
@@ -597,13 +611,45 @@ export default function ProductEditorPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {(data.variants ?? []).map((v) => (
+                {(data.variants ?? []).map((v) => {
+                  const isEditing = editingVariantId === v.id;
+                  return (
                   <tr key={v.id}>
                     <td className="px-4 py-3 font-mono text-slate-700">{v.sku}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-slate-800">
-                      {formatPoisha(v.pricePoisha)}
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={draftPrice}
+                          onChange={(e) => setDraftPrice(e.target.value)}
+                          placeholder="Price (৳)"
+                          className="w-24 h-8 px-2 rounded border border-sky-400 text-sm text-right"
+                          step="0.01"
+                        />
+                      ) : (
+                        <>
+                          {formatPoisha(v.pricePoisha)}
+                          {v.compareAtPoisha && (
+                            <span className="block text-[11.5px] text-slate-400 line-through">
+                              {formatPoisha(v.compareAtPoisha)}
+                            </span>
+                          )}
+                        </>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">{v.stock}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={draftStock}
+                          onChange={(e) => setDraftStock(e.target.value)}
+                          placeholder="Stock"
+                          className="w-20 h-8 px-2 rounded border border-sky-400 text-sm text-right"
+                        />
+                      ) : (
+                        v.stock
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-slate-500 font-mono text-[12.5px]">
                       {v.barcode ?? '—'}
                     </td>
@@ -614,8 +660,65 @@ export default function ProductEditorPage() {
                         <StatusChip label="Inactive" tone="neutral" />
                       )}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      {isEditing ? (
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const priceNum = parseFloat(draftPrice);
+                                const stockNum = parseInt(draftStock, 10);
+                                if (isNaN(priceNum) || priceNum < 0) { toast.error('Invalid price'); return; }
+                                if (isNaN(stockNum) || stockNum < 0) { toast.error('Invalid stock'); return; }
+                                const compareNum = draftCompareAt ? parseFloat(draftCompareAt) : null;
+                                await updateVariantMutation.mutate({
+                                  id: v.id,
+                                  pricePoisha: Math.round(priceNum * 100),
+                                  compareAtPoisha: compareNum ? Math.round(compareNum * 100) : null,
+                                  stock: stockNum,
+                                });
+                                toast.success('Variant updated');
+                                setEditingVariantId(null);
+                                void refetch();
+                              } catch (e) {
+                                toast.error('Update failed', e instanceof Error ? e.message : 'Unknown');
+                              }
+                            }}
+                            disabled={updateVariantMutation.loading}
+                            className="h-7 w-7 grid place-items-center rounded bg-success-600 text-white hover:bg-success-700 disabled:opacity-50"
+                            aria-label="Save variant"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingVariantId(null)}
+                            className="h-7 w-7 grid place-items-center rounded border border-border bg-white text-slate-600 hover:bg-slate-50"
+                            aria-label="Cancel"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingVariantId(v.id);
+                            setDraftPrice((v.pricePoisha / 100).toFixed(2));
+                            setDraftCompareAt(v.compareAtPoisha ? (v.compareAtPoisha / 100).toFixed(2) : '');
+                            setDraftStock(String(v.stock));
+                          }}
+                          className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
+                          aria-label="Edit variant"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-slate-500" />
+                        </button>
+                      )}
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}
