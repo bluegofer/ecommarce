@@ -84,6 +84,7 @@ export default function NewProductPage() {
   // Delivery + Video (NEW)
   const [deliveryTimeEn, setDeliveryTimeEn] = useState('');
   const [deliveryTimeBn, setDeliveryTimeBn] = useState('');
+  const [deliveryChargePoisha, setDeliveryChargePoisha] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
 
@@ -156,6 +157,10 @@ export default function NewProductPage() {
     if (Object.keys(specsJson).length > 0) payload.specsJson = specsJson;
     if (deliveryTimeEn.trim()) payload.deliveryTimeEn = deliveryTimeEn.trim();
     if (deliveryTimeBn.trim()) payload.deliveryTimeBn = deliveryTimeBn.trim();
+    if (deliveryChargePoisha.trim()) {
+      const dcp = parseFloat(deliveryChargePoisha);
+      if (!isNaN(dcp) && dcp >= 0) payload.deliveryChargePoisha = Math.round(dcp * 100);
+    }
     if (videoUrl.trim()) payload.videoUrl = videoUrl.trim();
     if (metaTitle.trim()) payload.metaTitle = metaTitle.trim();
     if (metaDescription.trim()) payload.metaDescription = metaDescription.trim();
@@ -392,6 +397,15 @@ export default function NewProductPage() {
                 value={deliveryTimeBn}
                 onChange={(e) => setDeliveryTimeBn(e.target.value)}
                 placeholder="২-৩ দিন"
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Delivery charge ৳ (optional)" hint="e.g. 60 — overrides zone default">
+              <input
+                type="number"
+                value={deliveryChargePoisha}
+                onChange={(e) => setDeliveryChargePoisha(e.target.value)}
+                placeholder="Leave blank to use zone default"
                 className={inputCls}
               />
             </Field>

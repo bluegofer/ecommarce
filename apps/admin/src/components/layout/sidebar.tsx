@@ -188,7 +188,6 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Audit log', href: '/settings/audit-log', icon: ShieldCheck },
           { label: 'Roles', href: '/settings/roles', icon: ShieldCheck },
           { label: 'Checkout', href: '/settings/checkout', icon: Settings },
-          { label: 'Delivery', href: '/settings/delivery', icon: Truck },
         ],
       },
     ],

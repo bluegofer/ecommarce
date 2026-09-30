@@ -51,6 +51,7 @@ interface ProductDetail {
   category: { id: string; nameEn: string } | null;
   deliveryTimeEn: string | null;
   deliveryTimeBn: string | null;
+  deliveryChargePoisha: number | null;
   videoUrl: string | null;
   bulletFeatures: string[] | null;
   specsJson: Record<string, string> | null;
@@ -201,6 +202,7 @@ export default function ProductEditorPage() {
       status: form.status,
       deliveryTimeEn: form.deliveryTimeEn ?? null,
       deliveryTimeBn: form.deliveryTimeBn ?? null,
+      deliveryChargePoisha: form.deliveryChargePoisha ?? null,
       videoUrl: form.videoUrl ?? null,
       bulletFeatures: bullets,
       specsJson,
@@ -505,6 +507,13 @@ export default function ProductEditorPage() {
                   value={form.deliveryTimeBn ?? ''}
                   onChange={(v) => setForm((f) => ({ ...f, deliveryTimeBn: v }))}
                   placeholder="২-৩ দিন"
+                />
+                <Field
+                  label="Delivery charge (৳)"
+                  value={form.deliveryChargePoisha !== null && form.deliveryChargePoisha !== undefined ? String(form.deliveryChargePoisha / 100) : ''}
+                  onChange={(v) => setForm((f) => ({ ...f, deliveryChargePoisha: v.trim() ? Math.round(parseFloat(v) * 100) : null }))}
+                  placeholder="e.g. 60"
+                  hint="Optional — overrides zone default. Blank = use zone rate."
                 />
               </div>
               <Field
