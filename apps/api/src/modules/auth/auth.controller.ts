@@ -278,6 +278,7 @@ export class AuthController {
       email: u.email,
       fullName: u.fullName,
       roles: u.userRoles.map((ur) => ur.role.code),
+      totpEnrolled: await this.totp.isEnrolled(u.id),
     };
   }
 

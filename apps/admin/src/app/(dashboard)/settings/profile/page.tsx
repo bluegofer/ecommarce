@@ -125,7 +125,11 @@ export default function ProfileSettingsPage() {
               Recommended for all staff accounts. Required for admin.
             </p>
           </div>
-          <StatusChip label="Not enrolled" tone="warning" />
+          {(user as { totpEnrolled?: boolean } | null)?.totpEnrolled ? (
+            <StatusChip label="Enrolled" tone="success" />
+          ) : (
+            <StatusChip label="Not enrolled" tone="warning" />
+          )}
         </div>
 
         {enrollOpen && qrDataUrl && (
@@ -182,6 +186,7 @@ export default function ProfileSettingsPage() {
 
         {!enrollOpen && (
           <div className="flex gap-2">
+            {!(user as { totpEnrolled?: boolean } | null)?.totpEnrolled && (
             <button
               type="button"
               disabled={busy}
@@ -190,6 +195,7 @@ export default function ProfileSettingsPage() {
             >
               <Smartphone className="w-4 h-4" /> Enroll now
             </button>
+            )}
             <button
               type="button"
               disabled={busy}
