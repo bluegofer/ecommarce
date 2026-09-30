@@ -102,6 +102,13 @@ export default function NewProductPage() {
   // Featured
   const [isFeatured, setIsFeatured] = useState(false);
 
+  // Initial variant (optional - otherwise add from edit -> Variants tab)
+  const [ivPrice, setIvPrice] = useState('');
+  const [ivCompareAt, setIvCompareAt] = useState('');
+  const [ivDiscountPercent, setIvDiscountPercent] = useState('');
+  const [ivStock, setIvStock] = useState('');
+  const [ivSku, setIvSku] = useState('');
+
   const { data: tree } = useQuery<CategoryNode[]>('/api/v1/categories/tree');
   const flat = useMemo(() => (tree ? flattenCategories(tree) : []), [tree]);
 
@@ -175,33 +182,60 @@ export default function NewProductPage() {
     try {
       const created = await createMutation.mutate(payload);
 
-      // Sub-step 3.5 — attach any selected media (upload already done browser-side).
+      // Initial variant - create if price provided (non-fatal on failure)
+      const priceNum = ivPrice.trim() ? parseFloat(ivPrice) : NaN;
+      if (!isNaN(priceNum) && priceNum > 0) {
+        let compareAtPoisha: number | null = null;
+        const discNum = ivDiscountPercent.trim() ? parseFloat(ivDiscountPercent) : NaN;
+        const compareNum = ivCompareAt.trim() ? parseFloat(ivCompareAt) : NaN;
+        if (!isNaN(discNum) && discNum > 0 && discNum < 100) {
+          compareAtPoisha = Math.round((priceNum * 100) / (1 - discNum / 100));
+        } else if (!isNaN(compareNum) && compareNum > priceNum) {
+          compareAtPoisha = Math.round(compareNum * 100);
+        }
+        const stockNum = ivStock.trim() ? parseInt(ivStock, 10) : 0;
+        const slugBase = (slug.trim() || slugify(titleEn)).toUpperCase();
+        const finalSku = ivSku.trim() || (slugBase + '-01');
+        try {
+          await fetch('/api/v1/variants/product/' + created.id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              sku: finalSku,
+              pricePoisha: Math.round(priceNum * 100),
+              compareAtPoisha,
+              stock: isNaN(stockNum) ? 0 : Math.max(0, stockNum),
+              attributeValues: {},
+            }),
+          });
+        } catch {
+          toast.error('Product created, but initial variant failed', 'Add it from the Variants tab.');
+        }
+      }
+
+      // Attach any selected media (upload already done browser-side).
       if (mediaItems.length > 0) {
         for (let mi = 0; mi < mediaItems.length; mi++) {
           const item = mediaItems[mi];
           if (!item) continue;
           try {
-            await fetch(
-              `/api/v1/products/${created.id}/media`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                  url: item.url,
-                  type: item.kind === 'video' ? 'VIDEO' : 'IMAGE',
-                  altText: item.altText,
-                  sortOrder: mi,
-                }),
-              },
-            );
-          } catch {
-            /* non-fatal: user can re-attach from edit page */
-          }
+            await fetch('/api/v1/products/' + created.id + '/media', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                url: item.url,
+                type: item.kind === 'video' ? 'VIDEO' : 'IMAGE',
+                altText: item.altText,
+                sortOrder: mi,
+              }),
+            });
+          } catch {}
         }
       }
-      toast.success('Product created', 'Now add variants and media.');
-      router.push(`/products/${created.id}`);
+      toast.success('Product created', 'Opening editor...');
+      router.push('/products/' + created.id);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       toast.error('Failed to create product', msg);
@@ -520,6 +554,39 @@ export default function NewProductPage() {
               placeholder="Shop the X200 wireless headphone with active noise cancellation and 30-hour battery."
               className={cn(inputCls, 'h-auto py-2')}
             />
+          </Field>
+        </section>
+
+        {/* INITIAL VARIANT (optional) */}
+        <section className="card p-5 space-y-5">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-800">Initial variant (optional)</h2>
+            <p className="text-[12.5px] text-slate-500 mt-1">
+              Add price + stock now to sell this product immediately. For multi-variant
+              products (size x color), leave price blank and generate from the Variants tab.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Price">
+              <input type="number" min="0" step="0.01" value={ivPrice} onChange={(e) => setIvPrice(e.target.value)} placeholder="500" className={inputCls} />
+            </Field>
+            <Field label="Stock quantity">
+              <input type="number" min="0" step="1" value={ivStock} onChange={(e) => setIvStock(e.target.value)} placeholder="10" className={inputCls} />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Discount %" hint="Shows a strikethrough price. Leave blank for none.">
+              <input type="number" min="0" max="99" step="1" value={ivDiscountPercent} onChange={(e) => setIvDiscountPercent(e.target.value)} placeholder="30" className={inputCls} />
+            </Field>
+            <Field label="Or compare-at price" hint="Original price; overrides discount %.">
+              <input type="number" min="0" step="0.01" value={ivCompareAt} onChange={(e) => setIvCompareAt(e.target.value)} placeholder="750" className={inputCls} />
+            </Field>
+          </div>
+
+          <Field label="SKU code (optional)" hint="Auto-generated if left blank.">
+            <input type="text" value={ivSku} onChange={(e) => setIvSku(e.target.value)} placeholder="SKU-XXX-01" className={cn(inputCls, 'font-mono text-[13px]')} />
           </Field>
         </section>
 
