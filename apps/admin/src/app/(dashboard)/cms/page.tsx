@@ -612,7 +612,7 @@ export default function CmsPage() {
   function removeSlide(idx: number) {
     setForm((f) => ({ ...f, heroSlides: f.heroSlides.filter((_, i) => i !== idx) }));
   }
-  async function uploadSlideImage(idx: number, file: File) {
+  async function uploadSlideImage(idx: number, file: File, field: 'imageUrl' | 'sideTileImage' = 'imageUrl') {
     try {
       const uploaded = await uploadMutation.upload(file);
       await saveMediaLibraryMutation.mutate({
@@ -622,7 +622,7 @@ export default function CmsPage() {
         sizeBytes: uploaded.sizeBytes,
         altText: uploaded.filename,
       });
-      updateSlide(idx, { imageUrl: uploaded.url });
+      updateSlide(idx, { [field]: uploaded.url });
       toast.success('Image uploaded');
     } catch (e) {
       toast.error('Upload failed', e instanceof Error ? e.message : 'Unknown');
@@ -1030,7 +1030,38 @@ export default function CmsPage() {
                     <div className="col-span-2 mt-2 pt-2 border-t border-border">
                       <p className="text-[11px] text-slate-500 mb-1.5 font-medium">Side tile (optional — second image on the right)</p>
                       <div className="grid grid-cols-2 gap-2">
-                        <input type="text" value={slide.sideTileImage ?? ''} onChange={(e) => updateSlide(idx, { sideTileImage: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Side tile image URL" />
+                        <div className="col-span-2">
+                          <label className="block text-[11px] text-slate-500 mb-1">Side tile image</label>
+                          {(slide.sideTileImage ?? '') ? (
+                            <div className="relative w-32 h-20 rounded overflow-hidden border border-border">
+                              <img src={slide.sideTileImage} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => updateSlide(idx, { sideTileImage: '' })}
+                                className="absolute top-0.5 right-0.5 p-1 rounded bg-danger-600 text-white hover:bg-danger-700"
+                                aria-label="Remove side image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="w-32 h-20 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium">
+                              <UploadCloud className="w-5 h-5" />
+                              <span>Upload side</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                disabled={uploadMutation.loading}
+                                className="sr-only"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) void uploadSlideImage(idx, f, 'sideTileImage');
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
                         <input type="text" value={slide.sideTileCtaHref ?? ''} onChange={(e) => updateSlide(idx, { sideTileCtaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono" placeholder="Side tile link URL" />
                         <input type="text" value={slide.sideTileLabelEn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (EN)" />
                         <input type="text" value={slide.sideTileLabelBn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (BN)" />
@@ -1050,7 +1081,38 @@ export default function CmsPage() {
                     <div className="col-span-2 mt-2 pt-2 border-t border-border">
                       <p className="text-[11px] text-slate-500 mb-1.5 font-medium">Side tile (optional — second image on the right)</p>
                       <div className="grid grid-cols-2 gap-2">
-                        <input type="text" value={slide.sideTileImage ?? ''} onChange={(e) => updateSlide(idx, { sideTileImage: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Side tile image URL" />
+                        <div className="col-span-2">
+                          <label className="block text-[11px] text-slate-500 mb-1">Side tile image</label>
+                          {(slide.sideTileImage ?? '') ? (
+                            <div className="relative w-32 h-20 rounded overflow-hidden border border-border">
+                              <img src={slide.sideTileImage} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => updateSlide(idx, { sideTileImage: '' })}
+                                className="absolute top-0.5 right-0.5 p-1 rounded bg-danger-600 text-white hover:bg-danger-700"
+                                aria-label="Remove side image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="w-32 h-20 rounded border-2 border-dashed border-sky-400 bg-white grid place-items-center text-sky-600 hover:bg-sky-50 cursor-pointer text-[11px] font-medium">
+                              <UploadCloud className="w-5 h-5" />
+                              <span>Upload side</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                disabled={uploadMutation.loading}
+                                className="sr-only"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) void uploadSlideImage(idx, f, 'sideTileImage');
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
                         <input type="text" value={slide.sideTileCtaHref ?? ''} onChange={(e) => updateSlide(idx, { sideTileCtaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono" placeholder="Side tile link URL" />
                         <input type="text" value={slide.sideTileLabelEn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (EN)" />
                         <input type="text" value={slide.sideTileLabelBn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (BN)" />
