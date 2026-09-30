@@ -171,11 +171,13 @@ export class CheckoutService {
       }
 
       // 5b. Create order
+      // Auto-verify: orders under ৳5000 (500000 poisha) skip manual verification
+      const initialStatus = totalPoisha < 500000 ? 'VERIFIED' : 'PENDING_VERIFICATION';
       const order = await tx.order.create({
         data: {
           orderNumber,
           customerId: customer.id,
-          status: 'PLACED',
+          status: initialStatus,
           subtotalPoisha,
           discountPoisha,
           deliveryChargePoisha,
@@ -207,8 +209,21 @@ export class CheckoutService {
 
       // 5d. Initial status history
       await tx.orderStatusHistory.create({
-        data: { orderId: order.id, fromStatus: null, toStatus: 'PLACED', actorUserId: null },
+        data: { orderId: order.id, fromStatus: null, toStatus: initialStatus, actorUserId: null },
       });
+
+      // Auto-verify history entry (if initial status is VERIFIED)
+      if (initialStatus === 'VERIFIED') {
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: order.id,
+            fromStatus: 'PENDING_VERIFICATION',
+            toStatus: 'VERIFIED',
+            actorUserId: null,
+            note: 'Auto-verified (under ৳5000 threshold)',
+          },
+        });
+      }
 
       // 5e. Payment stub
       await tx.payment.create({
