@@ -350,6 +350,7 @@ model Product {
   descriptionEn   String?       @db.Text
   descriptionBn   String?       @db.Text
   brand           String?
+  supplierId      String?
   status          ProductStatus @default(DRAFT)
   publishedAt     DateTime?
   deliveryTimeEn  String?
@@ -368,6 +369,7 @@ model Product {
   updatedAt       DateTime      @updatedAt
 
   category        Category                @relation(fields: [categoryId], references: [id])
+  supplier        Supplier?               @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   variants        Variant[]
   media           ProductMedia[]
   attributeValues ProductAttributeValue[]
@@ -377,6 +379,7 @@ model Product {
   @@index([categoryId, status])
   @@index([status, publishedAt])
   @@index([brand])
+  @@index([supplierId])
   @@index([slug])
   @@map("products")
 }
@@ -1533,6 +1536,7 @@ model Supplier {
   purchaseInvoices PurchaseInvoice[]
   payments         SupplierPayment[]
   dues             SupplierDue[]
+  products         Product[]
 
   @@index([status])
   @@index([name])

@@ -51,6 +51,18 @@ interface PerformanceDto {
   fulfillmentRate: number;
 }
 
+interface SupplierProductDto {
+  id: string;
+  slug: string;
+  titleEn: string;
+  titleBn: string;
+  status: string;
+  totalStock: number;
+  minPricePoisha: number | null;
+  soldCount: number;
+  createdAt: string;
+}
+
 export default function SupplierDetailPage() {
   const params = useParams<{ id: string }>();
   const toast = useToast();
@@ -58,6 +70,7 @@ export default function SupplierDetailPage() {
 
   const q = useQuery<SupplierDetail>(id ? `/api/v1/suppliers/${id}` : null);
   const perfQuery = useQuery<PerformanceDto>(id ? `/api/v1/suppliers/${id}/performance` : null);
+  const productsQuery = useQuery<SupplierProductDto[]>(id ? '/api/v1/suppliers/' + id + '/products' : null);
 
   const [payOpen, setPayOpen] = useState(false);
   const [amount, setAmount] = useState('');
@@ -225,6 +238,40 @@ export default function SupplierDetailPage() {
                   <div className="font-medium text-slate-800">{perfQuery.data.totalReceived}</div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {productsQuery.data && productsQuery.data.length > 0 && (
+            <div className="card overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-border">
+                <h3 className="font-semibold text-slate-900">Products supplied ({productsQuery.data.length})</h3>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-border">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase">Product</th>
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase">Stock</th>
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase">Min Price</th>
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase">Sold</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {productsQuery.data.map((p) => (
+                    <tr key={p.id}>
+                      <td className="px-4 py-2.5">
+                        <Link href={`/products/${p.id}`} className="font-medium text-slate-800 hover:text-sky-700">
+                          {p.titleEn}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{p.totalStock}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">
+                        {p.minPricePoisha !== null ? formatPoisha(p.minPricePoisha) : "—"}
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{p.soldCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

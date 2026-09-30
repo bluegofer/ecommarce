@@ -128,6 +128,7 @@ export interface ProductDto {
   descriptionEn: string | null;
   descriptionBn: string | null;
   brand: string | null;
+  supplierId: string | null;
   status: ProductStatus;
   publishedAt: string | null;
   deliveryTimeEn: string | null;
@@ -169,6 +170,7 @@ export interface CreateProductDto {
   descriptionEn?: string;
   descriptionBn?: string;
   brand?: string;
+  supplierId?: string;
   status?: ProductStatus;
   publishedAt?: string;
   deliveryTimeEn?: string;

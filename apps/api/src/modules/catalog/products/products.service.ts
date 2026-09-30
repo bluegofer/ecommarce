@@ -49,6 +49,7 @@ export class ProductsService {
         descriptionEn: dto.descriptionEn ?? null,
         descriptionBn: dto.descriptionBn ?? null,
         brand: dto.brand ?? null,
+        supplierId: dto.supplierId ?? null,
         status,
         publishedAt,
         metaTitle: dto.metaTitle ?? null,
@@ -80,6 +81,7 @@ export class ProductsService {
     if (dto.descriptionEn !== undefined) data.descriptionEn = dto.descriptionEn;
     if (dto.descriptionBn !== undefined) data.descriptionBn = dto.descriptionBn;
     if (dto.brand !== undefined) data.brand = dto.brand;
+    if (dto.supplierId !== undefined) data.supplierId = dto.supplierId;
     if (dto.metaTitle !== undefined) data.metaTitle = dto.metaTitle;
     if (dto.metaDescription !== undefined) data.metaDescription = dto.metaDescription;
     if (dto.bulletFeatures !== undefined) data.bulletFeatures = dto.bulletFeatures;
@@ -329,6 +331,7 @@ export class ProductsService {
     descriptionEn: string | null;
     descriptionBn: string | null;
     brand: string | null;
+    supplierId: string | null;
     status: string;
     publishedAt: Date | null;
     deliveryTimeEn: string | null;
@@ -386,6 +389,7 @@ export class ProductsService {
       descriptionEn: p.descriptionEn,
       descriptionBn: p.descriptionBn,
       brand: p.brand,
+      supplierId: p.supplierId ?? null,
       status: p.status as ProductStatus,
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
       metaTitle: p.metaTitle,

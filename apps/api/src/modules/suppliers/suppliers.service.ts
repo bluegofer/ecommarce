@@ -239,4 +239,35 @@ export class SuppliersService {
       fulfillmentRate: totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 10000) / 10000 : 0,
     };
   }
+
+  // ---- Products supplied by this supplier ----
+
+  async listProducts(supplierId: string) {
+    const supplier = await this.prisma.supplier.findUnique({ where: { id: supplierId } });
+    if (!supplier) throw new NotFoundException(`Supplier ${supplierId} not found`);
+    const products = await this.prisma.product.findMany({
+      where: { supplierId },
+      include: { variants: { select: { id: true, stock: true, pricePoisha: true, isActive: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return products.map((p) => {
+      const totalStock = p.variants.reduce((s, v) => s + (v.isActive ? v.stock : 0), 0);
+      const minPrice = p.variants.filter((v) => v.isActive).reduce<number | null>(
+        (m, v) => (m === null || v.pricePoisha < m ? v.pricePoisha : m),
+        null,
+      );
+      const soldCount = p.soldCount;
+      return {
+        id: p.id,
+        slug: p.slug,
+        titleEn: p.titleEn,
+        titleBn: p.titleBn,
+        status: p.status,
+        totalStock,
+        minPricePoisha: minPrice,
+        soldCount,
+        createdAt: p.createdAt,
+      };
+    });
+  }
 }

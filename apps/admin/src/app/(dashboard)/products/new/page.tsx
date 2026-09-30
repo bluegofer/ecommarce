@@ -70,6 +70,7 @@ export default function NewProductPage() {
   const [slug, setSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [brand, setBrand] = useState('');
+  const [supplierId, setSupplierId] = useState('');
 
   // Descriptions
   const [descriptionEn, setDescriptionEn] = useState('');
@@ -87,6 +88,8 @@ export default function NewProductPage() {
   const [deliveryChargePoisha, setDeliveryChargePoisha] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+
+  const suppliersQuery = useQuery<Array<{ id: string; name: string; code: string }>>('/api/v1/suppliers');
 
   // Status
   const [status, setStatus] = useState<ProductStatus>('DRAFT');
@@ -151,6 +154,7 @@ export default function NewProductPage() {
     };
 
     if (brand.trim()) payload.brand = brand.trim();
+    if (supplierId) payload.supplierId = supplierId;
     if (descriptionEn.trim()) payload.descriptionEn = descriptionEn.trim();
     if (descriptionBn.trim()) payload.descriptionBn = descriptionBn.trim();
     if (bullets.length > 0) payload.bulletFeatures = bullets;
@@ -274,6 +278,20 @@ export default function NewProductPage() {
                 placeholder="e.g. Sony"
                 className={inputCls}
               />
+            </Field>
+            <Field label="Supplier" hint="Who supplies this product (optional)">
+              <select
+                value={supplierId}
+                onChange={(e) => setSupplierId(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">— None —</option>
+                {(suppliersQuery.data ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.code})
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Slug" hint="Auto-generated from English title. Must be unique.">
               <input

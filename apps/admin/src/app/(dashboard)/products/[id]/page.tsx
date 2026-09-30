@@ -46,6 +46,7 @@ interface ProductDetail {
   descriptionEn: string | null;
   descriptionBn: string | null;
   brand: string | null;
+  supplierId: string | null;
   status: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED';
   categoryId: string;
   category: { id: string; nameEn: string } | null;
@@ -117,6 +118,8 @@ export default function ProductEditorPage() {
   const { data, loading, error, refetch } = useQuery<ProductDetail>(
     productId ? `/api/v1/products/${productId}` : null,
   );
+
+  const suppliersQuery = useQuery<Array<{ id: string; name: string; code: string }>>('/api/v1/suppliers');
 
   // ── Form state ──────────────────────────────────────────────────
   const [form, setForm] = useState<Partial<ProductDetail>>({});
@@ -199,6 +202,7 @@ export default function ProductEditorPage() {
       descriptionEn: form.descriptionEn,
       descriptionBn: form.descriptionBn,
       brand: form.brand,
+      supplierId: form.supplierId,
       status: form.status,
       deliveryTimeEn: form.deliveryTimeEn ?? null,
       deliveryTimeBn: form.deliveryTimeBn ?? null,
@@ -403,6 +407,19 @@ export default function ProductEditorPage() {
                 value={form.brand ?? ''}
                 onChange={(v) => setForm((f) => ({ ...f, brand: v }))}
               />
+              <div>
+                <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">Supplier</label>
+                <select
+                  value={form.supplierId ?? ""}
+                  onChange={(e) => setForm((f) => ({ ...f, supplierId: e.target.value || null }))}
+                  className="w-full h-10 px-3 rounded border border-border bg-white text-sm"
+                >
+                  <option value="">— None —</option>
+                  {(suppliersQuery.data ?? []).map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  ))}
+                </select>
+              </div>
             </section>
 
             <section className="card p-5 space-y-4">

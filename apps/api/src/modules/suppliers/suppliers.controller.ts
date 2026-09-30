@@ -51,4 +51,8 @@ export class SuppliersController {
   @Get(':id/performance')
   @Roles('SUPER_ADMIN', 'PURCHASE_MANAGER', 'FINANCE_MANAGER', 'FINANCE_READONLY')
   performance(@Param('id') id: string) { return this.svc.performance(id); }
+
+  @Get(':id/products')
+  @Roles('SUPER_ADMIN', 'PURCHASE_MANAGER', 'FINANCE_MANAGER', 'FINANCE_READONLY', 'CATALOG_MANAGER')
+  products(@Param("id") id: string) { return this.svc.listProducts(id); }
 }

@@ -23,6 +23,7 @@ interface ProductRow {
   descriptionEn: string | null;
   descriptionBn: string | null;
   brand: string | null;
+  supplierId: string | null;
   status: string;
   publishedAt: Date | null;
   deliveryTimeEn: string | null;
@@ -292,6 +293,7 @@ export class SearchService {
       descriptionEn: p.descriptionEn,
       descriptionBn: p.descriptionBn,
       brand: p.brand,
+      supplierId: p.supplierId ?? null,
       status: p.status as ProductStatus,
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
       deliveryTimeEn: p.deliveryTimeEn,
