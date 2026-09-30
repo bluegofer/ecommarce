@@ -14,12 +14,14 @@ interface Employee {
 
 interface AttendanceRow {
   employeeId: string;
-  days?: Record<number, 'P' | 'A' | 'L' | 'OT' | '-'>;
+  days?: Partial<Record<number, 'P' | 'A' | 'L' | 'OT' | '-'>>;
   presentDays: number;
   absentDays: number;
   lateCount?: number;
   overtimeMinutes: number;
   leaveDays: number;
+  lateMinutesMap?: Record<number, number>;
+  overtimeMinutesMap?: Record<number, number>;
 }
 
 const CYCLE: Array<'P' | 'A' | 'L' | 'OT' | '-'> = ['P', 'A', 'L', 'OT', '-'];
@@ -27,6 +29,9 @@ const CYCLE: Array<'P' | 'A' | 'L' | 'OT' | '-'> = ['P', 'A', 'L', 'OT', '-'];
 export default function AttendancePage() {
   const toast = useToast();
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [localEdits, setLocalEdits] = useState<Record<string, Partial<Record<number, 'P' | 'A' | 'L' | 'OT' | '-'>>>>({});
+  const [detailModal, setDetailModal] = useState<{ employeeId: string; day: number; type: 'L' | 'OT' } | null>(null);
+  const [detailMinutes, setDetailMinutes] = useState('');
 
   const { data: employees } = useQuery<Employee[]>('/api/v1/hr/employees');
   const { data: summary, loading, error, refetch } = useQuery<AttendanceRow[]>(
@@ -41,6 +46,22 @@ export default function AttendancePage() {
     'post',
     '/api/v1/hr/attendance/bulk',
   );
+
+
+  function handleCellClick(employeeId: string, day: number) {
+    const rowEdit = localEdits[employeeId] ?? {};
+    const current = rowEdit[day] ?? (summaryRows.find((r) => r.employeeId === employeeId)?.days?.[day] ?? '-');
+    const idx = CYCLE.indexOf(current);
+    const next = CYCLE[(idx + 1) % CYCLE.length];
+    setLocalEdits((prev) => ({
+      ...prev,
+      [employeeId]: { ...(prev[employeeId] ?? {}), [day]: next },
+    }));
+    if (next === 'L' || next === 'OT') {
+      setDetailModal({ employeeId, day, type: next as 'L' | 'OT' });
+      setDetailMinutes('');
+    }
+  }
 
   const daysInMonth = new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate();
 
@@ -62,8 +83,10 @@ export default function AttendancePage() {
               type="button"
               onClick={async () => {
                 if (summaryRows.length === 0) return;
-                await markMutation.mutate({ month, rows: summaryRows });
+                const merged = summaryRows.map((r) => ({ ...r, days: { ...(r.days ?? {}), ...(localEdits[r.employeeId] ?? {}) } }));
+                await markMutation.mutate({ month, rows: merged as AttendanceRow[] });
                 toast.success('Attendance saved');
+                setLocalEdits({});
                 void refetch();
               }}
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
@@ -105,10 +128,10 @@ export default function AttendancePage() {
                       <code className="text-[11px] text-slate-400 font-mono">{emp?.code}</code>
                     </td>
                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
-                      const v = row.days?.[d] ?? '-';
+                      const v = localEdits[row.employeeId]?.[d] ?? (row.days?.[d] ?? '-');
                       return (
                         <td key={d} className="px-1.5 py-2 text-center">
-                          <span className={`inline-grid place-items-center w-7 h-7 rounded text-[11px] font-semibold ${
+                          <button type="button" onClick={() => handleCellClick(row.employeeId, d)} className={`inline-grid place-items-center w-7 h-7 rounded text-[11px] font-semibold ${
                             v === 'P' ? 'bg-success-100 text-success-700'
                             : v === 'A' ? 'bg-danger-100 text-danger-700'
                             : v === 'L' ? 'bg-warning-100 text-warning-700'
@@ -116,7 +139,7 @@ export default function AttendancePage() {
                             : 'bg-slate-100 text-slate-400'
                           }`}>
                             {v}
-                          </span>
+                          </button>
                         </td>
                       );
                     })}
@@ -139,6 +162,32 @@ export default function AttendancePage() {
         <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-warning-100 grid place-items-center text-warning-700 text-[10px] font-semibold">L</span> Leave</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-sky-100 grid place-items-center text-sky-700 text-[10px] font-semibold">OT</span> Overtime</span>
       </div>
+
+      {/* Late/OT minutes modal */}
+      {detailModal && (
+        <div className="fixed inset-0 bg-black/40 grid place-items-center z-50 p-4" onClick={() => setDetailModal(null)}>
+          <div className="bg-white rounded-lg p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-slate-900">{detailModal.type === 'L' ? 'Late minutes' : 'Overtime minutes'}</h3>
+            <input
+              type="number"
+              min="0"
+              value={detailMinutes}
+              onChange={(e) => setDetailMinutes(e.target.value)}
+              placeholder="e.g. 30"
+              className="w-full h-10 px-3 rounded border border-border text-sm"
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setDetailModal(null)} className="h-9 px-3 rounded border border-border text-sm">Skip</button>
+              <button
+                type="button"
+                onClick={() => setDetailModal(null)}
+                className="h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium"
+              >OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
