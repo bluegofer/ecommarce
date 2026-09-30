@@ -34,6 +34,8 @@ interface Variant {
   barcode: string | null;
   isActive: boolean;
   attributeValues?: Record<string, string>;
+  discountStartAt: string | null;
+  discountEndAt: string | null;
 }
 
 interface ProductDetail {
@@ -105,6 +107,9 @@ export default function ProductEditorPage() {
   const [draftPrice, setDraftPrice] = useState('');
   const [draftCompareAt, setDraftCompareAt] = useState('');
   const [draftStock, setDraftStock] = useState('');
+  const [draftDisc, setDraftDisc] = useState('');
+  const [draftDiscStart, setDraftDiscStart] = useState('');
+  const [draftDiscEnd, setDraftDiscEnd] = useState('');
 
   const productId = params?.id;
 
@@ -141,6 +146,8 @@ export default function ProductEditorPage() {
       pricePoisha: number;
       compareAtPoisha: number | null;
       stock: number;
+      discountStartAt: string | null;
+      discountEndAt: string | null;
     },
     unknown
   >('patch', (input) => '/api/v1/variants/' + (input as { id: string }).id);
@@ -600,6 +607,15 @@ export default function ProductEditorPage() {
                     Price
                   </th>
                   <th className="px-4 py-2.5 text-right text-[12px] font-semibold text-slate-500 uppercase">
+                    Disc%
+                  </th>
+                  <th className="px-4 py-2.5 text-left text-[12px] font-semibold text-slate-500 uppercase">
+                    From
+                  </th>
+                  <th className="px-4 py-2.5 text-left text-[12px] font-semibold text-slate-500 uppercase">
+                    To
+                  </th>
+                  <th className="px-4 py-2.5 text-right text-[12px] font-semibold text-slate-500 uppercase">
                     Stock
                   </th>
                   <th className="px-4 py-2.5 text-left text-[12px] font-semibold text-slate-500 uppercase">
@@ -635,6 +651,60 @@ export default function ProductEditorPage() {
                             </span>
                           )}
                         </>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={draftDisc}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setDraftDisc(val);
+                            const d = parseFloat(val);
+                            const p = parseFloat(draftPrice);
+                            if (!isNaN(d) && !isNaN(p) && p > 0 && d >= 0 && d <= 100) {
+                              const ct = p / (1 - d / 100);
+                              setDraftCompareAt(ct.toFixed(2));
+                            }
+                          }}
+                          placeholder="%"
+                          min="0"
+                          max="100"
+                          className="w-16 h-8 px-2 rounded border border-sky-400 text-sm text-right"
+                        />
+                      ) : (
+                        v.compareAtPoisha && v.pricePoisha < v.compareAtPoisha ? (
+                          <span className="text-warning-700 font-medium">
+                            {Math.round(((v.compareAtPoisha - v.pricePoisha) / v.compareAtPoisha) * 100)}%
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 text-[12px]">
+                      {isEditing ? (
+                        <input
+                          type="date"
+                          value={draftDiscStart}
+                          onChange={(e) => setDraftDiscStart(e.target.value)}
+                          className="w-32 h-8 px-2 rounded border border-sky-400 text-[12px]"
+                        />
+                      ) : (
+                        v.discountStartAt ? new Date(v.discountStartAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—'
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 text-[12px]">
+                      {isEditing ? (
+                        <input
+                          type="date"
+                          value={draftDiscEnd}
+                          onChange={(e) => setDraftDiscEnd(e.target.value)}
+                          className="w-32 h-8 px-2 rounded border border-sky-400 text-[12px]"
+                        />
+                      ) : (
+                        v.discountEndAt ? new Date(v.discountEndAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—'
                       )}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
@@ -677,6 +747,8 @@ export default function ProductEditorPage() {
                                   pricePoisha: Math.round(priceNum * 100),
                                   compareAtPoisha: compareNum ? Math.round(compareNum * 100) : null,
                                   stock: stockNum,
+                                  discountStartAt: draftDiscStart ? new Date(draftDiscStart).toISOString() : null,
+                                  discountEndAt: draftDiscEnd ? new Date(draftDiscEnd).toISOString() : null,
                                 });
                                 toast.success('Variant updated');
                                 setEditingVariantId(null);
@@ -708,6 +780,11 @@ export default function ProductEditorPage() {
                             setDraftPrice((v.pricePoisha / 100).toFixed(2));
                             setDraftCompareAt(v.compareAtPoisha ? (v.compareAtPoisha / 100).toFixed(2) : '');
                             setDraftStock(String(v.stock));
+                            const ct = v.compareAtPoisha;
+                            const p = v.pricePoisha;
+                            setDraftDisc(ct && p < ct ? String(Math.round(((ct - p) / ct) * 100)) : '');
+                            setDraftDiscStart(v.discountStartAt ? new Date(v.discountStartAt).toISOString().slice(0, 10) : '');
+                            setDraftDiscEnd(v.discountEndAt ? new Date(v.discountEndAt).toISOString().slice(0, 10) : '');
                           }}
                           className="h-7 w-7 grid place-items-center rounded hover:bg-slate-100"
                           aria-label="Edit variant"
