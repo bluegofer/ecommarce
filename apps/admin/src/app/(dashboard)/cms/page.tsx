@@ -41,6 +41,16 @@ interface HeroSlideConfig {
   ctaHref: string;
   ctaLabelEn: string;
   ctaLabelBn: string;
+  badgeTextEn?: string;
+  badgeTextBn?: string;
+  eyebrowEn?: string;
+  eyebrowBn?: string;
+  subtitleEn?: string;
+  subtitleBn?: string;
+  sideTileImage?: string;
+  sideTileCtaHref?: string;
+  sideTileLabelEn?: string;
+  sideTileLabelBn?: string;
 }
 
 interface BannerConfig {
@@ -1017,6 +1027,46 @@ export default function CmsPage() {
                           <input type="text" value={slide.ctaLabelEn} onChange={(e) => updateSlide(idx, { ctaLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (EN)" />
                           <input type="text" value={slide.ctaLabelBn} onChange={(e) => updateSlide(idx, { ctaLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="CTA (BN)" />
                           <input type="text" value={slide.ctaHref} onChange={(e) => updateSlide(idx, { ctaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono col-span-2" placeholder="Link URL" />
+                    <div className="col-span-2 mt-2 pt-2 border-t border-border">
+                      <p className="text-[11px] text-slate-500 mb-1.5 font-medium">Side tile (optional — second image on the right)</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="text" value={slide.sideTileImage ?? ''} onChange={(e) => updateSlide(idx, { sideTileImage: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Side tile image URL" />
+                        <input type="text" value={slide.sideTileCtaHref ?? ''} onChange={(e) => updateSlide(idx, { sideTileCtaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono" placeholder="Side tile link URL" />
+                        <input type="text" value={slide.sideTileLabelEn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (EN)" />
+                        <input type="text" value={slide.sideTileLabelBn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (BN)" />
+                      </div>
+                    </div>
+                    <div className="col-span-2 mt-2 pt-2 border-t border-border">
+                      <p className="text-[11px] text-slate-500 mb-1.5 font-medium">Extra text (optional)</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="text" value={slide.eyebrowEn ?? ''} onChange={(e) => updateSlide(idx, { eyebrowEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Eyebrow (EN)" />
+                        <input type="text" value={slide.eyebrowBn ?? ''} onChange={(e) => updateSlide(idx, { eyebrowBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Eyebrow (BN)" />
+                        <input type="text" value={slide.subtitleEn ?? ''} onChange={(e) => updateSlide(idx, { subtitleEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Subtitle (EN)" />
+                        <input type="text" value={slide.subtitleBn ?? ''} onChange={(e) => updateSlide(idx, { subtitleBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Subtitle (BN)" />
+                        <input type="text" value={slide.badgeTextEn ?? ''} onChange={(e) => updateSlide(idx, { badgeTextEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Badge (EN)" />
+                        <input type="text" value={slide.badgeTextBn ?? ''} onChange={(e) => updateSlide(idx, { badgeTextBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Badge (BN)" />
+                      </div>
+                    </div>
+                    <div className="col-span-2 mt-2 pt-2 border-t border-border">
+                      <p className="text-[11px] text-slate-500 mb-1.5 font-medium">Side tile (optional — second image on the right)</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="text" value={slide.sideTileImage ?? ''} onChange={(e) => updateSlide(idx, { sideTileImage: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Side tile image URL" />
+                        <input type="text" value={slide.sideTileCtaHref ?? ''} onChange={(e) => updateSlide(idx, { sideTileCtaHref: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] font-mono" placeholder="Side tile link URL" />
+                        <input type="text" value={slide.sideTileLabelEn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (EN)" />
+                        <input type="text" value={slide.sideTileLabelBn ?? ''} onChange={(e) => updateSlide(idx, { sideTileLabelBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Side label (BN)" />
+                      </div>
+                    </div>
+                    <div className="col-span-2 mt-2 pt-2 border-t border-border">
+                      <p className="text-[11px] text-slate-500 mb-1.5 font-medium">Extra text (optional)</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="text" value={slide.eyebrowEn ?? ''} onChange={(e) => updateSlide(idx, { eyebrowEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Eyebrow (EN)" />
+                        <input type="text" value={slide.eyebrowBn ?? ''} onChange={(e) => updateSlide(idx, { eyebrowBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Eyebrow (BN)" />
+                        <input type="text" value={slide.subtitleEn ?? ''} onChange={(e) => updateSlide(idx, { subtitleEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Subtitle (EN)" />
+                        <input type="text" value={slide.subtitleBn ?? ''} onChange={(e) => updateSlide(idx, { subtitleBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px] col-span-2" placeholder="Subtitle (BN)" />
+                        <input type="text" value={slide.badgeTextEn ?? ''} onChange={(e) => updateSlide(idx, { badgeTextEn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Badge (EN)" />
+                        <input type="text" value={slide.badgeTextBn ?? ''} onChange={(e) => updateSlide(idx, { badgeTextBn: e.target.value })} className="h-8 px-2 rounded border border-border text-[12px]" placeholder="Badge (BN)" />
+                      </div>
+                    </div>
                         </div>
                       </div>
                     </div>
