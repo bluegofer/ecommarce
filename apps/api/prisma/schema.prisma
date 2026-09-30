@@ -407,6 +407,8 @@ model Variant {
   barcode           String?
   pricePoisha       Int
   compareAtPoisha   Int?
+  discountStartAt   DateTime?
+  discountEndAt     DateTime?
   stock             Int      @default(0)
   lowStockThreshold Int      @default(5)
   attributeValues   Json

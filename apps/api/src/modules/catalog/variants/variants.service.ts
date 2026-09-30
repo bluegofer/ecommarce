@@ -41,6 +41,8 @@ export class VariantsService {
         barcode: dto.barcode ?? null,
         pricePoisha: dto.pricePoisha,
         compareAtPoisha: dto.compareAtPoisha ?? null,
+        discountStartAt: dto.discountStartAt ? new Date(dto.discountStartAt) : null,
+        discountEndAt: dto.discountEndAt ? new Date(dto.discountEndAt) : null,
         stock: dto.stock ?? 0,
         lowStockThreshold: dto.lowStockThreshold ?? 5,
         attributeValues: dto.attributeValues as unknown as object,
@@ -59,6 +61,8 @@ export class VariantsService {
     if (dto.barcode !== undefined) data.barcode = dto.barcode;
     if (dto.pricePoisha !== undefined) data.pricePoisha = dto.pricePoisha;
     if (dto.compareAtPoisha !== undefined) data.compareAtPoisha = dto.compareAtPoisha;
+    if (dto.discountStartAt !== undefined) data.discountStartAt = dto.discountStartAt ? new Date(dto.discountStartAt) : null;
+    if (dto.discountEndAt !== undefined) data.discountEndAt = dto.discountEndAt ? new Date(dto.discountEndAt) : null;
     if (dto.lowStockThreshold !== undefined) data.lowStockThreshold = dto.lowStockThreshold;
     if (dto.attributeValues !== undefined) data.attributeValues = dto.attributeValues;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
@@ -168,6 +172,8 @@ export class VariantsService {
     barcode: string | null;
     pricePoisha: number;
     compareAtPoisha: number | null;
+    discountStartAt: Date | null;
+    discountEndAt: Date | null;
     stock: number;
     lowStockThreshold: number;
     attributeValues: unknown;
@@ -181,6 +187,8 @@ export class VariantsService {
       barcode: row.barcode,
       pricePoisha: row.pricePoisha,
       compareAtPoisha: row.compareAtPoisha,
+      discountStartAt: row.discountStartAt ? row.discountStartAt.toISOString() : null,
+      discountEndAt: row.discountEndAt ? row.discountEndAt.toISOString() : null,
       stock: row.stock,
       lowStockThreshold: row.lowStockThreshold,
       attributeValues:
