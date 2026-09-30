@@ -64,9 +64,9 @@ export class StockService {
              p."titleEn" AS "titleEn", p."titleBn" AS "titleBn"
       FROM variants v
       JOIN products p ON p.id = v."productId"
-      WHERE v.stock <= v."lowStockThreshold" AND v."isActive" = true
+      WHERE (v.stock <= v."lowStockThreshold" OR v.stock <= 20) AND v."isActive" = true
       ORDER BY v.stock ASC, v.sku ASC
-      LIMIT 500
+      LIMIT 20
     `;
     return rows;
   }
