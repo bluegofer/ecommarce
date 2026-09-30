@@ -312,7 +312,7 @@
   align-items: center;
   gap: 4px;
   flex: 1;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 /* Mobile: allow horizontal scroll only at small screens */
 @media (max-width: 640px) {
@@ -321,7 +321,18 @@
     scrollbar-width: none;
   }
   .navLinks::-webkit-scrollbar { display: none; }
-  /* Batch 2C: disable grow on mobile — allow scroll */   .navLinks {     flex: none;     justify-content: flex-start;   }   .navItemWrap {     flex: 0 0 auto;     justify-content: flex-start;   }   .navLink {     justify-content: flex-start;   }
+  /* Batch 2C: disable grow on mobile — allow scroll */
+  .navLinks {
+    flex: none;
+    justify-content: flex-start;
+  }
+  .navItemWrap {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+  }
+  .navLink {
+    justify-content: flex-start;
+  }
 }
 
 .navLink {
