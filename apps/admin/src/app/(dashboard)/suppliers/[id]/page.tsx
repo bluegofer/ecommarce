@@ -49,6 +49,7 @@ interface PerformanceDto {
   lateDeliveries: number;
   averageLeadTimeDays: number;
   fulfillmentRate: number;
+  monthlyTrend: Array<{ month: string; ordersCount: number; orderedQty: number; amountPoisha: number }>;
 }
 
 interface SupplierProductDto {
@@ -266,6 +267,34 @@ export default function SupplierDetailPage() {
                   <div className="text-[11.5px] text-slate-500">Ordered Qty</div>
                   <div className="font-medium text-slate-800">{perfQuery.data.totalOrdered}</div>
                 </div>
+
+              {/* 6-month trend (Step-147) */}
+              <div className="mt-4 pt-4 border-t border-border">
+                <h4 className="text-[12px] font-semibold text-slate-500 uppercase mb-3">Last 6 months — order value</h4>
+                <div className="flex items-end gap-2 h-24">
+                  {perfQuery.data.monthlyTrend.map((m) => {
+                    const max = Math.max(...perfQuery.data!.monthlyTrend.map((x) => x.amountPoisha), 1);
+                    const pct = (m.amountPoisha / max) * 100;
+                    return (
+                      <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full flex-1 flex items-end">
+                          <div
+                            className="w-full rounded-t bg-sky-500 transition-all"
+                            style={{ height: pct + "%", minHeight: "2px" }}
+                            title={`৳${(m.amountPoisha / 100).toFixed(0)} · ${m.ordersCount} order(s)`}
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-500 tabular-nums">
+                          {m.month.slice(5)}
+                        </span>
+                        <span className="text-[10px] text-slate-700 font-medium tabular-nums">
+                          {m.amountPoisha > 0 ? (m.amountPoisha / 100).toFixed(0) : "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
                 <div>
                   <div className="text-[11.5px] text-slate-500">Received Qty</div>
                   <div className="font-medium text-slate-800">{perfQuery.data.totalReceived}</div>

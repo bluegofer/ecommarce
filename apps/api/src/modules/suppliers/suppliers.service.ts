@@ -232,6 +232,33 @@ export class SuppliersService {
     const avgLeadTimeDays =
       leadTimes.length > 0 ? leadTimes.reduce((s, d) => s + d, 0) / leadTimes.length : 0;
 
+    // Monthly purchase trend (last 6 months)
+    const monthlyTrend: Array<{
+      month: string;
+      ordersCount: number;
+      orderedQty: number;
+      amountPoisha: number;
+    }> = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setUTCDate(1);
+      d.setUTCHours(0, 0, 0, 0);
+      d.setUTCMonth(d.getUTCMonth() - i);
+      const y = d.getUTCFullYear();
+      const m = d.getUTCMonth();
+      const next = new Date(Date.UTC(y, m + 1, 1));
+      const thisMonth = new Date(Date.UTC(y, m, 1));
+      const monthKey = String(y) + "-" + String(m + 1).padStart(2, "0");
+      const posInMonth = pos.filter((po) => {
+        const created = new Date(po.createdAt);
+        return created >= thisMonth && created < next;
+      });
+      const ordersCount = posInMonth.length;
+      const orderedQty = posInMonth.reduce((s, po) => s + po.items.reduce((x, ii) => x + ii.orderedQty, 0), 0);
+      const amountPoisha = posInMonth.reduce((s, po) => s + po.total, 0);
+      monthlyTrend.push({ month: monthKey, ordersCount, orderedQty, amountPoisha });
+    }
+
     return {
       supplierId,
       totalOrders,
@@ -240,7 +267,9 @@ export class SuppliersService {
       onTimeDeliveries: onTime,
       lateDeliveries: late,
       averageLeadTimeDays: Math.round(avgLeadTimeDays * 100) / 100,
-      fulfillmentRate: totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 10000) / 10000 : 0,
+      fulfillmentRate:
+        totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 10000) / 10000 : 0,
+      monthlyTrend,
     };
   }
 
