@@ -71,7 +71,6 @@ export function Header({
   const [megaOpen, setMegaOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -79,12 +78,6 @@ export function Header({
   const navWrapRef = useRef<HTMLDivElement>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const onScroll = () => setCollapsed(window.scrollY > 160);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     if (!accountOpen) return;
@@ -124,7 +117,7 @@ export function Header({
 
   return (
     <>
-      <header className={[styles.header, collapsed ? styles.collapsed : '', searchExpanded ? styles.searchExpanded : ''].filter(Boolean).join(' ')}>
+      <header className={[styles.header, searchExpanded ? styles.searchExpanded : ''].filter(Boolean).join(' ')}>
         <div className={styles.row1}>
           <div className={styles.row1Inner}>
 

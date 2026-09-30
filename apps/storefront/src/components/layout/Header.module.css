@@ -1,17 +1,10 @@
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 900;
   font-family: var(--sk-font-en);
 }
 
-.header.collapsed .row2,
-.header.collapsed .chips {
-  display: none;
-}
 
 /* ── Row 1 ── */
-.row1 { background: var(--sk-brand-950); color: #FFFFFF; }
+.row1 { background: var(--sk-brand-950); color: #FFFFFF; position: sticky; top: 0; z-index: 900; }
 .row1Inner {
   max-width: var(--sk-container-max);
   margin: 0 auto;
@@ -418,7 +411,6 @@
   .row2 { display: none; }
 }
 
-.header.collapsed .row1Inner { height: 56px; }
 
 html[lang="bn"] .header,
 html[lang="bn"] .logoText,
