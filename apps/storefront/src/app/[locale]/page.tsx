@@ -450,6 +450,17 @@ function extractHeroSlides(config: Record<string, unknown> | null | undefined): 
       ctaHref: String(s.ctaHref),
       ctaLabelEn: String(s.ctaLabelEn ?? 'Shop'),
       ctaLabelBn: String(s.ctaLabelBn ?? 'কিনুন'),
+      // Step-145c: pass through extended fields
+      badgeTextEn: typeof s.badgeTextEn === 'string' ? s.badgeTextEn : undefined,
+      badgeTextBn: typeof s.badgeTextBn === 'string' ? s.badgeTextBn : undefined,
+      eyebrowEn: typeof s.eyebrowEn === 'string' ? s.eyebrowEn : undefined,
+      eyebrowBn: typeof s.eyebrowBn === 'string' ? s.eyebrowBn : undefined,
+      subtitleEn: typeof s.subtitleEn === 'string' ? s.subtitleEn : undefined,
+      subtitleBn: typeof s.subtitleBn === 'string' ? s.subtitleBn : undefined,
+      sideTileImage: typeof s.sideTileImage === 'string' ? s.sideTileImage : undefined,
+      sideTileCtaHref: typeof s.sideTileCtaHref === 'string' ? s.sideTileCtaHref : undefined,
+      sideTileLabelEn: typeof s.sideTileLabelEn === 'string' ? s.sideTileLabelEn : undefined,
+      sideTileLabelBn: typeof s.sideTileLabelBn === 'string' ? s.sideTileLabelBn : undefined,
     }));
 }
 
