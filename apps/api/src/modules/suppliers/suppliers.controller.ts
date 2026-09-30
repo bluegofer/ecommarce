@@ -1,5 +1,6 @@
+import type { Response } from 'express';
 // apps/api/src/modules/suppliers/suppliers.controller.ts
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Res, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -55,4 +56,19 @@ export class SuppliersController {
   @Get(':id/products')
   @Roles('SUPER_ADMIN', 'PURCHASE_MANAGER', 'FINANCE_MANAGER', 'FINANCE_READONLY', 'CATALOG_MANAGER')
   products(@Param("id") id: string) { return this.svc.listProducts(id); }
+
+  @Get('payments/:id/receipt')
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'PURCHASE_MANAGER', 'FINANCE_READONLY')
+  async receipt(@Param("id") id: string, @Res() res: Response) {
+    const pdf = await this.svc.generateReceiptPdf(id);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="receipt-${id}.pdf"`);
+    res.send(pdf);
+  }
+
+  @Post('payments/:id/email-receipt')
+  @Roles('SUPER_ADMIN', 'FINANCE_MANAGER', 'PURCHASE_MANAGER')
+  emailReceipt(@Param("id") id: string) {
+    return this.svc.emailReceipt(id);
+  }
 }

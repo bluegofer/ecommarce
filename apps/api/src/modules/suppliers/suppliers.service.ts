@@ -1,3 +1,4 @@
+import { MessagingService } from '../messaging/messaging.service';
 // apps/api/src/modules/suppliers/suppliers.service.ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -14,6 +15,7 @@ export class SuppliersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ledger: LedgerService,
+    private readonly messaging: MessagingService,
   ) {}
 
   // ---- CRUD ----
@@ -173,6 +175,8 @@ export class SuppliersService {
         }
       }
 
+      // Fire-and-forget email receipt (after tx commit)
+      void this.emailReceipt(payment.id).catch(() => undefined);
       return { payment, journalEntryId: journal.id };
     });
   }
@@ -269,5 +273,102 @@ export class SuppliersService {
         createdAt: p.createdAt,
       };
     });
+  }
+
+  // ---- Payment receipt PDF + auto-email (Step-146) ----
+
+  async generateReceiptPdf(paymentId: string): Promise<Buffer> {
+    const payment = await this.prisma.supplierPayment.findUnique({
+      where: { id: paymentId },
+      include: { supplier: true },
+    });
+    if (!payment) throw new NotFoundException(`Payment ${paymentId} not found`);
+
+    const s = payment.supplier;
+    const lines: string[] = [];
+    lines.push("========================================");
+    lines.push("  NoLimitShopping — Supplier Payment Receipt");
+    lines.push("========================================");
+    lines.push("Receipt #: " + payment.paymentNumber);
+    lines.push("Date: " + payment.paidAt.toISOString());
+    lines.push("");
+    lines.push("Supplier:");
+    lines.push("  " + s.name + " (" + s.code + ")");
+    if (s.phone) lines.push("  Phone: " + s.phone);
+    if (s.email) lines.push("  Email: " + s.email);
+    lines.push("");
+    lines.push("----------------------------------------");
+    lines.push("  Method:      " + payment.method);
+    lines.push("  Amount Paid: BDT " + (payment.amount / 100).toFixed(2));
+    if (payment.reference) lines.push("  Reference:   " + payment.reference);
+    lines.push("  Balance Due: BDT " + (s.currentDue / 100).toFixed(2));
+    lines.push("----------------------------------------");
+    lines.push("");
+    if (payment.notes) lines.push("Notes: " + payment.notes);
+    lines.push("");
+    lines.push("This is a system-generated receipt. No signature required.");
+    lines.push("Thank you for your continued partnership.");
+
+    return this.textToPdf(lines);
+  }
+
+  private textToPdf(lines: string[]): Buffer {
+    const escapePdf = (t: string) => t.replace(/\\/g, '\\\\').replace(/\(/g, '\(').replace(/\)/g, '\)');
+    let content = "BT\\n/F1 11 Tf\\n14 TL\\n50 780 Td\\n";
+    for (const line of lines) {
+      content += "(" + escapePdf(line) + ") Tj T*\\n";
+    }
+    content += "ET\\n";
+    const contentBytes = Buffer.byteLength(content, "utf8");
+
+    const objects: string[] = [];
+    objects.push("<< /Type /Catalog /Pages 2 0 R >>");
+    objects.push("<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+    objects.push("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>");
+    objects.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+    objects.push("<< /Length " + contentBytes + " >>\\nstream\\n" + content + "endstream");
+
+    let pdf = "%PDF-1.4\\n";
+    const offsets: number[] = [];
+    for (let i = 0; i < objects.length; i++) {
+      offsets.push(Buffer.byteLength(pdf, "utf8"));
+      pdf += (i + 1) + " 0 obj\\n" + objects[i] + "\\nendobj\\n";
+    }
+    const xrefStart = Buffer.byteLength(pdf, "utf8");
+    pdf += "xref\\n0 " + (objects.length + 1) + "\\n0000000000 65535 f \\n";
+    for (const off of offsets) {
+      pdf += off.toString().padStart(10, "0") + " 00000 n \\n";
+    }
+    pdf += "trailer\\n<< /Size " + (objects.length + 1) + " /Root 1 0 R >>\\nstartxref\\n" + xrefStart + "\\n%%EOF\\n";
+    return Buffer.from(pdf, "utf8");
+  }
+
+  async emailReceipt(paymentId: string): Promise<{ ok: boolean; reason?: string }> {
+    const payment = await this.prisma.supplierPayment.findUnique({
+      where: { id: paymentId },
+      include: { supplier: true },
+    });
+    if (!payment) throw new NotFoundException(`Payment ${paymentId} not found`);
+    const s = payment.supplier;
+    if (!s.email) return { ok: false, reason: "supplier has no email" };
+
+    try {
+      const pdf = await this.generateReceiptPdf(paymentId);
+      await this.messaging.sendEmail({
+        to: s.email,
+        subject: "Payment receipt " + payment.paymentNumber + " — NoLimitShopping",
+        html: "<p>Dear " + (s.contactPerson ?? s.name) + ",</p>",
+        text: "Please find attached receipt " + payment.paymentNumber + " for BDT " + (payment.amount / 100).toFixed(2) + ".",
+        attachments: [{
+          filename: "receipt-" + payment.paymentNumber + ".pdf",
+          contentBase64: pdf.toString("base64"),
+          contentType: "application/pdf",
+        }],
+        idempotencyKey: "supplier-receipt-" + payment.paymentNumber,
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, reason: e instanceof Error ? e.message : "unknown" };
+    }
   }
 }

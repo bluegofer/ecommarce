@@ -187,6 +187,7 @@ export default function SupplierDetailPage() {
                     <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase">Date</th>
                     <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase">Method</th>
                     <th className="px-4 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase">Amount</th>
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -199,6 +200,38 @@ export default function SupplierDetailPage() {
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums font-medium text-success-700">
                         {formatPoisha(p.amount)}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <a
+                            href={`/api/v1/suppliers/payments/${p.id}/receipt`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[12.5px] font-medium text-sky-700 hover:text-sky-800"
+                          >
+                            PDF
+                          </a>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const r = await fetch(`/api/v1/suppliers/payments/${p.id}/email-receipt`, {
+                                  method: "POST",
+                                  credentials: "include",
+                                });
+                                if (!r.ok) throw new Error("Failed");
+                                const data = await r.json();
+                                if (data.ok) toast.success("Receipt emailed");
+                                else toast.error("Email failed", data.reason || "Unknown");
+                              } catch (e) {
+                                toast.error("Email failed");
+                              }
+                            }}
+                            className="text-[12.5px] font-medium text-slate-600 hover:text-slate-800"
+                          >
+                            Email
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
