@@ -1,7 +1,9 @@
 'use client';
 
-import { Menu, Search, Bell, ChevronDown } from 'lucide-react';
+import { Mail, Clock, Menu, Search, Bell, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
+import { useQuery } from '@/lib/hooks';
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -9,6 +11,16 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const { data: notifLog } = useQuery<Array<{
+    id: string;
+    channel: string;
+    templateKey: string;
+    recipient: string;
+    status: string;
+    createdAt: string;
+  }>>(notifOpen ? '/api/v1/notifications/log' : null);
 
   return (
     <header className="sticky top-0 z-20 h-16 bg-surface border-b border-border">
@@ -39,14 +51,65 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <div className="flex-1" />
 
         {/* Notifications */}
-        <button
-          type="button"
-          className="relative p-2 rounded hover:bg-slate-100"
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5 text-slate-600" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-500" />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setNotifOpen((v) => !v)}
+            className="relative p-2 rounded hover:bg-slate-100"
+            aria-label="Notifications"
+            aria-haspopup="true"
+            aria-expanded={notifOpen}
+          >
+            <Bell className="w-5 h-5 text-slate-600" />
+            {notifLog && notifLog.length > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-500" />
+            )}
+          </button>
+          {notifOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-30"
+                onClick={() => setNotifOpen(false)}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-surface rounded shadow-md border border-border py-1 z-40"
+              >
+                <div className="px-3 py-2 border-b border-border">
+                  <p className="text-[13px] font-semibold text-slate-800">Recent notifications</p>
+                  <p className="text-[11px] text-slate-500">Latest 200 records</p>
+                </div>
+                {!notifLog ? (
+                  <p className="px-3 py-6 text-center text-[12px] text-slate-400">Loading…</p>
+                ) : notifLog.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-[12px] text-slate-400">No notifications yet</p>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {notifLog.slice(0, 10).map((n) => (
+                      <li key={n.id} className="px-3 py-2 hover:bg-slate-50">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <span className="text-[12px] font-medium text-slate-800 truncate">{n.templateKey}</span>
+                          <span className="text-[10px] uppercase font-medium text-slate-500 flex-shrink-0">{n.channel}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 truncate">{n.recipient}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">{new Date(n.createdAt).toLocaleString()}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="px-3 py-2 border-t border-border">
+                  <Link
+                    href="/notifications/log"
+                    onClick={() => setNotifOpen(false)}
+                    className="block text-center text-[12px] font-medium text-sky-700 hover:text-sky-900"
+                  >
+                    View all →
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* User menu */}
         <div className="relative">
