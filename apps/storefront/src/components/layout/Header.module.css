@@ -303,7 +303,7 @@
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
   justify-content: flex-start;
 }
@@ -432,7 +432,7 @@ html[lang="bn"] .chip {
   position: relative;
   display: inline-flex;
   align-items: center;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   justify-content: center;
 }
 .navItemWrap:hover {
