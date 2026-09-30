@@ -104,7 +104,7 @@ export default function PromotionsPage() {
     <div className="space-y-5">
       <PageHeader
         title="Promotions"
-        subtitle="Coupon codes · automatic discounts · flash sales · referral program"
+        subtitle="Coupon codes · automatic discounts · referral program"
         actions={
           <>
             <Link
@@ -112,12 +112,6 @@ export default function PromotionsPage() {
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Auto-discounts
-            </Link>
-            <Link
-              href="/promotions/flash-sales"
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Flash sales
             </Link>
             <Link
               href="/promotions/referrals"

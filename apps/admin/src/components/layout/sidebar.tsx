@@ -88,7 +88,6 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Transfers', href: '/inventory/transfers', icon: Package },
         ],
       },
-      { label: 'Attributes', href: '/catalog/attributes', icon: Layers },
     ],
   },
   {
@@ -122,7 +121,6 @@ const NAV_SECTIONS: NavSection[] = [
         icon: Tag,
         children: [
           { label: 'Coupons', href: '/promotions', icon: Tag },
-          { label: 'Flash sales', href: '/promotions/flash-sales', icon: Tag },
         ],
       },
       {
