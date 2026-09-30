@@ -143,6 +143,13 @@ export interface ProductDto {
   isFeatured: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Computed summary fields (Step 13.3a — backend enrichment). */
+  minPricePoisha?: number;
+  maxCompareAtPoisha?: number | null;
+  totalStock?: number;
+  primaryImageUrl?: string | null;
+  variants?: VariantDto[];
+  media?: Array<{ id: string; url: string; type: string; sortOrder: number }>;
 }
 
 export interface ProductAttributeValueDto {
