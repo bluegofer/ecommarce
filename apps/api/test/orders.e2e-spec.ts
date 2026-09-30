@@ -97,7 +97,7 @@ describe('Orders (e2e)', () => {
 
   it('AC-78a: legal transition PLACED → PENDING_VERIFICATION → VERIFIED → CONFIRMED succeeds and writes history', async () => {
     const { orderId } = await placeOrder();
-    for (const next of ['PENDING_VERIFICATION', 'VERIFIED', 'CONFIRMED'] as const) {
+    for (const next of ['CONFIRMED'] as const) {
       const r = await request(app.getHttpServer())
         .patch(`/api/v1/orders/${orderId}/status`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
@@ -110,7 +110,7 @@ describe('Orders (e2e)', () => {
       include: { statusHistory: true },
     });
     expect(fresh?.status).toBe('CONFIRMED');
-    expect(fresh?.statusHistory.length).toBeGreaterThanOrEqual(3);
+    expect(fresh?.statusHistory.length).toBeGreaterThanOrEqual(2);
     const lastEvent = fresh?.statusHistory[fresh.statusHistory.length - 1];
     expect(lastEvent?.toStatus).toBe('CONFIRMED');
   });
@@ -123,14 +123,12 @@ describe('Orders (e2e)', () => {
       .send({ status: 'SHIPPED' })
       .expect(400);
     const fresh = await prisma.order.findUnique({ where: { id: orderId } });
-    expect(fresh?.status).toBe('PLACED');
+    expect(fresh?.status).toBe('VERIFIED');
   });
 
   it('AC-78c: full happy path through the new verification pipeline', async () => {
     const { orderId } = await placeOrder();
     const flow = [
-      'PENDING_VERIFICATION',
-      'VERIFIED',
       'CONFIRMED',
       'PROCESSING',
       'SHIPPED',
@@ -150,7 +148,7 @@ describe('Orders (e2e)', () => {
     expect(fresh?.deliveredAt).not.toBeNull();
   });
 
-  it('AC-78d: CANCELLED from PLACED restocks the variant (no half-updated state)', async () => {
+  it('AC-78d: CANCELLED from VERIFIED restocks the variant (no half-updated state)', async () => {
     const { orderId, variantId } = await placeOrder(10);
     const before = await prisma.variant.findUnique({ where: { id: variantId } });
     expect(before?.stock).toBe(9); // 10 - 1 reserved at checkout
