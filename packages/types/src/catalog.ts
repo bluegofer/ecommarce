@@ -132,6 +132,7 @@ export interface ProductDto {
   publishedAt: string | null;
   deliveryTimeEn: string | null;
   deliveryTimeBn: string | null;
+  deliveryChargePoisha: number | null;
   videoUrl: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
@@ -172,6 +173,7 @@ export interface CreateProductDto {
   publishedAt?: string;
   deliveryTimeEn?: string;
   deliveryTimeBn?: string;
+  deliveryChargePoisha?: number;
   videoUrl?: string;
   metaTitle?: string;
   metaDescription?: string;

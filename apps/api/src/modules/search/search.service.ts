@@ -27,6 +27,7 @@ interface ProductRow {
   publishedAt: Date | null;
   deliveryTimeEn: string | null;
   deliveryTimeBn: string | null;
+  deliveryChargePoisha: number | null;
   videoUrl: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
@@ -295,6 +296,7 @@ export class SearchService {
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
       deliveryTimeEn: p.deliveryTimeEn,
       deliveryTimeBn: p.deliveryTimeBn,
+      deliveryChargePoisha: p.deliveryChargePoisha,
       videoUrl: p.videoUrl,
       metaTitle: p.metaTitle,
       metaDescription: p.metaDescription,

@@ -353,6 +353,7 @@ model Product {
   status          ProductStatus @default(DRAFT)
   publishedAt     DateTime?
   deliveryTimeEn  String?
+  deliveryChargePoisha Int?
   deliveryTimeBn  String?
   videoUrl        String?
   metaTitle       String?

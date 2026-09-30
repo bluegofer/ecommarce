@@ -57,6 +57,7 @@ export class ProductsService {
         specsJson: (dto.specsJson as unknown as object) ?? undefined,
         deliveryTimeEn: dto.deliveryTimeEn ?? null,
         deliveryTimeBn: dto.deliveryTimeBn ?? null,
+        deliveryChargePoisha: dto.deliveryChargePoisha ?? null,
         videoUrl: dto.videoUrl ?? null,
         isFeatured: dto.isFeatured ?? false,
       },
@@ -84,6 +85,7 @@ export class ProductsService {
     if (dto.bulletFeatures !== undefined) data.bulletFeatures = dto.bulletFeatures;
     if (dto.specsJson !== undefined) data.specsJson = dto.specsJson;
     if (dto.deliveryTimeEn !== undefined) data.deliveryTimeEn = dto.deliveryTimeEn;
+    if (dto.deliveryChargePoisha !== undefined) data.deliveryChargePoisha = dto.deliveryChargePoisha;
     if (dto.deliveryTimeBn !== undefined) data.deliveryTimeBn = dto.deliveryTimeBn;
     if (dto.videoUrl !== undefined) data.videoUrl = dto.videoUrl;
     if (dto.isFeatured !== undefined) data.isFeatured = dto.isFeatured;
@@ -331,6 +333,7 @@ export class ProductsService {
     publishedAt: Date | null;
     deliveryTimeEn: string | null;
     deliveryTimeBn: string | null;
+    deliveryChargePoisha: number | null;
     videoUrl: string | null;
     metaTitle: string | null;
     metaDescription: string | null;
@@ -390,6 +393,7 @@ export class ProductsService {
       bulletFeatures: Array.isArray(p.bulletFeatures) ? (p.bulletFeatures as string[]) : null,
       deliveryTimeEn: p.deliveryTimeEn ?? null,
       deliveryTimeBn: p.deliveryTimeBn ?? null,
+      deliveryChargePoisha: p.deliveryChargePoisha,
       videoUrl: p.videoUrl ?? null,
       specsJson:
         p.specsJson && typeof p.specsJson === 'object'
