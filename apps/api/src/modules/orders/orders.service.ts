@@ -160,6 +160,22 @@ export class OrdersService {
     return this.updateStatus(orderId, { status: 'VERIFIED' }, actorUserId);
   }
 
+  async verifyBulk(ids: string[], actorUserId: string | null): Promise<{ ok: boolean; verified: number; skipped: number; errors: string[] }> {
+    let verified = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+    for (const id of ids) {
+      try {
+        await this.verify(id, actorUserId);
+        verified++;
+      } catch (e) {
+        skipped++;
+        errors.push(id + ': ' + (e instanceof Error ? e.message : 'unknown'));
+      }
+    }
+    return { ok: true, verified, skipped, errors };
+  }
+
   async updateStatus(
     orderId: string,
     dto: UpdateOrderStatusDto,

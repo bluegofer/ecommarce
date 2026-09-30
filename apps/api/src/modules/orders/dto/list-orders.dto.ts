@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsOptional,
   IsIn,
   IsInt,
@@ -17,13 +18,22 @@ import { Type } from 'class-transformer';
  */
 export const ORDER_STATUS_VALUES = [
   'PLACED',
+  'PENDING_VERIFICATION',
+  'VERIFIED',
   'CONFIRMED',
   'PROCESSING',
   'SHIPPED',
+  'IN_TRANSIT',
+  'OUT_FOR_DELIVERY',
   'DELIVERED',
+  'FAILED',
   'CANCELLED',
   'RETURN_REQUESTED',
   'RETURNED',
+  'EXCHANGE_REQUESTED',
+  'EXCHANGE_APPROVED',
+  'EXCHANGE_REJECTED',
+  'EXCHANGED',
 ] as const;
 
 export type OrderStatusValue = (typeof ORDER_STATUS_VALUES)[number];
@@ -72,4 +82,10 @@ export class ListOrdersQueryDto {
   @Min(1)
   @Max(100)
   pageSize?: number;
+}
+
+export class VerifyBulkDto {
+  @IsArray()
+  @IsString({ each: true })
+  ids!: string[];
 }

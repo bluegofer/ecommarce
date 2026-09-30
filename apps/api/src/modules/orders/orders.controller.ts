@@ -24,7 +24,7 @@ import type {
   UpdateOrderStatusDto,
 } from '@ecommarce/types';
 import { LookupOrderQueryDto } from './dto/lookup-order.dto';
-import { ListOrdersQueryDto } from './dto/list-orders.dto';
+import { ListOrdersQueryDto, VerifyBulkDto } from './dto/list-orders.dto';
 import type { Response } from 'express';
 
 interface RequestUser {
@@ -70,6 +70,24 @@ verify(
 ) {
   return this.orders.verify(id, user?.userId ?? null);
 }
+
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+  @Post('verify-bulk')
+  verifyBulk(
+    @Body() dto: VerifyBulkDto,
+    @CurrentUser() user: RequestUser | null,
+  ) {
+    return this.orders.verifyBulk(dto.ids, user?.userId ?? null);
+  }
+
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
+  @Patch('verify-bulk')
+  verifyBulkPatch(
+    @Body() dto: VerifyBulkDto,
+    @CurrentUser() user: RequestUser | null,
+  ) {
+    return this.orders.verifyBulk(dto.ids, user?.userId ?? null);
+  }
 
 
   @Roles('SUPER_ADMIN', 'ORDER_SUPPORT')
