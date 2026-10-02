@@ -20,6 +20,8 @@ export interface DashboardDto {
     lowStockSkus: number;
     returnsAwaiting: number;
     unreconciledSettlements: number;
+    reviewsThisMonth: number;
+    reviewsPending: number;
   };
 }
 
@@ -41,6 +43,8 @@ export class DashboardController {
       lowStockRows,
       returnsAwaiting,
       unreconciledSettlements,
+      reviewsThisMonth,
+      reviewsPending,
     ] = await Promise.all([
       this.prisma.order.aggregate({
         where: {
@@ -70,6 +74,14 @@ export class DashboardController {
       // settlement module lands in Custom Phase 7; keep the field so the
       // admin UI can bind it without a shape change later.
       Promise.resolve(0),
+      this.prisma.review.count({
+        where: {
+          createdAt: {
+            gte: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)),
+          },
+        },
+      }),
+      this.prisma.review.count({ where: { status: 'PENDING' } }),
     ]);
 
     return {
@@ -82,6 +94,8 @@ export class DashboardController {
         lowStockSkus: lowStockRows[0]?.count ?? 0,
         returnsAwaiting,
         unreconciledSettlements,
+        reviewsThisMonth,
+        reviewsPending,
       },
     };
   }

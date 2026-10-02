@@ -604,6 +604,15 @@ export default function ProductEditorPage() {
                   <option value="ARCHIVED">Archived</option>
                 </select>
               </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none mt-3">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.isFeatured)}
+                  onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))}
+                  className="w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                />
+                <span className="text-sm text-slate-700">Featured product</span>
+              </label>
               {form.status === 'SCHEDULED' && (
                 <div>
                   <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">

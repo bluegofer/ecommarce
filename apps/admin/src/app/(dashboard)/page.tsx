@@ -35,6 +35,8 @@ interface DashboardResponse {
     lowStockSkus: number;
     returnsAwaiting: number;
     unreconciledSettlements: number;
+    reviewsThisMonth: number;
+    reviewsPending: number;
   };
 }
 
@@ -278,6 +280,13 @@ export default function DashboardHomePage() {
                 href: '/inventory/low-stock',
                 tone: 'text-danger-700',
                 icon: PackageX,
+              },
+              {
+                label: 'Reviews awaiting moderation',
+                count: dashboardQ.data?.pendingActions.reviewsPending ?? 0,
+                href: '/reviews',
+                tone: 'text-warning-700',
+                icon: ClipboardCheck,
               },
             ].map((item) => {
               const Icon = item.icon;
