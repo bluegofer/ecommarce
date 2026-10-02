@@ -9,6 +9,7 @@ import { AuthUser } from '../../../common/decorators/current-user.decorator';
 interface JwtPayload {
   sub: string;
   phone: string;
+  mustEnrollTotp?: boolean;
 }
 
 interface UserWithRoles {
@@ -50,6 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       userId: user.id,
       phone: user.phone,
       roles: user.userRoles.map((ur) => ur.role.code),
+      mustEnrollTotp: Boolean(payload.mustEnrollTotp),
     };
   }
 }

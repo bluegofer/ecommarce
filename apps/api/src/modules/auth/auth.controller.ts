@@ -20,6 +20,7 @@ import { RegisterDto } from './dto/register.dto';
 import { RequestOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { TotpConfirmDto, TotpVerifyDto, TotpDisableDto } from './dto/totp.dto';
+import { AllowDuringTotpEnrollment } from '../../common/decorators/allow-during-totp-enrollment.decorator';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
 import { TotpService } from './totp.service';
@@ -176,6 +177,7 @@ export class AuthController {
     };
   }
 
+  @AllowDuringTotpEnrollment()
   @Post('totp/enroll')
   @HttpCode(200)
   async totpEnroll(
@@ -185,6 +187,7 @@ export class AuthController {
     return { ok: true, qrDataUrl: result.qrDataUrl, secret: result.secret };
   }
 
+  @AllowDuringTotpEnrollment()
   @Post('totp/confirm')
   @HttpCode(200)
   async totpConfirm(
@@ -196,6 +199,7 @@ export class AuthController {
     return { ok: true };
   }
 
+  @AllowDuringTotpEnrollment()
   @Post('totp/disable')
   @HttpCode(200)
   async totpDisable(
@@ -241,6 +245,7 @@ export class AuthController {
 
   @Public()
   @Throttle(LOGOUT_THROTTLE)
+  @AllowDuringTotpEnrollment()
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request): Promise<{ ok: true }> {
@@ -269,6 +274,7 @@ export class AuthController {
     return { ok: true };
   }
 
+  @AllowDuringTotpEnrollment()
   @Get('me')
   async me(@CurrentUser() user: AuthUser) {
     const u = await this.auth.getUserProfile(user.userId);

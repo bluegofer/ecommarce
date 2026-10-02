@@ -4,6 +4,8 @@ export interface AuthUser {
   userId: string;
   phone: string;
   roles: string[];
+  /** True when the user is staff but has not yet confirmed TOTP enrollment. */
+  mustEnrollTotp?: boolean;
 }
 
 /**

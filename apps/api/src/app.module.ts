@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthController } from './common/health.controller';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { TotpEnrollmentGuard } from './common/guards/totp-enrollment.guard';
 import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
@@ -88,6 +89,8 @@ import { CourierModule } from './modules/courier/courier.module';
     // Custom subclass skips throttling when NODE_ENV=test (jest suites).
     { provide: APP_GUARD, useClass: AppThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // step-151: staff with mustEnrollTotp scope are blocked from non-whitelisted routes.
+    { provide: APP_GUARD, useClass: TotpEnrollmentGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

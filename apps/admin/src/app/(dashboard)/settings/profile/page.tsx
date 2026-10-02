@@ -196,6 +196,7 @@ export default function ProfileSettingsPage() {
               <Smartphone className="w-4 h-4" /> Enroll now
             </button>
             )}
+            {((user as { totpEnrolled?: boolean } | null)?.totpEnrolled ?? false) && (
             <button
               type="button"
               disabled={busy}
@@ -204,6 +205,7 @@ export default function ProfileSettingsPage() {
             >
               Disable
             </button>
+            )}
           </div>
         )}
       </div>

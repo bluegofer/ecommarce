@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { TotpService } from './totp.service';
 import { parseTtlSeconds } from '../../common/util/ttl';
+import { STAFF_ROLE_CODES } from '../../common/util/staff-roles';
 
 const MAX_FAILED_LOGINS = 5;
 const LOCK_MINUTES = 15;
@@ -24,19 +25,6 @@ const TEMP_TOKEN_TTL = 300; // 5 minutes — F-13 (step-15.9)
 // Roles that require the 2FA challenge on login. Any user with at least one
 // of these is treated as "staff" and is subject to TOTP enforcement
 // (F-07 from step-15.9; TDD section 6.13).
-const STAFF_ROLE_CODES = new Set<string>([
-  'SUPER_ADMIN',
-  'CATALOG_MANAGER',
-  'ORDER_SUPPORT',
-  'MARKETING',
-  'FINANCE_READONLY',
-  'FINANCE',
-  'PURCHASE_MANAGER',
-  'STORE_POS_STAFF',
-  'HR_MANAGER',
-  'RESTAURANT_STAFF',
-  'DELIVERY_STAFF',
-]);
 
 export interface AccessTokens {
   accessToken: string;
@@ -218,6 +206,7 @@ export class AuthService {
         user.phone,
         userAgent,
         ipAddress,
+        true, // mustEnrollTotp
       );
       return { kind: 'staff-must-enroll-totp', ...tokens };
     }
@@ -424,6 +413,7 @@ export class AuthService {
     phone: string,
     userAgent?: string,
     ipAddress?: string,
+    mustEnrollTotp?: boolean,
   ): Promise<AccessTokens> {
     // Parse TTL from env — accepts seconds ("900") or timespan ("15m", "7d").
     // Previously we used Number() which returns NaN for "15m" and jsonwebtoken
@@ -438,7 +428,7 @@ export class AuthService {
     );
 
     const accessToken = await this.jwt.signAsync(
-      { sub: userId, phone },
+      { sub: userId, phone, mustEnrollTotp: Boolean(mustEnrollTotp) },
       { secret: this.accessSecret(), expiresIn: accessTtl },
     );
 
@@ -486,7 +476,14 @@ export class AuthService {
       where: { tokenHash },
     });
 
-    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+    // step-151: 30-second grace window — allows a recently-revoked token to rotate
+    // once more. Prevents multi-tab race from forcing full logout.
+    const GRACE_MS = 30_000;
+    if (
+      !stored ||
+      stored.expiresAt < new Date() ||
+      (stored.revokedAt && Date.now() - stored.revokedAt.getTime() > GRACE_MS)
+    ) {
       await this.prisma.refreshToken.updateMany({
         where: { familyId: payload.fid, revokedAt: null },
         data: { revokedAt: new Date() },
