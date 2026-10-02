@@ -59,6 +59,7 @@ interface ProductDetail {
   metaTitle: string | null;
   metaDescription: string | null;
   variants: Variant[];
+  isFeatured: boolean;
   createdAt: string;
   updatedAt: string;
   media?: Array<{ id: string; url: string; altText: string | null }>;
@@ -87,6 +88,22 @@ interface UploadResult {
 interface SpecPair {
   key: string;
   value: string;
+}
+
+interface CategoryNode {
+  id: string;
+  nameEn: string;
+  children?: CategoryNode[];
+}
+
+function flattenCategories(nodes: CategoryNode[], depth = 0): Array<{ id: string; name: string }> {
+  const out: Array<{ id: string; name: string }> = [];
+  for (const n of nodes) {
+    const pad = "-- ".repeat(depth);
+    out.push({ id: n.id, name: pad + n.nameEn });
+    if (n.children?.length) out.push(...flattenCategories(n.children, depth + 1));
+  }
+  return out;
 }
 
 // Tab names
@@ -120,6 +137,9 @@ export default function ProductEditorPage() {
   );
 
   const suppliersQuery = useQuery<Array<{ id: string; name: string; code: string }>>('/api/v1/suppliers');
+
+  const { data: catTree } = useQuery<CategoryNode[]>('/api/v1/categories/tree');
+  const flat = useMemo(() => (catTree ? flattenCategories(catTree) : []), [catTree]);
 
   // ── Form state ──────────────────────────────────────────────────
   const [form, setForm] = useState<Partial<ProductDetail>>({});
@@ -197,6 +217,9 @@ export default function ProductEditorPage() {
     }
 
     const payload: Record<string, unknown> = {
+      categoryId: form.categoryId,
+      slug: form.slug,
+      isFeatured: form.isFeatured,
       titleEn: form.titleEn,
       titleBn: form.titleBn,
       descriptionEn: form.descriptionEn,
@@ -390,6 +413,22 @@ export default function ProductEditorPage() {
           <div className="lg:col-span-2 space-y-5">
             <section className="card p-5 space-y-4">
               <h3 className="text-sm font-semibold text-slate-800">Basic</h3>
+
+              <div>
+                <label className="block text-[12.5px] font-medium text-slate-700 mb-1.5">
+                  Category
+                </label>
+                <select
+                  value={form.categoryId ?? ""}
+                  onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
+                  className="w-full h-10 px-3 rounded border border-border bg-white text-sm"
+                >
+                  <option value="">-- Select --</option>
+                  {flat.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Title (English)"
@@ -580,10 +619,9 @@ export default function ProductEditorPage() {
                   Slug
                 </label>
                 <input
-                  type="text"
-                  value={data.slug}
-                  readOnly
-                  className="w-full h-10 px-3 rounded border border-border bg-slate-50 text-sm text-slate-500 font-mono"
+                  value={form.slug ?? data.slug}
+                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                  className="w-full h-10 px-3 rounded border border-border bg-white text-sm font-mono"
                 />
               </div>
               <div className="text-[12px] text-slate-400">
