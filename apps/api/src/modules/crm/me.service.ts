@@ -77,6 +77,23 @@ export class MeService {
           isGuest: false,
         },
       });
+
+      // step-152: link any pre-existing guest orders with the same phone
+      // so users see their history on first /me/orders visit.
+      // step-152: merge any pre-existing guest Customer (same phone) into
+      // this user, so its orders appear in /me/orders immediately.
+      const guestCustomer = await this.prisma.customer.findUnique({
+        where: { phone: user.phone },
+      });
+      if (guestCustomer && guestCustomer.userId !== user.id) {
+        // Re-point orders from guest customer to the just-created one
+        await this.prisma.order.updateMany({
+          where: { customerId: guestCustomer.id },
+          data: { customerId: customer.id },
+        });
+        // Delete the orphan guest customer row
+        await this.prisma.customer.delete({ where: { id: guestCustomer.id } });
+      }
     }
     return { user, customer };
   }

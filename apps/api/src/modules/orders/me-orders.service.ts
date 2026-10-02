@@ -47,9 +47,17 @@ export class MeOrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Resolve Customer via userId — no auto-create here (orders imply customer exists). */
-  private async customerIdOrNull(userId: string): Promise<string | null> {
+  /** Resolve Customer via userId, with phone-based fallback for guests who later registered. */
+  private async resolveCustomerId(userId: string): Promise<string | null> {
+    // Primary: direct link via userId
     const c = await this.prisma.customer.findUnique({ where: { userId } });
-    return c?.id ?? null;
+    if (c) return c.id;
+
+    // Fallback: user registered AFTER placing a guest order — phone match
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return null;
+    const byPhone = await this.prisma.customer.findUnique({ where: { phone: user.phone } });
+    return byPhone?.id ?? null;
   }
 
   /** Look up one image per variantId from ProductMedia (variant images preferred). */
@@ -69,7 +77,7 @@ export class MeOrdersService {
   }
 
   async list(userId: string): Promise<MyOrderListItemDto[]> {
-    const customerId = await this.customerIdOrNull(userId);
+    const customerId = await this.resolveCustomerId(userId);
     if (!customerId) return [];
 
     const orders = await this.prisma.order.findMany({
@@ -111,7 +119,7 @@ export class MeOrdersService {
   }
 
   async findOne(userId: string, orderId: string): Promise<MyOrderDetailDto> {
-    const customerId = await this.customerIdOrNull(userId);
+    const customerId = await this.resolveCustomerId(userId);
     if (!customerId) throw new NotFoundException('order not found');
 
     const order = await this.prisma.order.findFirst({

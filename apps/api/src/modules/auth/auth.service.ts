@@ -476,13 +476,20 @@ export class AuthService {
       where: { tokenHash },
     });
 
-    // step-151: 30-second grace window — allows a recently-revoked token to rotate
-    // once more. Prevents multi-tab race from forcing full logout.
+    // step-151/152: grace window only applies to ROTATION-revoked tokens.
+    // Hard revoke (logout) uses epoch sentinel → always reject immediately.
     const GRACE_MS = 30_000;
+    const isHardRevoke = stored?.revokedAt?.getTime() === 0;
+    const isOutsideGrace =
+      stored?.revokedAt !== null &&
+      stored?.revokedAt !== undefined &&
+      stored.revokedAt.getTime() > 0 &&
+      Date.now() - stored.revokedAt.getTime() > GRACE_MS;
     if (
       !stored ||
       stored.expiresAt < new Date() ||
-      (stored.revokedAt && Date.now() - stored.revokedAt.getTime() > GRACE_MS)
+      isHardRevoke ||
+      isOutsideGrace
     ) {
       await this.prisma.refreshToken.updateMany({
         where: { familyId: payload.fid, revokedAt: null },
@@ -509,8 +516,8 @@ export class AuthService {
   async logout(refreshToken: string): Promise<void> {
     const tokenHash = this.hashToken(refreshToken);
     await this.prisma.refreshToken.updateMany({
-      where: { tokenHash, revokedAt: null },
-      data: { revokedAt: new Date() },
+      where: { tokenHash }, // step-152: always hard-revoke, even if already rotated
+      data: { revokedAt: new Date(0) }, // step-152: epoch = hard revoke (no grace)
     });
   }
 
