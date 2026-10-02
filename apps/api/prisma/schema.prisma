@@ -411,6 +411,7 @@ model Variant {
   barcode           String?
   pricePoisha       Int
   compareAtPoisha   Int?
+  costPoisha        Int?     // supplier purchase cost (internal, not shown to customers)
   discountStartAt   DateTime?
   discountEndAt     DateTime?
   stock             Int      @default(0)

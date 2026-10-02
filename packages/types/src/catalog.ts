@@ -217,6 +217,7 @@ export interface VariantDto {
   barcode: string | null;
   pricePoisha: number;
   compareAtPoisha: number | null;
+  costPoisha: number | null;
   discountStartAt: string | null;
   discountEndAt: string | null;
   stock: number;
@@ -230,6 +231,7 @@ export interface CreateVariantDto {
   barcode?: string;
   pricePoisha: number;
   compareAtPoisha?: number;
+  costPoisha?: number;
   discountStartAt?: string;
   discountEndAt?: string;
   stock?: number;

@@ -41,6 +41,7 @@ export class VariantsService {
         barcode: dto.barcode ?? null,
         pricePoisha: dto.pricePoisha,
         compareAtPoisha: dto.compareAtPoisha ?? null,
+        costPoisha: dto.costPoisha ?? null,
         discountStartAt: dto.discountStartAt ? new Date(dto.discountStartAt) : null,
         discountEndAt: dto.discountEndAt ? new Date(dto.discountEndAt) : null,
         stock: dto.stock ?? 0,
@@ -61,6 +62,7 @@ export class VariantsService {
     if (dto.barcode !== undefined) data.barcode = dto.barcode;
     if (dto.pricePoisha !== undefined) data.pricePoisha = dto.pricePoisha;
     if (dto.compareAtPoisha !== undefined) data.compareAtPoisha = dto.compareAtPoisha;
+    if (dto.costPoisha !== undefined) data.costPoisha = dto.costPoisha;
     if (dto.discountStartAt !== undefined) data.discountStartAt = dto.discountStartAt ? new Date(dto.discountStartAt) : null;
     if (dto.discountEndAt !== undefined) data.discountEndAt = dto.discountEndAt ? new Date(dto.discountEndAt) : null;
     if (dto.lowStockThreshold !== undefined) data.lowStockThreshold = dto.lowStockThreshold;
@@ -172,6 +174,7 @@ export class VariantsService {
     barcode: string | null;
     pricePoisha: number;
     compareAtPoisha: number | null;
+    costPoisha: number | null;
     discountStartAt: Date | null;
     discountEndAt: Date | null;
     stock: number;
@@ -187,6 +190,7 @@ export class VariantsService {
       barcode: row.barcode,
       pricePoisha: row.pricePoisha,
       compareAtPoisha: row.compareAtPoisha,
+      costPoisha: row.costPoisha,
       discountStartAt: row.discountStartAt ? row.discountStartAt.toISOString() : null,
       discountEndAt: row.discountEndAt ? row.discountEndAt.toISOString() : null,
       stock: row.stock,

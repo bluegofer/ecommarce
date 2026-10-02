@@ -30,6 +30,7 @@ interface Variant {
   sku: string;
   pricePoisha: number;
   compareAtPoisha: number | null;
+  costPoisha: number | null;
   stock: number;
   barcode: string | null;
   isActive: boolean;
@@ -125,6 +126,7 @@ export default function ProductEditorPage() {
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [draftPrice, setDraftPrice] = useState('');
   const [draftCompareAt, setDraftCompareAt] = useState('');
+  const [draftCost, setDraftCost] = useState('');
   const [draftStock, setDraftStock] = useState('');
   const [draftDisc, setDraftDisc] = useState('');
   const [draftDiscStart, setDraftDiscStart] = useState('');
@@ -169,6 +171,7 @@ export default function ProductEditorPage() {
       id: string;
       pricePoisha: number;
       compareAtPoisha: number | null;
+      costPoisha: number | null;
       stock: number;
       discountStartAt: string | null;
       discountEndAt: string | null;
@@ -682,6 +685,9 @@ export default function ProductEditorPage() {
                   <th className="px-4 py-2.5 text-right text-[12px] font-semibold text-slate-500 uppercase">
                     Stock
                   </th>
+                  <th className="px-4 py-2.5 text-right text-[12px] font-semibold text-slate-500 uppercase">
+                    Cost
+                  </th>
                   <th className="px-4 py-2.5 text-left text-[12px] font-semibold text-slate-500 uppercase">
                     Barcode
                   </th>
@@ -784,6 +790,21 @@ export default function ProductEditorPage() {
                         v.stock
                       )}
                     </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={draftCost}
+                          onChange={(e) => setDraftCost(e.target.value)}
+                          placeholder="Cost"
+                          className="w-20 h-8 px-2 rounded border border-sky-400 text-sm text-right"
+                        />
+                      ) : (
+                        v.costPoisha !== null && v.costPoisha !== undefined
+                          ? formatPoisha(v.costPoisha)
+                          : '—'
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-slate-500 font-mono text-[12.5px]">
                       {v.barcode ?? '—'}
                     </td>
@@ -810,6 +831,7 @@ export default function ProductEditorPage() {
                                   id: v.id,
                                   pricePoisha: Math.round(priceNum * 100),
                                   compareAtPoisha: compareNum ? Math.round(compareNum * 100) : null,
+      costPoisha: draftCost ? Math.round(parseFloat(draftCost) * 100) : null,
                                   stock: stockNum,
                                   discountStartAt: draftDiscStart ? new Date(draftDiscStart).toISOString() : null,
                                   discountEndAt: draftDiscEnd ? new Date(draftDiscEnd).toISOString() : null,
@@ -843,6 +865,7 @@ export default function ProductEditorPage() {
                             setEditingVariantId(v.id);
                             setDraftPrice((v.pricePoisha / 100).toFixed(2));
                             setDraftCompareAt(v.compareAtPoisha ? (v.compareAtPoisha / 100).toFixed(2) : '');
+                            setDraftCost(v.costPoisha ? (v.costPoisha / 100).toFixed(2) : '');
                             setDraftStock(String(v.stock));
                             const ct = v.compareAtPoisha;
                             const p = v.pricePoisha;

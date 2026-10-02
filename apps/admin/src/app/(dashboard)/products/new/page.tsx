@@ -105,6 +105,7 @@ export default function NewProductPage() {
   // Initial variant (optional - otherwise add from edit -> Variants tab)
   const [ivPrice, setIvPrice] = useState('');
   const [ivCompareAt, setIvCompareAt] = useState('');
+  const [ivCost, setIvCost] = useState('');
   const [ivDiscountPercent, setIvDiscountPercent] = useState('');
   const [ivStock, setIvStock] = useState('');
   const [ivSku, setIvSku] = useState('');
@@ -205,6 +206,7 @@ export default function NewProductPage() {
               sku: finalSku,
               pricePoisha: Math.round(priceNum * 100),
               compareAtPoisha,
+              costPoisha: ivCost.trim() ? Math.round(parseFloat(ivCost) * 100) : null,
               stock: isNaN(stockNum) ? 0 : Math.max(0, stockNum),
               attributeValues: {},
             }),
@@ -582,6 +584,17 @@ export default function NewProductPage() {
             </Field>
             <Field label="Or compare-at price" hint="Original price; overrides discount %.">
               <input type="number" min="0" step="0.01" value={ivCompareAt} onChange={(e) => setIvCompareAt(e.target.value)} placeholder="750" className={inputCls} />
+            </Field>
+            <Field label="Cost price (৳)" hint="Supplier purchase price — internal, not shown to customers.">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={ivCost}
+                onChange={(e) => setIvCost(e.target.value)}
+                placeholder="400"
+                className={inputCls}
+              />
             </Field>
           </div>
 
