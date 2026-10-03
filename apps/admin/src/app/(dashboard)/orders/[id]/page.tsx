@@ -51,7 +51,7 @@ interface OrderDetail {
 
 const NEXT_STATUS: Record<string, string> = {
   PENDING_VERIFICATION: 'VERIFIED',
-  VERIFIED: 'PROCESSING',
+  VERIFIED: 'CONFIRMED',
   PROCESSING: 'SHIPPED',
   SHIPPED: 'OUT_FOR_DELIVERY',
   OUT_FOR_DELIVERY: 'DELIVERED',
@@ -64,6 +64,28 @@ const MANUAL_STATUSES = [
   { value: 'FAILED', label: 'Failed', cls: 'border-danger-300 text-danger-700 hover:bg-danger-50' },
   { value: 'RETURNED', label: 'Returned', cls: 'border-slate-300 text-slate-700 hover:bg-slate-50' },
 ] as const;
+
+// Mirror of backend order-state-machine.ts — used to filter
+// the manual-delivery buttons to only legal next statuses.
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  PLACED: ['PENDING_VERIFICATION', 'CANCELLED'],
+  PENDING_VERIFICATION: ['VERIFIED', 'CANCELLED'],
+  VERIFIED: ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED: ['PROCESSING', 'CANCELLED'],
+  PROCESSING: ['SHIPPED', 'CANCELLED'],
+  SHIPPED: ['IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'],
+  IN_TRANSIT: ['OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'],
+  OUT_FOR_DELIVERY: ['DELIVERED', 'FAILED'],
+  DELIVERED: ['RETURN_REQUESTED', 'EXCHANGE_REQUESTED'],
+  FAILED: ['SHIPPED', 'CANCELLED'],
+  RETURN_REQUESTED: ['RETURNED'],
+  RETURNED: [],
+  EXCHANGE_REQUESTED: ['EXCHANGE_APPROVED', 'EXCHANGE_REJECTED', 'DELIVERED'],
+  EXCHANGE_APPROVED: ['EXCHANGED'],
+  EXCHANGE_REJECTED: ['DELIVERED'],
+  EXCHANGED: [],
+  CANCELLED: [],
+};
 
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -172,9 +194,13 @@ export default function OrderDetailPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  await statusMutation.mutate({ status: nextStatus });
-                  toast.success(`Marked ${(nextStatus ?? '').replace(/_/g, ' ')}`);
-                  void refetch();
+                  try {
+                    await statusMutation.mutate({ status: nextStatus });
+                    toast.success(`Marked ${(nextStatus ?? '').replace(/_/g, ' ')}`);
+                    void refetch();
+                  } catch (e) {
+                    toast.error('Could not update status', e instanceof Error ? e.message : 'Unknown');
+                  }
                 }}
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
               >
