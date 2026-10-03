@@ -43,7 +43,16 @@ export class TotpService {
   async verify(userId: string, token: string): Promise<boolean> {
     const record = await this.prisma.totpSecret.findUnique({ where: { userId } });
     if (!record) return false;
+    // step-158: window=1 accepts codes from +/- one 30s window (phone/server skew).
+    const prevWindow = authenticator.options.window;
+    authenticator.options = { ...authenticator.options, window: 1 };
     const ok = authenticator.verify({ token, secret: record.secret });
+    authenticator.options = { ...authenticator.options, window: prevWindow };
+    // step-158: log for diagnosis (fails silently otherwise)
+    if (!ok) {
+      // eslint-disable-next-line no-console
+      console.warn('[TOTP] verify failed', { userId, enrolledAt: record.enrolledAt });
+    }
     if (ok) {
       await this.prisma.totpSecret.update({
         where: { userId },
