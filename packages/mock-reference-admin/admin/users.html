@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Users, Roles &amp; Security · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item active" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search users or roles…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🔐 Users, Roles &amp; Security</h2><div class="crumb">System / Users</div><p>RBAC (Super Admin, Catalog Manager, Finance, Ops, Support) · 2FA toggle · session policy · audit trail of every change.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Audit download">📜 Audit Trail</button><button class="btn b-primary" data-toast="Invite user">＋ Invite User</button></div></div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">👥 Staff</div>
+<div class="tab">🛡️ Roles &amp; Permissions</div>
+<div class="tab">🔒 2FA &amp; Sessions</div>
+<div class="tab">📜 Audit Trail</div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>User</th><th>Email</th><th>Roles</th><th>2FA</th><th>Last login</th><th>Status</th><th></th></tr></thead>
+<tbody>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-sky">MS</span><div><b>MD ANIMUL HOQ</b><br><span class="cell-sub">Founder · Super Admin</span></div></div></td><td>admin@bluegofer.com</td><td><span class="badge b-sky">Super Admin</span></td><td><span class="badge b-green">TOTP ✅</span></td><td>Today 09:18</td><td><span class="badge b-green">Active</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-violet">AS</span><div><b>Arif Sadman</b><br><span class="cell-sub">Catalog Lead</span></div></div></td><td>arif@bluegofer.com</td><td><span class="badge b-violet">Catalog</span> + <span class="badge b-amber">Inventory</span></td><td><span class="badge b-green">TOTP ✅</span></td><td>Today 10:04</td><td><span class="badge b-green">Active</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-amber">SK</span><div><b>Sadia Khan</b></div></div></td><td>sadia@bluegofer.com</td><td><span class="badge b-teal">Finance</span> + <span class="badge b-sky">Reports</span></td><td><span class="badge b-green">TOTP ✅</span></td><td>Yesterday 18:12</td><td><span class="badge b-green">Active</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-teal">RK</span><div><b>Rumi Khan</b></div></div></td><td>rumi@bluegofer.com</td><td><span class="badge b-amber">Ops · Orders</span> + <span class="badge b-sky">Delivery</span></td><td><span class="badge b-amber">SMS ⚠️</span></td><td>Today 08:42</td><td><span class="badge b-green">Active</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-green">MA</span><div><b>Mohammad Ali</b></div></div></td><td>ali@bluegofer.com</td><td><span class="badge b-violet">HR / Payroll</span></td><td><span class="badge b-red">Off</span></td><td>02 Sep 14:10</td><td><span class="badge b-amber">Pending 2FA</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><div style="display:flex;gap:10px;align-items:center"><span class="avatar av-red">NP</span><div><b>Nazia Polin</b></div></div></td><td>nazia@bluegofer.com</td><td><span class="badge b-amber">Support Agent</span></td><td><span class="badge b-green">TOTP ✅</span></td><td>Yesterday 22:10</td><td><span class="badge b-slate">Disabled</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>🛡️ Role Matrix</h3></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Module</th><th>Super Admin</th><th>Catalog</th><th>Ops</th><th>Finance</th></tr></thead>
+<tbody>
+<tr><td>Products</td><td>RW</td><td>RW</td><td>R</td><td>R</td></tr>
+<tr><td>Inventory</td><td>RW</td><td>RW</td><td>RW</td><td>R</td></tr>
+<tr><td>Orders (OMS)</td><td>RW</td><td>R</td><td>RW</td><td>R</td></tr>
+<tr><td>Delivery</td><td>RW</td><td>—</td><td>RW</td><td>R</td></tr>
+<tr><td>POS</td><td>RW</td><td>—</td><td>RW</td><td>R</td></tr>
+<tr><td>Accounting</td><td>RW</td><td>—</td><td>R</td><td>RW</td></tr>
+<tr><td>HR / Payroll</td><td>RW</td><td>—</td><td>—</td><td>R</td></tr>
+<tr><td>Settings</td><td>RW</td><td>—</td><td>—</td><td>—</td></tr>
+</tbody></table></div></div></div>
+<div class="card"><div class="card-hd"><h3>🔒 Security &amp; Session Policy</h3></div><div class="card-bd">
+<label class="switch"><input type="checkbox" checked><span class="dot"></span> Require 2FA for all admins</label><br><br>
+<label class="switch"><input type="checkbox" checked><span class="dot"></span> Force password reset every 90 days</label><br><br>
+<label class="switch"><input type="checkbox" checked><span class="dot"></span> Auto-lock after 15 min idle</label><br><br>
+<label class="switch"><input type="checkbox"><span class="dot"></span> Restrict to whitelisted IPs</label>
+<hr style="margin:14px 0;border:none;border-top:1px solid var(--slate-100)">
+<div class="summary-line"><span>Failed logins (last 24h)</span><b>3</b></div>
+<div class="summary-line"><span>Active sessions</span><b>9</b></div>
+<div class="summary-line"><span>Last security alert</span><b>3 days ago</b></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

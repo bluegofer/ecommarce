@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Accounting &amp; Finance · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item active" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search accounts, transactions…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>📒 Accounting &amp; Finance</h2><div class="crumb">ERP Suite / Accounting</div><p>Double-entry General Ledger · AR · AP · cash/bank/MFS accounts · P&amp;L · Balance Sheet · Cash Flow per Appendix A.2.2. Auto-posting from web orders, POS, purchases, payroll.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Journal entry form">＋ Journal Entry</button><button class="btn b-primary" data-toast="Statements generated">📊 Generate Statements</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-green">💵</div><div><div class="stat-lbl">Cash &amp; Bank</div><div class="stat-val">৳18,42,300</div><div class="stat-sub">across 5 accounts</div></div></div>
+<div class="card stat"><div class="stat-ic ic-sky">⬇️</div><div><div class="stat-lbl">Receivables (AR)</div><div class="stat-val">৳2,84,200</div><div class="stat-sub">14 customers</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">⬆️</div><div><div class="stat-lbl">Payables (AP)</div><div class="stat-val">৳4,62,800</div><div class="stat-sub">8 suppliers</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">📈</div><div><div class="stat-lbl">Net Profit · MTD</div><div class="stat-val">৳11,42,300</div><div class="stat-sub"><span class="up">▲ 8.2%</span></div></div></div>
+</div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">📒 General Ledger</div>
+<div class="tab">⬇️ Receivables (AR)</div>
+<div class="tab">⬆️ Payables (AP)</div>
+<div class="tab">📊 P&amp;L Statement</div>
+<div class="tab">⚖️ Balance Sheet</div>
+<div class="tab">💸 Cash Flow</div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Reference</th><th>Debit (৳)</th><th>Credit (৳)</th></tr></thead>
+<tbody>
+<tr><td>12 Sep 2026</td><td><span class="badge b-sky">Sales Revenue</span></td><td>Web Orders · 214 tx</td><td>Auto</td><td>—</td><td><b style="color:var(--green-600)">1,16,500</b></td></tr>
+<tr><td>12 Sep 2026</td><td><span class="badge b-violet">POS Sales</span></td><td>Branch: Dhaka · 28 tx</td><td>Auto</td><td>—</td><td><b style="color:var(--green-600)">11,950</b></td></tr>
+<tr><td>12 Sep 2026</td><td><span class="badge b-amber">Cost of Goods</span></td><td>Inventory issue · auto</td><td>Auto</td><td><b style="color:var(--red-600)">62,400</b></td><td>—</td></tr>
+<tr><td>12 Sep 2026</td><td><span class="badge b-slate">Discount Given</span></td><td>Coupons &amp; promos</td><td>Auto</td><td><b style="color:var(--red-600)">8,200</b></td><td>—</td></tr>
+<tr><td>12 Sep 2026</td><td><span class="badge b-sky">bKash Gateway</span></td><td>Settlement received</td><td>TXN-8821</td><td>—</td><td><b style="color:var(--green-600)">68,200</b></td></tr>
+<tr><td>12 Sep 2026</td><td><span class="badge b-amber">Salary Payable</span></td><td>Auto-post payroll Aug · 28 staff</td><td>PR-0826</td><td><b style="color:var(--red-600)">4,82,000</b></td><td>—</td></tr>
+<tr><td>11 Sep 2026</td><td><span class="badge b-slate">Rent Expense</span></td><td>Office · Sep</td><td>EXP-1042</td><td><b style="color:var(--red-600)">1,20,000</b></td><td>—</td></tr>
+<tr><td>10 Sep 2026</td><td><span class="badge b-amber">Supplier Payable</span></td><td>Goods Receipt · GRN-018 · ABC Distributors</td><td>GRN-018</td><td><b style="color:var(--red-600)">2,16,400</b></td><td>—</td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>💹 Income vs Expense · 6 months</h3></div><div class="card-bd">
+<div style="display:flex;gap:14px;align-items:flex-end;height:160px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:32px;background:var(--green-500);border-radius:4px 4px 0 0;height:60%"></div><div style="width:14px;background:var(--red-400);border-radius:4px 4px 0 0;height:35%"></div><div style="font-size:11px;color:var(--slate-500);margin-top:4px">Apr</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:32px;background:var(--green-500);border-radius:4px 4px 0 0;height:68%"></div><div style="width:14px;background:var(--red-400);border-radius:4px 4px 0 0;height:38%"></div><div style="font-size:11px;color:var(--slate-500);margin-top:4px">May</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:32px;background:var(--green-500);border-radius:4px 4px 0 0;height:75%"></div><div style="width:14px;background:var(--red-400);border-radius:4px 4px 0 0;height:42%"></div><div style="font-size:11px;color:var(--slate-500);margin-top:4px">Jun</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:32px;background:var(--green-500);border-radius:4px 4px 0 0;height:82%"></div><div style="width:14px;background:var(--red-400);border-radius:4px 4px 0 0;height:45%"></div><div style="font-size:11px;color:var(--slate-500);margin-top:4px">Jul</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:32px;background:var(--green-500);border-radius:4px 4px 0 0;height:88%"></div><div style="width:14px;background:var(--red-400);border-radius:4px 4px 0 0;height:48%"></div><div style="font-size:11px;color:var(--slate-500);margin-top:4px">Aug</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:32px;background:var(--green-500);border-radius:4px 4px 0 0;height:95%"></div><div style="width:14px;background:var(--red-400);border-radius:4px 4px 0 0;height:50%"></div><div style="font-size:11px;color:var(--slate-500);margin-top:4px">Sep</div></div>
+</div>
+<div class="legend" style="margin-top:14px"><div class="lg-row"><span class="lg-chip" style="background:var(--green-500)"></span>Income<div><b>৳33.4L</b></div></div><div class="lg-row"><span class="lg-chip" style="background:var(--red-400)"></span>Expense<div><b>৳18.9L</b></div></div></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>🏦 Account Balances</h3></div><div class="card-bd">
+<div class="summary-line"><span>💵 Cash in Hand · Dhaka</span><b>৳1,42,300</b></div>
+<div class="summary-line"><span>💵 Cash in Hand · Chittagong</span><b>৳58,400</b></div>
+<div class="summary-line"><span>🏦 DBBL Bank · 119-222-3344</span><b>৳8,82,400</b></div>
+<div class="summary-line"><span>🏦 EBL Bank · 88-999-001</span><b>৳5,28,200</b></div>
+<div class="summary-line"><span>📱 bKash MFS</span><b>৳1,42,000</b></div>
+<div class="summary-line"><span>📱 Nagad MFS</span><b>৳89,000</b></div>
+<div class="summary-line total" style="color:var(--sky-700)"><span>Total Liquid</span><span>৳18,42,300</span></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

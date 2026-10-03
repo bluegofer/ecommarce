@@ -1,0 +1,108 @@
+.rail {
+  width: 240px;
+  border-right: 1px solid var(--sk-divider);
+  padding-right: 16px;
+  position: sticky;
+  top: 128px; /* below sticky header */
+  align-self: start;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  font-family: var(--sk-font-en);
+}
+
+.railTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  margin: 0 0 12px;
+}
+
+.group {
+  border-top: 1px solid var(--sk-divider);
+  padding: 12px 0;
+}
+.group:first-of-type { border-top: none; padding-top: 0; }
+
+.groupTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.groupTitle::-webkit-details-marker { display: none; }
+.groupTitle::after {
+  content: '▾';
+  color: var(--sk-muted);
+  font-size: 10px;
+  transition: transform var(--sk-motion-fast) var(--sk-ease);
+}
+.group[open] .groupTitle::after { transform: rotate(180deg); }
+
+.list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkRow { display: block; }
+
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sk-body);
+  cursor: pointer;
+}
+.checkLabel input { accent-color: var(--sk-brand-600); }
+.count { color: var(--sk-muted); font-size: 12px; }
+
+.showMore {
+  margin-top: 6px;
+  background: transparent;
+  border: none;
+  color: var(--sk-info);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.showMore:hover { text-decoration: underline; }
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.priceInput {
+  width: 70px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-sm);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.dash { color: var(--sk-muted); }
+.go {
+  height: 32px;
+  padding: 0 10px;
+  background: var(--sk-brand-300);
+  border: none;
+  border-radius: var(--sk-radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sk-brand-950);
+  cursor: pointer;
+}
+.go:hover { background: var(--sk-brand-400); }
+
+html[lang="bn"] .rail { font-family: var(--sk-font-bn); }

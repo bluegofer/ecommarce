@@ -1,0 +1,60 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payroll · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item active" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search payroll run…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>💸 Payroll</h2><div class="crumb">ERP Suite / HR / Payroll</div><p>Monthly salary generation · auto-calculation from attendance (OT / deductions) · auto-post to accounting ledger per Appendix A.2.7.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Payslips generated">📄 Payslips</button><button class="btn b-primary" data-toast="Run payroll for Sep 2026">▶ Run Sep 2026 Payroll</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-green">💸</div><div><div class="stat-lbl">Total Payroll · MTD</div><div class="stat-val">৳4,82,000</div><div class="stat-sub">28 staff · Sep 2026</div></div></div>
+<div class="card stat"><div class="stat-ic ic-sky">⏰</div><div><div class="stat-lbl">Overtime added</div><div class="stat-val">৳24,800</div><div class="stat-sub">14h logged</div></div></div>
+<div class="card stat"><div class="stat-ic ic-red">📉</div><div><div class="stat-lbl">Deductions</div><div class="stat-val">৳8,400</div><div class="stat-sub">late penalty</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">🏦</div><div><div class="stat-lbl">Disbursement</div><div class="stat-val">Auto</td><div class="stat-sub">bKash · bank file</div></div></div>
+</div>
+
+<div class="card"><div class="card-hd"><h3>📋 Payroll Run · Sep 2026 (preview)</h3><span class="badge b-amber">Draft · not yet finalized</span></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Employee</th><th>Department</th><th>Gross</th><th>OT</th><th>Deduction</th><th>Tax</th><th>Net Pay</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><b>MD ANIMUL HOQ</b></td><td>Founder</td><td>৳95,000</td><td>—</td><td>—</td><td>৳9,500</td><td><b>৳85,500</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+<tr><td><b>Arif Sadman</b></td><td>Catalog</td><td>৳53,500</td><td>৳3,200</td><td>—</td><td>৳2,800</td><td><b>৳53,900</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+<tr><td><b>Sadia Khan</b></td><td>Finance</td><td>৳60,000</td><td>—</td><td>৳350 (late)</td><td>৳3,200</td><td><b>৳56,450</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+<tr><td><b>Rumi Khan</b></td><td>Ops</td><td>৳40,000</td><td>৳4,800</td><td>—</td><td>৳1,800</td><td><b>৳43,000</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+<tr><td><b>Nazia Polin</b></td><td>Support</td><td>৳36,000</td><td>—</td><td>—</td><td>৳1,400</td><td><b>৳34,600</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+<tr><td><b>Karim Hossain</b></td><td>Delivery</td><td>৳26,000</td><td>৳2,400</td><td>—</td><td>৳800</td><td><b>৳27,600</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+<tr><td><b>Sifat Rahman</b></td><td>Accounting</td><td>৳30,000</td><td>—</td><td>৳2,000 (Sick leave unpaid)</td><td>৳1,000</td><td><b>৳27,000</b></td><td><span class="badge b-amber">Draft</span></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>📊 Payroll history · last 6 months</h3></div><div class="card-bd">
+<div class="bars" style="height:140px">
+<div class="bar" style="height:62%"><span>3.2L</span></div><div class="bar" style="height:68%"><span>3.5L</span></div><div class="bar" style="height:74%"><span>3.8L</span></div><div class="bar" style="height:80%"><span>4.1L</span></div><div class="bar" style="height:88%"><span>4.5L</span></div><div class="bar" style="height:94%"><span>4.82L</span></div>
+</div>
+<div class="bar-days"><div>Apr</div><div>May</div><div>Jun</div><div>Jul</div><div>Aug</div><div>Sep</div></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>⚙️ Auto-post to Accounting</h3></div><div class="card-bd">
+<p style="font-size:12.5px;color:var(--slate-600);margin-bottom:10px">When payroll is finalized, entries will auto-post to the ledger:</p>
+<div class="summary-line"><span>Dr · Salary Expense</span><b>৳4,82,000</b></div>
+<div class="summary-line"><span>Cr · Salary Payable</span><b style="color:var(--red-600)">৳4,82,000</b></div>
+<div class="summary-line"><span>Cr · Bank (disbursement)</span><b style="color:var(--red-600)">৳4,82,000</b></div>
+<label class="switch" style="margin-top:10px"><input type="checkbox" checked><span class="dot"></span> Auto-post on finalization</label>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

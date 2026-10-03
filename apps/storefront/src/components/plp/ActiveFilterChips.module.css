@@ -1,0 +1,36 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--sk-selected);
+  color: var(--sk-brand-950);
+  border: 1px solid var(--sk-brand-300);
+  border-radius: var(--sk-radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip:hover { background: #CFE7F8; }
+
+.x { font-size: 14px; line-height: 1; }
+
+.clearAll {
+  height: 28px;
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  color: var(--sk-info);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}

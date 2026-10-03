@@ -1,0 +1,35 @@
+# Terraform local state — NEVER commit (contains resource IDs, secrets)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Provider plugins / module cache (huge, platform-specific)
+.terraform/
+.terraform.tfstate.lock.info
+
+# Dependency lock file — commit for reproducibility in ROOT only,
+# but for infra/terraform sub-folders skip (created per env)
+.terraform.lock.hcl
+
+# Plan files
+*.tfplan
+tfplan
+tfplan_*
+tfplan_probe
+
+# Crash logs
+crash.log
+crash.*.log
+
+# CLI config
+.terraformrc
+terraform.rc
+
+# Local backups — created by our fix scripts
+.backup-*/
+.backup-*
+
+# Variable override files (may contain secrets) — DO commit
+# environments/*/terraform.tfvars for non-secret staging values,
+# but ignore any *.auto.tfvars
+*.auto.tfvars

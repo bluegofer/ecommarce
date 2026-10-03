@@ -1,0 +1,17 @@
+{
+    "name":  "@ecommarce/config",
+    "version":  "0.0.0",
+    "private":  true,
+    "files":  [
+                  "tsconfig.base.json",
+                  "eslint.base.cjs",
+                  "jest.base.cjs",
+                  "sentry"
+              ],
+    "exports":  {
+                    "./tsconfig.base.json":  "./tsconfig.base.json",
+                    "./eslint":  "./eslint.base.cjs",
+                    "./jest":  "./jest.base.cjs",
+                    "./sentry":  "./sentry/index.ts"
+                }
+}

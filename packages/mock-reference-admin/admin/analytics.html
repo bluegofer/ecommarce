@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analytics &amp; Reports · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item active" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search reports…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>📈 Analytics &amp; Reports</h2><div class="crumb">Insights / Analytics</div><p>GA4 + Meta CAPI integrated. Built-in BI dashboard · Gross/Net Profit · Branch &amp; Employee Performance (A.3).</p></div>
+<div class="page-acts"><select class="sel"><option>This month</option><option>Last 7d</option><option>Last 30d</option><option>YTD</option><option>Custom…</option></select><button class="btn b-ghost" data-toast="CSV export">⬇ Export</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-green">💰</div><div><div class="stat-lbl">Revenue · MTD</div><div class="stat-val">৳24,82,000</div><div class="stat-sub"><span class="up">▲ 18.2%</span></div></div></div>
+<div class="card stat"><div class="stat-ic ic-sky">📊</div><div><div class="stat-lbl">Conversion Rate</div><div class="stat-val">2.09%</div><div class="stat-sub"><span class="up">▲ 0.4%</span></div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">💎</div><div><div class="stat-lbl">Avg Customer CLV</div><div class="stat-val">৳8,420</div><div class="stat-sub"><span class="up">▲ ৳420</span></div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">📈</div><div><div class="stat-lbl">Net Profit · MTD</div><div class="stat-val">৳11,42,300</div><div class="stat-sub"><span class="up">▲ 8.2%</span></div></div></div>
+</div>
+
+<div class="grid g-2c">
+<div class="card"><div class="card-hd"><h3>📈 Revenue (৳k) — Last 14 days</h3><div class="hd-acts"><span class="badge b-green">Web</span> <span class="badge b-violet">POS</span></div></div><div class="card-bd">
+<div class="bars" style="height:180px">
+<div class="bar" style="height:30%;background:linear-gradient(180deg,var(--sky-400),var(--sky-600))"><span style="color:#fff;font-size:10px">38</span></div>
+<div class="bar" style="height:42%"><span>54</span></div><div class="bar" style="height:50%"><span>64</span></div><div class="bar" style="height:56%"><span>72</span></div><div class="bar" style="height:63%"><span>81</span></div><div class="bar" style="height:57%"><span>74</span></div><div class="bar" style="height:72%"><span>92</span></div><div class="bar" style="height:65%"><span>84</span></div><div class="bar" style="height:78%"><span>98</span></div><div class="bar" style="height:82%"><span>104</span></div><div class="bar" style="height:75%"><span>96</span></div><div class="bar" style="height:88%"><span>112</span></div><div class="bar" style="height:91%"><span>116</span></div><div class="bar" style="height:100%"><span>128</span></div>
+</div>
+<div class="bar-days"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>💎 Gross vs Net Profit</h3></div><div class="card-bd"><div class="donut-wrap">
+<div class="donut" style="background:conic-gradient(var(--green-500) 0 64%, var(--red-300) 64% 100%)"><div class="donut-in">MTD<br><b>৳17.8L</b></div></div>
+<div class="legend"><div class="lg-row"><span class="lg-chip" style="background:var(--green-500)"></span>Net Profit<div><b>64%</b></div></div><div class="lg-row"><span class="lg-chip" style="background:var(--red-300)"></span>Cost of Goods<div><b>36%</b></div></div><div class="lg-row"><span class="lg-chip" style="background:var(--sky-500)"></span>Gross Margin<div><b>42%</b></div></div></div>
+</div></div></div>
+</div>
+
+<div class="grid g-3" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>🏆 Top Products · MTD</h3></div><div class="card-bd"><div style="padding:8px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center"><div><b>Samsung Galaxy S25 Ultra</b><br><span class="cell-sub">62 units</span></div><b>৳80,82,000</b></div><div style="padding:8px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center"><div><b>MacBook Air M3</b><br><span class="cell-sub">18 units</span></div><b>৳27,72,000</b></div><div style="padding:8px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center"><div><b>Nike Air Zoom 41</b><br><span class="cell-sub">142 units</span></div><b>৳16,33,000</b></div><div style="padding:8px 0;display:flex;justify-content:space-between;align-items:center"><div><b>Miniket Rice 5kg</b><br><span class="cell-sub">3,820 units</span></div><b>৳22,90,000</b></div></div></div>
+<div class="card"><div class="card-hd"><h3>🌐 Traffic Source</h3></div><div class="card-bd">
+<div class="fstep"><div class="fl"><span>Organic Search</span><b>4,820</b></div><div class="track"><i style="width:80%;background:linear-gradient(90deg,var(--green-500),var(--green-600))"></i></div></div>
+<div class="fstep"><div class="fl"><span>Direct</span><b>2,640</b></div><div class="track"><i style="width:50%"></i></div></div>
+<div class="fstep"><div class="fl"><span>Facebook Ads</span><b>1,820</b></div><div class="track"><i style="width:35%;background:linear-gradient(90deg,var(--violet-500),var(--violet-600))"></i></div></div>
+<div class="fstep"><div class="fl"><span>Email</span><b>540</b></div><div class="track"><i style="width:14%"></i></div></div>
+<div class="fstep"><div class="fl"><span>Referral</span><b>420</b></div><div class="track"><i style="width:9%;background:linear-gradient(90deg,var(--amber-500),var(--amber-600))"></i></div></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>🏬 Branch Performance · A.3</h3></div><div class="card-bd">
+<div class="summary-line"><span>Dhaka HQ</span><b>৳14.2L · 58%</b></div><div class="summary-line"><span>Chittagong</span><b>৳6.4L · 26%</b></div><div class="summary-line"><span>Sylhet</span><b>৳4.2L · 17%</b></div>
+<div class="summary-line" style="margin-top:6px"><span>Top performer</span><b>Karim H. · Dhaka</b></div>
+<div class="summary-line"><span>Avg orders / day</span><b>214 · Dhaka</b></div>
+</div></div>
+</div>
+
+<div class="grid" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>🧑‍💼 Employee Performance · A.3 — Orders handled this month</h3></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Employee</th><th>Role</th><th>Orders Verified</th><th>Avg Handling Time</th><th>Customer Rating</th></tr></thead>
+<tbody>
+<tr><td><b>Rumi Khan</b></td><td>Ops</td><td>412</td><td>4m 12s</td><td>⭐ 4.7</td></tr>
+<tr><td><b>Arif Sadman</b></td><td>Catalog</td><td>320</td><td>2m 40s</td><td>⭐ 4.6</td></tr>
+<tr><td><b>Nazia Polin</b></td><td>Support</td><td>298</td><td>5m 50s</td><td>⭐ 4.8</td></tr>
+<tr><td><b>Sadia Khan</b></td><td>Finance</td><td>214</td><td>3m 30s</td><td>—</td></tr>
+<tr><td><b>Mahmood Hossain</b></td><td>Ops</td><td>186</td><td>5m 06s</td><td>⭐ 4.5</td></tr>
+</tbody></table></div></div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

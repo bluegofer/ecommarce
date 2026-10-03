@@ -1,0 +1,19 @@
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--sk-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.info { background: #EAF4FA; color: #25729A; }
+.warning { background: #FEF5E7; color: #B45309; }
+.purple { background: #F3E8FF; color: #7C3AED; }
+.success { background: #EAF7EF; color: #16A34A; }
+.neutral { background: #F1F5F9; color: #64748B; }
+.error { background: #FDECEC; color: #D62828; }
+
+html[lang="bn"] .chip { text-transform: none; letter-spacing: 0; }
