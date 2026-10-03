@@ -425,6 +425,8 @@ export class OrdersService {
       orderNumber: row.orderNumber,
       customerId: row.customerId,
       status: row.status as OrderStatus,
+      courier: row.shipments[0]?.courier ?? null,
+      trackingNumber: row.shipments[0]?.trackingNumber ?? null,
       subtotalPoisha: row.subtotalPoisha,
       discountPoisha: row.discountPoisha,
       deliveryChargePoisha: row.deliveryChargePoisha,

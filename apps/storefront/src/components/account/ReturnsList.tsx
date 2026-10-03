@@ -158,7 +158,7 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
               <div className={styles.row}>
                 <div className={styles.left}>
                   <Link
-                    href={`/${locale}/account/orders/${it.orderId}`}
+                    href={`/${locale}/account/returns/${it.id}`}
                     className={styles.orderLink}
                   >
                     #{it.orderNumber}

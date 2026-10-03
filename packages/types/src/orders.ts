@@ -177,6 +177,10 @@ export interface OrderDto {
   notes: OrderNoteDto[];
   payments: PaymentDto[];
   shipments: ShipmentDto[];
+  /** Latest shipment courier (denormalized from shipments[0]) */
+  courier: string | null;
+  /** Latest tracking number (denormalized from shipments[0]) */
+  trackingNumber: string | null;
 }
 
 export interface OrderSummaryDto {
