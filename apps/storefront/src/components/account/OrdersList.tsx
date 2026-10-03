@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { ordersApi, ApiError, type MyOrderListItem } from '@/lib/api';
+import { useAuth } from '@/lib/auth/context';
 import { OrderCard, type OrderCardLabels } from './OrderCard';
 import styles from './OrdersList.module.css';
 
@@ -35,8 +36,21 @@ export function OrdersList({ locale, labels }: OrdersListProps) {
   const [tab, setTab] = useState<TabKey>('all');
   const [q, setQ] = useState('');
 
+  // step-157: wait for AuthProvider session restore before fetching.
+  // Without this gate, the request fires before the access token is set
+  // and returns 401 → the page shows "No orders yet" until a refresh.
+  const { signedIn, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    if (authLoading) return;              // Auth still restoring — wait
+    if (!signedIn) {
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
         const res = await ordersApi.listMine();
@@ -52,7 +66,7 @@ export function OrdersList({ locale, labels }: OrdersListProps) {
       }
     })();
     return () => { cancelled = true; };
-  }, [labels.errorText]);
+  }, [authLoading, signedIn, labels.errorText]);
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {

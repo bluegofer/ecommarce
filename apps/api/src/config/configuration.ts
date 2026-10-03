@@ -74,7 +74,7 @@ export default (): AppConfig => {
     jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'dev-access-secret-CHANGE-ME',
     jwtAccessTtl: Number(process.env.JWT_ACCESS_TTL ?? 900),
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-secret-CHANGE-ME',
-    jwtRefreshTtl: Number(process.env.JWT_REFRESH_TTL ?? 2592000),
+    jwtRefreshTtl: Number(process.env.JWT_REFRESH_TTL ?? 3600), // step-157: 1 hour admin session
     bcryptCost: Number(process.env.BCRYPT_COST ?? 12),
     totpIssuer: process.env.TOTP_ISSUER ?? 'Ecommarce',
 

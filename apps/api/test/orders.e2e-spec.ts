@@ -3,7 +3,8 @@
 //   AC-78 — State machine: every legal transition; illegal ones rejected;
 //           CANCELLED restocks variants transactionally.
 //   AC-79 — Place-order idempotency: same Idempotency-Key → one order, same response.
-//   AC-80 — Guest order → registration with same phone auto-attaches history.
+//   AC-80 — Guest checkout is BLOCKED (step-157) — 401 without auth.
+//   AC-80b — Authenticated buyer places order → customer linked to userId.
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { randomUUID } from 'crypto';
@@ -41,6 +42,8 @@ describe('Orders (e2e)', () => {
   let ctx: SeedContext;
   let admin: SeededUser;
   let categoryId: string;
+  let buyerPhone: string;
+  let buyerToken: string;
 
   beforeAll(async () => {
     const created = await createTestApp();
@@ -58,11 +61,28 @@ describe('Orders (e2e)', () => {
     await cleanDatabase(prisma, redis);
     await seedTemplates(prisma);
     admin = await seedUserWithRole(ctx, randomPhone(), 'ChangeMe!2026', 'ORDER_SUPPORT');
+
+    // step-157: checkout now requires auth — seed + authenticate a buyer.
+    buyerPhone = randomPhone();
+    const reg = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({ phone: buyerPhone, password: 'ChangeMe!2026', fullName: 'Test Buyer' })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/otp/verify')
+      .send({ phone: buyerPhone, code: reg.body.devCode })
+      .expect(200);
+    const login = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ identifier: buyerPhone, password: 'ChangeMe!2026' })
+      .expect(200);
+    buyerToken = login.body.accessToken;
+
     const cat = await seedCategory(ctx, admin.accessToken, 'Orders Cat');
     categoryId = cat.id;
   });
 
-  // Helper: place a fresh order
+  // Helper: place a fresh order as the authenticated buyer
   async function placeOrder(stock = 10, pricePoisha = 50000, key?: string) {
     const { variant } = await seedProductWithVariant(
       ctx,
@@ -71,24 +91,30 @@ describe('Orders (e2e)', () => {
       `Order Item ${Date.now()}-${Math.random()}`,
       { pricePoisha, stock },
     );
-    const phone = randomPhone();
     const req = request(app.getHttpServer())
       .post('/api/v1/checkout/place-order')
+      .set('Authorization', `Bearer ${buyerToken}`)
       .send({
         items: [{ variantId: variant.id, quantity: 1 }],
         shippingAddress: {
           recipientName: 'Test Buyer',
-          phone,
+          phone: buyerPhone,
           area: 'Banani',
           city: 'Dhaka',
           line1: 'House 1',
         },
-        contactPhone: phone,
+        contactPhone: buyerPhone,
         paymentMethod: 'COD',
       });
     if (key) req.set('Idempotency-Key', key);
     const res = await req.expect(201);
-    return { variantId: variant.id, phone, orderId: res.body.orderId, orderNumber: res.body.orderNumber, res };
+    return {
+      variantId: variant.id,
+      phone: buyerPhone,
+      orderId: res.body.orderId,
+      orderNumber: res.body.orderNumber,
+      res,
+    };
   }
 
   // -------------------------------------------------------------------------
@@ -179,7 +205,7 @@ describe('Orders (e2e)', () => {
       { pricePoisha: 50000, stock: 10 },
     );
     const key = randomUUID();
-    const phone = randomPhone();
+    const phone = buyerPhone;
 
     const body = {
       items: [{ variantId: variant.id, quantity: 1 }],
@@ -196,11 +222,13 @@ describe('Orders (e2e)', () => {
 
     const a = await request(app.getHttpServer())
       .post('/api/v1/checkout/place-order')
+      .set('Authorization', `Bearer ${buyerToken}`)
       .set('Idempotency-Key', key)
       .send(body)
       .expect(201);
     const b = await request(app.getHttpServer())
       .post('/api/v1/checkout/place-order')
+      .set('Authorization', `Bearer ${buyerToken}`)
       .set('Idempotency-Key', key)
       .send(body)
       .expect(201);
@@ -217,60 +245,64 @@ describe('Orders (e2e)', () => {
   });
 
   // -------------------------------------------------------------------------
-  // AC-80 — Guest order → later registration attaches history
+  // AC-80 — Guest checkout BLOCKED (step-157)
   // -------------------------------------------------------------------------
 
-  it('AC-80: guest places order, then registers with same phone → customer linked to userId', async () => {
-    const { phone } = await placeOrder();
-    const before = await prisma.customer.findUnique({ where: { phone } });
-    expect(before?.isGuest).toBe(true);
-    expect(before?.userId).toBeNull();
-
-    // Simulate user registering with that phone
-    const reg = await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({ phone, password: 'ChangeMe!2026', fullName: 'Now Registered' })
-      .expect(201);
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/otp/verify')
-      .send({ phone, code: reg.body.devCode })
-      .expect(200);
-
-    // Place a new order while logged in — same phone — must attach history to that user's customer
-    const login = await request(app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({ identifier: phone, password: 'ChangeMe!2026' })
-      .expect(200);
-
-    // Force a second order to run through the upsertCustomer path with a userId
+  it('AC-80: guest (no auth) → POST /checkout/place-order returns 401', async () => {
     const { variant } = await seedProductWithVariant(
       ctx,
       admin.accessToken,
       categoryId,
-      'Second Item',
-      { pricePoisha: 50000, stock: 5 },
+      'Guest Blocked Item',
+      { pricePoisha: 50000, stock: 10 },
     );
+    const phone = randomPhone();
     await request(app.getHttpServer())
       .post('/api/v1/checkout/place-order')
-      .set('Authorization', `Bearer ${login.body.accessToken}`)
       .send({
         items: [{ variantId: variant.id, quantity: 1 }],
         shippingAddress: {
-          recipientName: 'Now Registered',
+          recipientName: 'Guest',
           phone,
           area: 'Banani',
           city: 'Dhaka',
-          line1: 'House 2',
+          line1: 'House X',
         },
         contactPhone: phone,
         paymentMethod: 'COD',
       })
+      .expect(401);
+  });
+
+  it('AC-80b: authenticated buyer places order → customer is linked (not guest)', async () => {
+    const { variant } = await seedProductWithVariant(
+      ctx,
+      admin.accessToken,
+      categoryId,
+      'Auth Buyer Item',
+      { pricePoisha: 50000, stock: 10 },
+    );
+    await request(app.getHttpServer())
+      .post('/api/v1/checkout/place-order')
+      .set('Authorization', `Bearer ${buyerToken}`)
+      .send({
+        items: [{ variantId: variant.id, quantity: 1 }],
+        shippingAddress: {
+          recipientName: 'Test Buyer',
+          phone: buyerPhone,
+          area: 'Banani',
+          city: 'Dhaka',
+          line1: 'House 2',
+        },
+        contactPhone: buyerPhone,
+        paymentMethod: 'COD',
+      })
       .expect(201);
 
-    const after = await prisma.customer.findUnique({ where: { phone } });
-    expect(after?.isGuest).toBe(false);
-    expect(after?.userId).toBeTruthy();
-    expect(after?.totalOrders).toBe(2);
+    const customer = await prisma.customer.findUnique({ where: { phone: buyerPhone } });
+    expect(customer?.isGuest).toBe(false);
+    expect(customer?.userId).toBeTruthy();
+    expect(customer?.totalOrders).toBe(1);
   });
 
   // -------------------------------------------------------------------------
