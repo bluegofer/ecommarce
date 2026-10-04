@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { returnsApi, ApiError, type MyReturnItem } from '@/lib/api';
+import { useAuth } from '@/lib/auth/context';
 import styles from './ReturnsList.module.css';
 
 export interface ReturnsListLabels {
@@ -63,7 +64,15 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
+  // step-162: wait for AuthProvider session restore before fetching.
+  const { signedIn, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    if (authLoading) return;
+    if (!signedIn) {
+      setItems([]);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -77,7 +86,7 @@ export function ReturnsList({ locale, labels }: ReturnsListProps) {
       }
     })();
     return () => { cancelled = true; };
-  }, [labels.errorText]);
+  }, [authLoading, signedIn, labels.errorText]);
 
   const fmtPrice = (poisha: number) =>
     `৳${(poisha / 100).toLocaleString(locale === 'bn' ? 'bn-BD' : 'en-BD')}`;

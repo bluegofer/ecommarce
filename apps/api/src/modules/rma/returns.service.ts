@@ -373,7 +373,12 @@ export class ReturnsService {
 
     const dto = this.toDto(r);
     dto.orderNumber = order?.orderNumber ?? null;
-    dto.customerName = customer?.fullName ?? null;
+    // step-162: fall back to shipping recipient name if customer.fullName empty
+    const shipAddr = order?.shippingAddressJson as { recipientName?: string } | null;
+    dto.customerName =
+      customer?.fullName?.trim() ||
+      shipAddr?.recipientName?.trim() ||
+      null;
     dto.customerPhone = customer?.phone ?? null;
     dto.items = matchedItems;
     return dto;
