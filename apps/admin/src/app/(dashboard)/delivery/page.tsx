@@ -22,19 +22,23 @@ interface DispatchOrder {
 
 interface Settlement {
   id: string;
-  courier: string;
-  period: string;
-  codCollectedPoisha: number;
-  payoutPoisha: number;
-  status: 'PENDING' | 'MATCHED' | 'DISCREPANCY';
+  courierCode: string;
+  periodStart: string;
+  periodEnd: string;
+  expectedPoisha: number;
+  receivedPoisha: number;
+  orderCount: number;
+  status: string;
+  reconciledAt: string | null;
+  notes: string | null;
 }
 
 export default function DeliveryPage() {
   const toast = useToast();
   const [tab, setTab] = useState<'dispatch' | 'settlements'>('dispatch');
 
-  const dispatchQuery = useQuery<DispatchOrder[]>('/api/v1/orders?status=PROCESSING');
-  const settlementQuery = useQuery<Settlement[]>('/api/v1/courier/settlements');
+  const dispatchQuery = useQuery<DispatchOrder[]>('/api/v1/orders?status=PROCESSING', { refreshInterval: 30_000 });
+  const settlementQuery = useQuery<Settlement[]>('/api/v1/courier/settlements/unreconciled', { refreshInterval: 30_000 });
 
   // Defensive: guard against non-array responses (401/404 → null)
   const dispatchRows = Array.isArray(dispatchQuery.data)
@@ -73,7 +77,7 @@ export default function DeliveryPage() {
           type="button"
           onClick={async () => {
             await assignMutation.mutate({ id: r.id, courier: 'PATHAO' });
-            toast.success('Dispatched via Pathao');
+            toast.success('Dispatched via courier');
             void dispatchQuery.refetch();
           }}
           className="text-[12.5px] font-medium text-sky-700 hover:text-sky-800"
@@ -85,19 +89,29 @@ export default function DeliveryPage() {
   ];
 
   const settlementColumns: Column<Settlement>[] = [
-    { key: 'courier', header: 'Courier', render: (r) => <span className="font-medium">{r.courier}</span> },
-    { key: 'period', header: 'Period', render: (r) => r.period },
+    { key: 'courier', header: 'Courier', render: (r) => <span className="font-medium">{r.courierCode}</span> },
     {
-      key: 'cod',
-      header: 'COD collected',
-      align: 'right',
-      render: (r) => <span className="tabular-nums text-slate-700">{formatPoisha(r.codCollectedPoisha)}</span>,
+      key: 'period',
+      header: 'Period',
+      render: (r) => `${r.periodStart.slice(0, 10)} → ${r.periodEnd.slice(0, 10)}`,
     },
     {
-      key: 'payout',
-      header: 'Payout',
+      key: 'orders',
+      header: 'Orders',
       align: 'right',
-      render: (r) => <span className="tabular-nums font-medium text-slate-800">{formatPoisha(r.payoutPoisha)}</span>,
+      render: (r) => <span className="tabular-nums text-slate-700">{r.orderCount}</span>,
+    },
+    {
+      key: 'expected',
+      header: 'Expected',
+      align: 'right',
+      render: (r) => <span className="tabular-nums text-slate-700">{formatPoisha(r.expectedPoisha)}</span>,
+    },
+    {
+      key: 'received',
+      header: 'Received',
+      align: 'right',
+      render: (r) => <span className="tabular-nums font-medium text-slate-800">{formatPoisha(r.receivedPoisha)}</span>,
     },
     {
       key: 'status',
@@ -105,7 +119,7 @@ export default function DeliveryPage() {
       render: (r) => (
         <StatusChip
           label={r.status}
-          tone={r.status === 'MATCHED' ? 'success' : r.status === 'DISCREPANCY' ? 'danger' : 'warning'}
+          tone={r.status === 'RECONCILED' ? 'success' : r.status === 'DISCREPANCY' ? 'danger' : 'warning'}
         />
       ),
     },
@@ -115,7 +129,6 @@ export default function DeliveryPage() {
     <div className="space-y-5">
       <PageHeader
         title="Delivery"
-        subtitle="Dispatch queue · Pathao (D-06) · COD reconciliation · settlement tracking"
       />
 
       <div className="border-b border-border">

@@ -112,6 +112,36 @@ export class CourierService {
       },
     });
 
+    // step-167: upsert monthly CourierSettlement so DB is single source of truth.
+    // Every dispatch increments expected COD + order count for that courier/month.
+    const now = new Date();
+    const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59));
+    const existingSettlement = await this.prisma.courierSettlement.findFirst({
+      where: { courierCode: provider, periodStart },
+    });
+    if (existingSettlement) {
+      await this.prisma.courierSettlement.update({
+        where: { id: existingSettlement.id },
+        data: {
+          expectedPoisha: existingSettlement.expectedPoisha + order.totalPoisha,
+          orderCount: existingSettlement.orderCount + 1,
+        },
+      });
+    } else {
+      await this.prisma.courierSettlement.create({
+        data: {
+          courierCode: provider,
+          periodStart,
+          periodEnd,
+          expectedPoisha: order.totalPoisha,
+          receivedPoisha: 0,
+          orderCount: 1,
+          status: 'PENDING',
+        },
+      });
+    }
+
     return result;
   }
 
