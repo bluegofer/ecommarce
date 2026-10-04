@@ -1,33 +1,37 @@
-// CourierModule — env-driven factory: real Pathao when creds present,
-// otherwise MockPathaoAdapter (Step 13.1). Steadfast / RedX stubs deferred.
+// apps/api/src/modules/courier/courier.module.ts
+// step-165: Steadfast is the active courier (Pathao disabled per client decision).
+// Real Steadfast adapter when STEADFAST_API_KEY + STEADFAST_SECRET_KEY set;
+// otherwise MockSteadfastAdapter (dev/test).
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CourierService } from './courier.service';
 import { CourierController } from './courier.controller';
 import { COURIER_ADAPTERS } from './courier-adapter.interface';
 import { CourierAdapterRegistryImpl } from './courier-registry';
-import { MockPathaoAdapter } from './adapters/mock-pathao.adapter';
-import { PathaoAdapter } from './adapters/pathao.adapter';
+import { MockSteadfastAdapter } from './adapters/mock-steadfast.adapter';
+import { SteadfastAdapter } from './adapters/steadfast.adapter';
 import { PrismaService } from '../../database/prisma.service';
 import type { CourierAdapter } from '@ecommarce/types';
 
-interface PathaoCfg {
+interface SteadfastCfg {
   baseUrl: string;
-  clientId: string;
-  clientSecret: string;
+  apiKey: string;
+  secretKey: string;
 }
 
 function buildAdapters(): CourierAdapter[] {
   const list: CourierAdapter[] = [];
-  const cfg: PathaoCfg = {
-    baseUrl: process.env.PATHAO_BASE_URL ?? '',
-    clientId: process.env.PATHAO_CLIENT_ID ?? '',
-    clientSecret: process.env.PATHAO_CLIENT_SECRET ?? '',
+
+  // step-165: Steadfast is the active courier. Pathao disabled.
+  const cfg: SteadfastCfg = {
+    baseUrl: process.env.STEADFAST_BASE_URL ?? 'https://portal.steadfast.com.bd/api/v1',
+    apiKey: process.env.STEADFAST_API_KEY ?? '',
+    secretKey: process.env.STEADFAST_SECRET_KEY ?? '',
   };
-  if (cfg.baseUrl && cfg.clientId && cfg.clientSecret) {
-    list.push(new PathaoAdapter(cfg));
+  if (cfg.apiKey && cfg.secretKey) {
+    list.push(new SteadfastAdapter(cfg));
   } else {
-    list.push(new MockPathaoAdapter());
+    list.push(new MockSteadfastAdapter());
   }
   return list;
 }
