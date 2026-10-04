@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { returnsApi, type ReturnRequestDetail } from '@/lib/api/returns';
+import { useAuth } from '@/lib/auth/context';
 import { ReturnTimeline } from '@/components/account/ReturnTimeline';
 import styles from './page.module.css';
 
@@ -14,12 +15,21 @@ export default function ReturnDetailPage({ params }: { params: { locale: string;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // step-164: wait for AuthProvider session restore before fetching.
+  const { signedIn, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    if (authLoading) return;             // auth still restoring — wait
+    if (!signedIn) {
+      setError(bn ? 'সাইন ইন প্রয়োজন' : 'Authentication required');
+      setLoading(false);
+      return;
+    }
     returnsApi.detail(params.id)
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : 'Load failed'))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [params.id, authLoading, signedIn, bn]);
 
   if (loading) return <div className={styles.center}>{bn ? 'লোড হচ্ছে…' : 'Loading…'}</div>;
   if (error || !data) {
