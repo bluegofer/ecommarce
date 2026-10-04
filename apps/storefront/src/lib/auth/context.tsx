@@ -119,6 +119,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
         if (cancelled) return;
         setAccessToken(res.accessToken);
+        // step-168: wire the token provider SYNCHRONOUSLY before setUser.
+        // Without this, child effects (ReturnsList, OrdersList) run before
+        // the accessToken useEffect commits, and fetch 401s on hard reload.
+        setAccessTokenProvider(() => res.accessToken);
         setUser(res.user);
       } catch (err) {
         if (cancelled) return;
