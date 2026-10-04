@@ -375,9 +375,12 @@ export class ReturnsService {
     dto.orderNumber = order?.orderNumber ?? null;
     // step-162: fall back to shipping recipient name if customer.fullName empty
     const shipAddr = order?.shippingAddressJson as { recipientName?: string } | null;
+    // step-163: priority — real name from checkout shipping address first.
+    // (a stale Customer.fullName like "Test Customer" must not leak.)
     dto.customerName =
-      customer?.fullName?.trim() ||
       shipAddr?.recipientName?.trim() ||
+      customer?.fullName?.trim() ||
+      order?.contactPhone ||
       null;
     dto.customerPhone = customer?.phone ?? null;
     dto.items = matchedItems;

@@ -46,7 +46,7 @@ const TABS = ['Returns', 'Tickets'] as const;
 export default function ReturnsPage() {
   const [tab, setTab] = useState<(typeof TABS)[number]>('Returns');
 
-  const rmaQuery = useQuery<RmaRequest[]>('/api/v1/returns');
+  const rmaQuery = useQuery<RmaRequest[]>('/api/v1/returns', { refreshInterval: 30_000 });
   const ticketsQuery = useQuery<Ticket[]>('/api/v1/tickets');
 
 

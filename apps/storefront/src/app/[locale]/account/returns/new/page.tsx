@@ -39,7 +39,7 @@ export default function NewReturnPage({ params }: { params: { locale: string } }
       router.replace(`/${params.locale}/account/orders`);
       return;
     }
-    api.get<OrderRow>(`/orders/${orderId}`)
+    api.get<OrderRow>(`/me/orders/${orderId}`)
       .then(setOrder)
       .catch((e) => setError(e instanceof Error ? e.message : 'Load failed'))
       .finally(() => setLoading(false));
