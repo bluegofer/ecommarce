@@ -95,8 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Silent session restore on mount (only if a hint exists).
   useEffect(() => {
-    if (refreshedRef.current) return;
-    refreshedRef.current = true;
+    // step-166: no refreshedRef guard — allow remount to retry restore.
 
     const hint = readAuthHint();
     if (!hint) {
@@ -105,6 +104,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     let cancelled = false;
+
+    // step-166b: absolute safety net — if the refresh somehow
+    // never resolves within 5s, force loading=false so UI can
+    // render (data will still refetch when refresh completes).
+    const safety = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
     (async () => {
       try {
         const res = await api.post<{ accessToken: string; user: AuthUser }>(
@@ -126,12 +132,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccessToken(null);
         setUser(null);
       } finally {
-        if (!cancelled) setLoading(false);
+        // step-166: ALWAYS resolve loading — even if the effect was cancelled.
+        // (React Strict Mode double-mount, hydration abort, etc.)
+        // Without this, loading would be stuck at true forever.
+        setLoading(false);
       }
     })();
 
     return () => {
       cancelled = true;
+      clearTimeout(safety);
     };
   }, []);
 
