@@ -10,14 +10,12 @@ import { formatPoisha, formatDateTime } from '@/lib/utils';
 interface DispatchOrder {
   id: string;
   orderNumber: string;
-  customerName: string;
-  zone: string;
   status: string;
-  courier: string | null;
-  trackingNumber: string | null;
-  riderName: string | null;
-  codPoisha: number;
-  createdAt: string;
+  totalPoisha: number;
+  placedAt: string;
+  itemCount: number;
+  contactPhone: string;
+  shippingCity: string;
 }
 
 interface Settlement {
@@ -55,18 +53,13 @@ export default function DeliveryPage() {
 
   const dispatchColumns: Column<DispatchOrder>[] = [
     { key: 'order', header: 'Order', render: (r) => <code className="font-mono text-slate-800">{r.orderNumber}</code> },
-    { key: 'customer', header: 'Customer', render: (r) => r.customerName },
-    { key: 'zone', header: 'Zone', render: (r) => <StatusChip label={r.zone} tone="info" /> },
+    { key: 'customer', header: 'Customer', render: (r) => <span>{r.contactPhone}</span> },
+    { key: 'city', header: 'City', render: (r) => r.shippingCity ? <StatusChip label={r.shippingCity} tone="info" /> : <span className="text-slate-400">—</span> },
     {
       key: 'cod',
       header: 'COD',
       align: 'right',
-      render: (r) => <span className="tabular-nums text-slate-800">{formatPoisha(r.codPoisha)}</span>,
-    },
-    {
-      key: 'courier',
-      header: 'Courier',
-      render: (r) => r.courier ? <span>{r.courier}</span> : <span className="text-slate-400">—</span>,
+      render: (r) => <span className="tabular-nums text-slate-800">{formatPoisha(r.totalPoisha)}</span>,
     },
     {
       key: 'actions',
@@ -76,8 +69,8 @@ export default function DeliveryPage() {
         <button
           type="button"
           onClick={async () => {
-            await assignMutation.mutate({ id: r.id, courier: 'PATHAO' });
-            toast.success('Dispatched via courier');
+            await assignMutation.mutate({ id: r.id, courier: 'STEADFAST' });
+            toast.success('Dispatched via Steadfast');
             void dispatchQuery.refetch();
           }}
           className="text-[12.5px] font-medium text-sky-700 hover:text-sky-800"
