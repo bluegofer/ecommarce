@@ -89,8 +89,11 @@ export async function apiFetch<T = unknown>(
 
   let res = await doFetch();
 
-  // Silent refresh on 401, then retry once
+  // step-171: 401 handling — force fresh refresh on every 401 (race-safe).
+  // apiFetch may be called before AuthProvider completes initial refresh,
+  // or with a stale module-level accessToken. Retry path must always refresh.
   if (res.status === 401 && !skipAuth && retryOn401) {
+    refreshPromise = null;   // force new refresh (bypass coalesce)
     const newToken = await refreshAccessToken();
     if (newToken) {
       res = await doFetch();
