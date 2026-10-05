@@ -63,6 +63,26 @@ export class CourierService {
     );
     if (existing && existing.trackingNumber) {
       this.logger.log(`Reusing existing ${provider} consignment for ${order.orderNumber}`);
+
+    // step-170: auto-transition order to SHIPPED after successful dispatch.
+    // This removes the order from the PROCESSING dispatch queue and
+    // reflects the real courier action. Manual delivery status (IN_TRANSIT,
+    // DELIVERED) remains a separate, staff-driven action per TDD A.4.
+    if (order.status === 'PROCESSING') {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { status: 'SHIPPED', shippedAt: new Date() },
+      });
+      await this.prisma.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          fromStatus: 'PROCESSING',
+          toStatus: 'SHIPPED',
+          actorUserId: null,
+          note: 'Auto-transitioned after courier dispatch',
+        },
+      });
+    }
       return {
         ok: true,
         provider,
@@ -111,6 +131,26 @@ export class CourierService {
         meta: (result.rawResponse ?? {}) as object,
       },
     });
+
+    // step-170: auto-transition order to SHIPPED after successful dispatch.
+    // This removes the order from the PROCESSING dispatch queue and
+    // reflects the real courier action. Manual delivery status (IN_TRANSIT,
+    // DELIVERED) remains a separate, staff-driven action per TDD A.4.
+    if (order.status === 'PROCESSING') {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { status: 'SHIPPED', shippedAt: new Date() },
+      });
+      await this.prisma.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          fromStatus: 'PROCESSING',
+          toStatus: 'SHIPPED',
+          actorUserId: null,
+          note: 'Auto-transitioned after courier dispatch',
+        },
+      });
+    }
 
     // step-167: upsert monthly CourierSettlement so DB is single source of truth.
     // Every dispatch increments expected COD + order count for that courier/month.
