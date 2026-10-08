@@ -47,6 +47,8 @@ interface ActiveShipment {
   deliveredAt: string | null;
   updatedAt: string;
   createdAt: string;
+  riderName: string | null;
+  riderPhone: string | null;
 }
 
 export default function DeliveryPage() {
@@ -167,6 +169,18 @@ export default function DeliveryPage() {
         <code className="text-[12px] text-slate-600">
           {r.trackingNumber ? r.trackingNumber.slice(0, 22) + (r.trackingNumber.length > 22 ? '\u2026' : '') : '\u2014'}
         </code>
+      ),
+    },
+    {
+      key: 'rider',
+      header: 'Rider',
+      render: (r) => (
+        r.riderName ? (
+          <div>
+            <div className="text-slate-800">{r.riderName}</div>
+            {r.riderPhone ? <div className="text-[11.5px] text-slate-500">{r.riderPhone}</div> : null}
+          </div>
+        ) : ('—')
       ),
     },
     {

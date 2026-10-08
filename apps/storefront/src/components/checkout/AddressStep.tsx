@@ -151,18 +151,16 @@ export function AddressStep({
             <label className={styles.label} htmlFor="ck-city">
               {labels.city} <span aria-hidden="true">*</span>
             </label>
-            <select
+            <input
               id="ck-city"
+              type="text"
               className={[styles.input, errors.city ? styles.inputError : ''].filter(Boolean).join(' ')}
               value={value.city}
               onChange={(e) => update('city', e.target.value)}
+              placeholder={labels.cityPlaceholder}
               aria-invalid={Boolean(errors.city)}
-            >
-              <option value="">{labels.cityPlaceholder}</option>
-              {labels.cityOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+              autoComplete="address-level2"
+            />
             {errors.city ? <span className={styles.error}>{errors.city}</span> : null}
           </div>
 

@@ -384,50 +384,59 @@ export class CourierService {
       trackingNumber: string | null;
       shipmentStatus: string;
       orderStatus: string;
+      riderName: string | null;
+      riderPhone: string | null;
       shippedAt: Date | null;
       deliveredAt: Date | null;
       updatedAt: Date;
       createdAt: Date;
     }>
   > {
-    const rows = await this.prisma.shipment.findMany({
-      where: {
-        status: { in: ['DISPATCHED', 'IN_TRANSIT'] },
-      },
-      orderBy: { createdAt: 'desc' },
+    // step-175: query Orders (not Shipments) — because manual rider assign
+    // does not create a Shipment row. Both paths must appear in one dashboard.
+    const ACTIVE_ORDER_STATUSES = [
+      'SHIPPED',
+      'IN_TRANSIT',
+      'OUT_FOR_DELIVERY',
+      'FAILED',
+    ] as const;
+
+    const rows = await this.prisma.order.findMany({
+      where: { status: { in: [...ACTIVE_ORDER_STATUSES] } },
+      orderBy: { updatedAt: 'desc' },
       take: 200,
       include: {
-        order: {
-          include: {
-            customer: { select: { fullName: true } },
-          },
-        },
+        shipments: { orderBy: { createdAt: 'desc' }, take: 1 },
+        customer: { select: { fullName: true } },
       },
     });
 
-    return rows.map((r) => {
-      const ship = r.order.shippingAddressJson as Record<string, unknown> | null;
+    return rows.map((o) => {
+      const ship = o.shippingAddressJson as Record<string, unknown> | null;
       const recipientFromShip =
         ship && typeof ship.recipientName === 'string'
           ? (ship.recipientName as string)
           : null;
       const city =
         ship && typeof ship.city === 'string' ? (ship.city as string) : null;
+      const latestShipment = o.shipments[0];
       return {
-        shipmentId: r.id,
-        orderId: r.order.id,
-        orderNumber: r.order.orderNumber,
-        customerName: r.order.customer?.fullName ?? recipientFromShip,
-        customerPhone: r.order.contactPhone,
+        shipmentId: latestShipment?.id ?? o.id,
+        orderId: o.id,
+        orderNumber: o.orderNumber,
+        customerName: o.customer?.fullName ?? recipientFromShip,
+        customerPhone: o.contactPhone,
         city,
-        courier: r.courier,
-        trackingNumber: r.trackingNumber,
-        shipmentStatus: r.status,
-        orderStatus: r.order.status,
-        shippedAt: r.dispatchedAt,
-        deliveredAt: r.deliveredAt,
-        updatedAt: r.updatedAt,
-        createdAt: r.createdAt,
+        courier: latestShipment?.courier ?? (o.riderName ? 'OWN_RIDER' : '—'),
+        trackingNumber: latestShipment?.trackingNumber ?? null,
+        shipmentStatus: latestShipment?.status ?? '—',
+        orderStatus: o.status,
+        riderName: o.riderName,
+        riderPhone: o.riderPhone,
+        shippedAt: o.shippedAt,
+        deliveredAt: o.deliveredAt,
+        updatedAt: o.updatedAt,
+        createdAt: o.createdAt,
       };
     });
   }
