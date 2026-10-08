@@ -131,7 +131,7 @@ export default function OrderDetailPage() {
   const [editNote, setEditNote] = useState('');
   const [exchangeOpen, setExchangeOpen] = useState(false);
   const [exchangeReason, setExchangeReason] = useState('');
-  const [dispatchCourier, setDispatchCourier] = useState<'PATHAO' | 'STEADFAST' | 'REDX'>('PATHAO');
+  const [dispatchCourier, setDispatchCourier] = useState<'PATHAO' | 'STEADFAST' | 'REDX'>('STEADFAST');
   const [dispatchNote, setDispatchNote] = useState('');
 
   if (loading && !data) return <div className="p-10 text-center text-slate-400">Loading order…</div>;

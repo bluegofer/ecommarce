@@ -127,7 +127,7 @@ export class CourierService {
         orderId: order.id,
         courier: provider,
         trackingNumber: result.consignmentId ?? null,
-        status: 'PENDING',
+        status: 'DISPATCHED', // step-174: shipment moves to DISPATCHED on successful courier booking
         meta: (result.rawResponse ?? {}) as object,
       },
     });
