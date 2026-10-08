@@ -219,6 +219,24 @@ export function OrderTracking({ locale, orderId, labels }: OrderTrackingProps) {
             </section>
           ) : null}
 
+          {order.riderName ? (
+            <section className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                {locale === 'bn' ? 'ডেলিভারি রাইডার' : 'Delivery rider'}
+              </h3>
+              <div className={styles.trackRow}>
+                <span className={styles.trackNum}>{order.riderName}</span>
+              </div>
+              {order.riderPhone ? (
+                <div className={styles.trackRow}>
+                  <a href={`tel:${order.riderPhone}`} className={styles.trackNum}>
+                    {order.riderPhone}
+                  </a>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
           <section className={styles.card}>
             <h3 className={styles.cardTitle}>{labels.shippingTo}</h3>
             <address className={styles.address}>

@@ -23,6 +23,9 @@ export interface MyOrderDetailDto extends MyOrderListItemDto {
   cancelReason: string | null;
   trackingNumber: string | null;
   courierName: string | null;
+  riderName: string | null;
+  riderPhone: string | null;
+  riderAssignedAt: string | null;
   items: Array<{
     id: string;
     variantId: string;
@@ -161,6 +164,9 @@ export class MeOrdersService {
       cancelReason: order.cancelReason,
       trackingNumber: latestShipment?.trackingNumber ?? null,
       courierName: latestShipment?.courier ?? null,
+      riderName: order.riderName,
+      riderPhone: order.riderPhone,
+      riderAssignedAt: order.riderAssignedAt ? order.riderAssignedAt.toISOString() : null,
       items: order.items.map((it) => ({
         id: it.id,
         variantId: it.variantId,

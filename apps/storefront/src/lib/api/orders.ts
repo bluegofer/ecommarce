@@ -42,6 +42,9 @@ export interface MyOrderDetail extends MyOrderListItem {
   cancelReason: string | null;
   trackingNumber: string | null;
   courierName: string | null;
+  riderName: string | null;
+  riderPhone: string | null;
+  riderAssignedAt: string | null;
   items: MyOrderItem[];
   statusHistory: MyOrderStatusEvent[];
 }
