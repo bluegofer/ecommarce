@@ -366,4 +366,69 @@ export class CourierService {
         reconciledBy: status === 'RECONCILED' ? byUserId : existing.reconciledBy,
       },
     });
-  }}
+  }
+
+  /**
+   * step-172: active shipments list — dashboard view of in-transit orders.
+   * ShipmentStatus enum: PENDING | DISPATCHED | IN_TRANSIT | DELIVERED | RETURNED
+   */
+  async activeShipments(): Promise<
+    Array<{
+      shipmentId: string;
+      orderId: string;
+      orderNumber: string;
+      customerName: string | null;
+      customerPhone: string | null;
+      city: string | null;
+      courier: string;
+      trackingNumber: string | null;
+      shipmentStatus: string;
+      orderStatus: string;
+      shippedAt: Date | null;
+      deliveredAt: Date | null;
+      updatedAt: Date;
+      createdAt: Date;
+    }>
+  > {
+    const rows = await this.prisma.shipment.findMany({
+      where: {
+        status: { in: ['DISPATCHED', 'IN_TRANSIT'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        order: {
+          include: {
+            customer: { select: { fullName: true } },
+          },
+        },
+      },
+    });
+
+    return rows.map((r) => {
+      const ship = r.order.shippingAddressJson as Record<string, unknown> | null;
+      const recipientFromShip =
+        ship && typeof ship.recipientName === 'string'
+          ? (ship.recipientName as string)
+          : null;
+      const city =
+        ship && typeof ship.city === 'string' ? (ship.city as string) : null;
+      return {
+        shipmentId: r.id,
+        orderId: r.order.id,
+        orderNumber: r.order.orderNumber,
+        customerName: r.order.customer?.fullName ?? recipientFromShip,
+        customerPhone: r.order.contactPhone,
+        city,
+        courier: r.courier,
+        trackingNumber: r.trackingNumber,
+        shipmentStatus: r.status,
+        orderStatus: r.order.status,
+        shippedAt: r.dispatchedAt,
+        deliveredAt: r.deliveredAt,
+        updatedAt: r.updatedAt,
+        createdAt: r.createdAt,
+      };
+    });
+  }
+}

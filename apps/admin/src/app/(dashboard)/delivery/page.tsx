@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Truck, Wallet, Bike, CheckCircle2 } from 'lucide-react';
 import { PageHeader, DataTable, StatusChip, useToast } from '@/components/ui';
 import type { Column } from '@/components/ui';
@@ -31,12 +32,30 @@ interface Settlement {
   notes: string | null;
 }
 
+interface ActiveShipment {
+  shipmentId: string;
+  orderId: string;
+  orderNumber: string;
+  customerName: string | null;
+  customerPhone: string | null;
+  city: string | null;
+  courier: string;
+  trackingNumber: string | null;
+  shipmentStatus: string;
+  orderStatus: string;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+
 export default function DeliveryPage() {
   const toast = useToast();
-  const [tab, setTab] = useState<'dispatch' | 'settlements'>('dispatch');
+  const [tab, setTab] = useState<'dispatch' | 'active' | 'settlements'>('dispatch');
 
   const dispatchQuery = useQuery<DispatchOrder[]>('/api/v1/orders?status=PROCESSING', { refreshInterval: 30_000 });
   const settlementQuery = useQuery<Settlement[]>('/api/v1/courier/settlements/unreconciled', { refreshInterval: 30_000 });
+  const activeQuery = useQuery<ActiveShipment[]>('/api/v1/courier/active-shipments', { refreshInterval: 30_000 });
 
   // Defensive: guard against non-array responses (401/404 → null)
   const dispatchRows = Array.isArray(dispatchQuery.data)
@@ -45,6 +64,7 @@ export default function DeliveryPage() {
   const settlementRows = Array.isArray(settlementQuery.data)
     ? settlementQuery.data
     : ((settlementQuery.data as unknown as { items?: Settlement[] } | null)?.items ?? []);
+  const activeRows = Array.isArray(activeQuery.data) ? activeQuery.data : [];
 
   const assignMutation = useMutation<{ id: string; courier: string }, unknown>(
     'post',
@@ -118,6 +138,62 @@ export default function DeliveryPage() {
     },
   ];
 
+  const activeColumns: Column<ActiveShipment>[] = [
+    {
+      key: 'order',
+      header: 'Order',
+      render: (r) => (
+        <Link href={`/orders/${r.orderId}`} className="font-mono text-sky-700 hover:underline">
+          {r.orderNumber}
+        </Link>
+      ),
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      render: (r) => (
+        <div>
+          <div className="text-slate-800">{r.customerName ?? '\u2014'}</div>
+          <div className="text-[11.5px] text-slate-500">{r.customerPhone ?? ''}</div>
+        </div>
+      ),
+    },
+    { key: 'city', header: 'City', render: (r) => r.city ?? '\u2014' },
+    { key: 'courier', header: 'Courier', render: (r) => <span className="font-medium text-slate-800">{r.courier}</span> },
+    {
+      key: 'tracking',
+      header: 'Tracking',
+      render: (r) => (
+        <code className="text-[12px] text-slate-600">
+          {r.trackingNumber ? r.trackingNumber.slice(0, 22) + (r.trackingNumber.length > 22 ? '\u2026' : '') : '\u2014'}
+        </code>
+      ),
+    },
+    {
+      key: 'order_status',
+      header: 'Order status',
+      render: (r) => (
+        <StatusChip
+          label={r.orderStatus}
+          tone={
+            r.orderStatus === 'DELIVERED'
+              ? 'success'
+              : r.orderStatus === 'CANCELLED' || r.orderStatus === 'RETURNED'
+                ? 'danger'
+                : r.orderStatus === 'SHIPPED' || r.orderStatus === 'IN_TRANSIT' || r.orderStatus === 'OUT_FOR_DELIVERY'
+                  ? 'info'
+                  : 'warning'
+          }
+        />
+      ),
+    },
+    {
+      key: 'updated',
+      header: 'Updated',
+      render: (r) => <span className="text-[12px] text-slate-500">{formatDateTime(r.updatedAt)}</span>,
+    },
+  ];
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -128,6 +204,7 @@ export default function DeliveryPage() {
         <nav className="flex gap-1">
           {[
             { key: 'dispatch', label: 'Dispatch queue', icon: Truck },
+            { key: 'active', label: 'Active shipments', icon: Truck },
             { key: 'settlements', label: 'Settlements', icon: Wallet },
           ].map((t) => {
             const Icon = t.icon;
@@ -160,6 +237,21 @@ export default function DeliveryPage() {
             </div>
           ) : (
             <DataTable columns={dispatchColumns} rows={dispatchRows} rowKey={(r) => r.id} />
+          )}
+        </div>
+      ) : tab === 'active' ? (
+        <div className="card overflow-hidden">
+          {activeQuery.loading && !activeQuery.data ? (
+            <div className="p-10 text-center text-slate-400">Loading active shipments…</div>
+          ) : activeQuery.error ? (
+            <div className="p-10 text-center text-danger-700">{activeQuery.error.message}</div>
+          ) : activeRows.length === 0 ? (
+            <div className="p-10 text-center text-slate-400">
+              <Truck className="w-8 h-8 mx-auto mb-3 text-slate-300" />
+              No active shipments — all caught up.
+            </div>
+          ) : (
+            <DataTable columns={activeColumns} rows={activeRows} rowKey={(r) => r.shipmentId} />
           )}
         </div>
       ) : (

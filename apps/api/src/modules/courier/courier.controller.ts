@@ -59,6 +59,12 @@ export class CourierController {
   }
 
   // ── Step-84 (D-2): admin settlement management ──
+  @Roles('SUPER_ADMIN', 'ORDER_SUPPORT', 'FINANCE_READONLY')
+  @Get('active-shipments')
+  async activeShipments() {
+    return this.courier.activeShipments();
+  }
+
 
   @Roles('SUPER_ADMIN', 'FINANCE_READONLY', 'FINANCE_MANAGER', 'ORDER_SUPPORT')
   @Get('settlements/unreconciled')
