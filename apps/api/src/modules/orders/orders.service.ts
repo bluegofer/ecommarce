@@ -419,6 +419,9 @@ export class OrdersService {
       deliveredAt: Date | null;
       createdAt: Date;
     }>;
+    riderName: string | null;
+    riderPhone: string | null;
+    riderAssignedAt: Date | null;
   }): OrderDto {
     return {
       id: row.id,
@@ -443,6 +446,9 @@ export class OrdersService {
       shippedAt: row.shippedAt ? row.shippedAt.toISOString() : null,
       deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
       cancelledAt: row.cancelledAt ? row.cancelledAt.toISOString() : null,
+      riderName: row.riderName,
+      riderPhone: row.riderPhone,
+      riderAssignedAt: row.riderAssignedAt ? row.riderAssignedAt.toISOString() : null,
       items: row.items.map((i) => ({
         id: i.id,
         orderId: i.orderId,

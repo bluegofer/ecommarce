@@ -181,6 +181,10 @@ export interface OrderDto {
   courier: string | null;
   /** Latest tracking number (denormalized from shipments[0]) */
   trackingNumber: string | null;
+  /** Assigned rider info (TDD Appendix A A.4 — manual delivery) */
+  riderName: string | null;
+  riderPhone: string | null;
+  riderAssignedAt: string | null;
 }
 
 export interface OrderSummaryDto {
