@@ -1,0 +1,98 @@
+.card {
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow var(--sk-motion-fast) var(--sk-ease);
+}
+.card:hover { box-shadow: var(--sk-shadow-2); }
+.muted { opacity: 0.65; filter: grayscale(0.6); }
+
+.img {
+  aspect-ratio: 1 / 1;
+  background: var(--sk-surface-alt);
+}
+.imgPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--sk-surface-alt) 0%, #d9e5ee 100%);
+}
+
+.body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.title {
+  font-size: 13px;
+  color: var(--sk-body);
+  font-weight: 500;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sk-price);
+  font-variant-numeric: tabular-nums;
+}
+
+.progressWrap { display: flex; flex-direction: column; gap: 4px; }
+.progressBar {
+  height: 6px;
+  background: var(--sk-divider);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  background: var(--sk-cta-money, #FF8A1E);
+  border-radius: 999px;
+  transition: width var(--sk-motion-base) var(--sk-ease);
+}
+.progressLabel { font-size: 11px; color: var(--sk-muted); }
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.timer {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sk-error-text, #D62828);
+  font-variant-numeric: tabular-nums;
+}
+
+.claimBtn {
+  padding: 6px 12px;
+  background: var(--sk-cta-primary);
+  color: var(--sk-brand-950);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--sk-radius-md);
+  transition: background var(--sk-motion-fast) var(--sk-ease);
+}
+.claimBtn:hover { background: var(--sk-cta-primary-hover); }
+
+.soldOutChip, .endedChip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--sk-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.soldOutChip { background: #F1F5F9; color: #64748B; }
+.endedChip { background: #FDECEC; color: #D62828; }
+
+html[lang="bn"] .title,
+html[lang="bn"] .claimBtn,
+html[lang="bn"] .soldOutChip,
+html[lang="bn"] .endedChip { font-family: var(--sk-font-bn); }

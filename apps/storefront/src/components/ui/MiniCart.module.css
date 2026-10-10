@@ -1,0 +1,106 @@
+.wrap {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-lg);
+  box-shadow: var(--sk-shadow-3);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+
+.row { display: flex; gap: 12px; align-items: flex-start; }
+
+.thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--sk-radius-sm);
+  object-fit: cover;
+  background: var(--sk-surface-alt);
+  flex-shrink: 0;
+}
+
+.thumbPlaceholder {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-surface-alt);
+  flex-shrink: 0;
+  display: block;
+}
+
+.rowBody { flex: 1; min-width: 0; }
+
+.rowTitle {
+  display: block;
+  font-size: 13px;
+  color: var(--sk-body);
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+.rowTitle:hover { color: var(--sk-info); text-decoration: underline; }
+
+.rowMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--sk-muted);
+}
+
+.rowPrice { color: var(--sk-price); font-weight: 600; }
+
+.more { font-size: 12px; color: var(--sk-muted); text-align: center; padding: 4px 0; }
+
+.subtotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid var(--sk-divider);
+  padding-top: 12px;
+  font-size: 14px;
+  color: var(--sk-body);
+}
+
+.subtotalValue { font-size: 18px; font-weight: 600; color: var(--sk-price); }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.secondary, .money {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border-radius: var(--sk-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.secondary {
+  background: var(--sk-surface);
+  border: 1.5px solid var(--sk-brand-300);
+  color: var(--sk-brand-700);
+}
+.secondary:hover { background: var(--sk-hover-row); text-decoration: none; }
+
+.money {
+  background: var(--sk-cta-money);
+  color: #FFFFFF;
+  border: 1.5px solid var(--sk-cta-money);
+}
+.money:hover { background: var(--sk-cta-money-hover); border-color: var(--sk-cta-money-hover); text-decoration: none; }
+
+.empty { font-size: 14px; color: var(--sk-muted); padding: 12px 4px; text-align: center; }
+
+@media (max-width: 639px) {
+  .wrap { width: 100%; }
+}

@@ -1,0 +1,181 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+.mainCol { min-width: 0; }
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  margin: 0 0 16px;
+}
+
+.block {
+  padding: 16px;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-lg);
+  margin-bottom: 16px;
+}
+
+.blockHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.blockTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  margin: 0;
+}
+
+.editBtn {
+  background: transparent;
+  border: none;
+  color: var(--sk-info);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.editBtn:hover { text-decoration: underline; }
+
+.blockBody {
+  font-size: 14px;
+  color: var(--sk-body);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.addrLine { line-height: 20px; }
+
+.codNote {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--sk-warning-bg);
+  color: var(--sk-warning);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--sk-radius-md);
+}
+
+.itemsList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.itemRow { display: flex; gap: 12px; align-items: flex-start; }
+
+.itemThumb {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-surface-alt);
+  flex-shrink: 0;
+}
+.itemThumbEmpty {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-surface-alt);
+  flex-shrink: 0;
+}
+
+.itemInfo { flex: 1; min-width: 0; }
+
+.itemTitle {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--sk-body);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.itemSub {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--sk-muted);
+}
+
+.itemPrice { color: var(--sk-price); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.navRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.backBtn {
+  height: 48px;
+  padding: 0 24px;
+  background: var(--sk-surface);
+  color: var(--sk-brand-700);
+  border: 1.5px solid var(--sk-brand-300);
+  border-radius: var(--sk-radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.backBtn:hover { background: var(--sk-hover-row); }
+
+.placeBtn {
+  flex: 1;
+  height: 48px;
+  background: #C2410C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sk-radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.placeBtn:hover:not(:disabled) { background: #A0360B; }
+.placeBtn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.terms { font-size: 12px; color: var(--sk-muted); margin-top: 12px; text-align: center; }
+
+.summaryCol { min-width: 0; }
+
+.summaryCard {
+  position: sticky;
+  top: 128px;
+  padding: 20px;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summaryTitle { font-size: 15px; font-weight: 600; color: var(--sk-ink); margin: 0; }
+.summaryRows { display: flex; flex-direction: column; gap: 8px; }
+.summaryRow { display: flex; justify-content: space-between; font-size: 13px; color: var(--sk-body); }
+.discount { color: var(--sk-success-text); }
+.totalRow { display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; border-top: 1px solid var(--sk-divider); font-size: 16px; font-weight: 700; color: var(--sk-ink); }
+.totalRow span:last-child { color: var(--sk-price); font-size: 20px; }
+
+@media (max-width: 1023px) {
+  .layout { grid-template-columns: 1fr; }
+  .summaryCard { position: static; }
+}
+
+html[lang="bn"] .sectionTitle,
+html[lang="bn"] .blockTitle,
+html[lang="bn"] .blockBody,
+html[lang="bn"] .itemTitle,
+html[lang="bn"] .placeBtn,
+html[lang="bn"] .backBtn,
+html[lang="bn"] .summaryTitle { font-family: var(--sk-font-bn); }

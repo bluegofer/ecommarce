@@ -1,0 +1,39 @@
+.wrap { display: flex; flex-direction: column; gap: 24px; }
+
+.timeline {
+  display: flex; align-items: center; gap: 0;
+  list-style: none; padding: 0; margin: 0;
+  flex-wrap: wrap;
+}
+.step {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px 0 0;
+  position: relative;
+  opacity: 0.4;
+}
+.step.done { opacity: 1; }
+.step.current .dot { background: #0ea5e9; box-shadow: 0 0 0 4px rgba(14,165,233,0.2); }
+
+.dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+.step.done .dot { background: #16a34a; }
+.step.current .dot { background: #0ea5e9; }
+.step.rejected .dot { background: #dc2626; }
+.step.rejected { opacity: 1; }
+
+.label { font-size: 13px; color: #475569; font-weight: 500; white-space: nowrap; }
+
+.log { border-top: 1px solid #e2e8f0; padding-top: 16px; }
+.logTitle { font-size: 14px; font-weight: 600; color: #0f172a; margin: 0 0 12px; }
+.logList { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.logItem { padding-left: 14px; border-left: 2px solid #bae6fd; }
+.logStatus { font-size: 13px; font-weight: 600; color: #0f172a; }
+.logMeta { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+@media (max-width: 640px) {
+  .timeline { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .step { padding: 0; }
+}

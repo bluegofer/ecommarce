@@ -1,0 +1,129 @@
+.wrap { display: flex; flex-direction: column; gap: 20px; }
+.h1 { font-size: 24px; font-weight: 700; color: var(--sk-ink); margin: 0; }
+.h2 { font-size: 16px; font-weight: 600; color: var(--sk-ink); margin: 0 0 12px 0; }
+
+.card {
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.fieldLabel { font-size: 12px; font-weight: 600; color: var(--sk-body); }
+.input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-surface);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--sk-body);
+  outline: none;
+}
+.input:focus {
+  border-color: var(--sk-brand-400);
+  outline: var(--sk-focus-ring);
+  outline-offset: 2px;
+}
+
+.phoneRow { display: flex; align-items: center; gap: 8px; }
+.phoneVal { font-size: 14px; font-weight: 600; color: var(--sk-body); font-variant-numeric: tabular-nums; }
+.chipOk, .chipWarn {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--sk-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.chipOk { background: #EAF7EF; color: #16A34A; }
+.chipWarn { background: #FEF5E7; color: #B45309; }
+
+.note { font-size: 12px; color: var(--sk-muted); margin: 0 0 8px 0; }
+
+.formError {
+  background: var(--sk-error-bg, #FDECEC);
+  color: var(--sk-error-text, #B91C1C);
+  border: 1px solid var(--sk-error);
+  border-radius: var(--sk-radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.saveBtn {
+  padding: 10px 20px;
+  background: var(--sk-cta-primary);
+  color: var(--sk-brand-950);
+  border: none;
+  border-radius: var(--sk-radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.saveBtn:hover { background: var(--sk-cta-primary-hover); }
+.saveBtn:focus-visible { outline: var(--sk-focus-ring); outline-offset: 2px; }
+.saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.saved { font-size: 13px; color: var(--sk-success-text, #16A34A); font-weight: 600; }
+
+.state { color: var(--sk-muted); font-size: 14px; padding: 20px; }
+
+html[lang="bn"] .h1,
+html[lang="bn"] .h2,
+html[lang="bn"] .fieldLabel,
+html[lang="bn"] .input,
+html[lang="bn"] .saveBtn,
+html[lang="bn"] .note { font-family: var(--sk-font-bn); }
+
+/* ── Phone change / verify flow (added step-34) ── */
+
+.phoneActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.phoneFlow {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--sk-neutral-bg, #F1F5F9);
+  border-radius: var(--sk-radius-md, 8px);
+  border: 1px solid var(--sk-divider, #E2E8F0);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linkBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--sk-info, #25729A);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.linkBtn:hover { text-decoration: underline; }
+.linkBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.errorText {
+  color: var(--sk-error-text, #A11C1C);
+  font-size: 12.5px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+html[lang="bn"] .linkBtn,
+html[lang="bn"] .errorText,
+html[lang="bn"] .phoneActions {
+  font-family: var(--sk-font-bn);
+}

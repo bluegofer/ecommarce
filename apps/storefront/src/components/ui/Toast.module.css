@@ -1,0 +1,125 @@
+.viewport {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+}
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 320px;
+  max-width: 100%;
+  padding: 12px 12px 14px;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-lg);
+  box-shadow: var(--sk-shadow-3);
+  overflow: hidden;
+  animation: toastIn var(--sk-motion-base) var(--sk-ease);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
+
+.icon { flex-shrink: 0; display: inline-flex; margin-top: 2px; }
+.kind_success { color: var(--sk-success); }
+.kind_error { color: var(--sk-error); }
+.kind_info { color: var(--sk-info); }
+
+.thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sk-radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--sk-surface-alt);
+}
+
+.body { flex: 1; min-width: 0; }
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  line-height: 20px;
+}
+
+.desc {
+  font-size: 13px;
+  color: var(--sk-muted);
+  line-height: 20px;
+  margin-top: 2px;
+}
+
+.action {
+  margin-top: 6px;
+  border: none;
+  background: transparent;
+  color: var(--sk-info);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--sk-muted);
+  border-radius: var(--sk-radius-sm);
+  cursor: pointer;
+}
+.close:hover { background: var(--sk-hover-row); color: var(--sk-ink); }
+
+.progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--sk-brand-400);
+  width: 100%;
+  transform-origin: left;
+  animation-name: progressShrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes progressShrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress { animation: none; opacity: 0.4; }
+}
+
+@media (max-width: 639px) {
+  .viewport {
+    top: 16px;
+    bottom: auto;
+    left: 16px;
+    right: 16px;
+    align-items: center;
+  }
+  .toast { width: 100%; }
+}

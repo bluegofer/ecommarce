@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Redis backup every 6 hours
+Requires=redis-backup.service
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+Unit=redis-backup.service
+
+[Install]
+WantedBy=timers.target

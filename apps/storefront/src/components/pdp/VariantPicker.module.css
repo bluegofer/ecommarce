@@ -1,0 +1,76 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.group { display: flex; flex-direction: column; gap: 8px; }
+
+.groupLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-ink);
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 0 1px var(--sk-border);
+  cursor: pointer;
+  padding: 0;
+  transition: box-shadow var(--sk-motion-fast) var(--sk-ease);
+}
+.swatch:hover { box-shadow: 0 0 0 1px var(--sk-brand-400); }
+.swatch:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.swatchActive {
+  box-shadow: 0 0 0 2px var(--sk-brand-600);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-body);
+  cursor: pointer;
+  transition: border-color var(--sk-motion-fast) var(--sk-ease), background var(--sk-motion-fast) var(--sk-ease);
+}
+.chip:hover { border-color: var(--sk-brand-400); }
+.chip:disabled {
+  color: var(--sk-disabled);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.chipActive {
+  background: var(--sk-selected);
+  border: 2px solid var(--sk-brand-600);
+  padding: 0 13px;
+}
+
+html[lang="bn"] .groupLabel,
+html[lang="bn"] .chip { font-family: var(--sk-font-bn); }

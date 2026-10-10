@@ -1,0 +1,69 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Products · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item active" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search products by SKU, name, barcode…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🛍️ Products</h2><div class="crumb">Catalog / Products</div><p>Manage the full SKU catalog — variants, attributes, rich media, SEO & multi-branch stock.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Export to CSV (mock)">⬇ Export CSV</button><button class="btn b-ghost" data-toast="Bulk import modal (mock)">⬆ Import</button><button class="btn b-primary" data-open-modal="addProduct">＋ New Product</button></div></div>
+
+<div class="filter-bar">
+<div class="search"><input class="inp" placeholder="Search products…"></div>
+<select class="sel"><option>All categories</option><option>Electronics</option><option>Fashion</option><option>Grocery</option></select>
+<select class="sel"><option>All status</option><option>Published</option><option>Draft</option><option>Archived</option></select>
+<select class="sel"><option>All stock</option><option>In stock</option><option>Low stock</option><option>Out of stock</option></select>
+<button class="btn b-ghost bsm">Reset</button>
+</div>
+
+<div class="card">
+<div class="tbl">
+<table>
+<thead><tr><th></th><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+<tbody>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">📱</div><div><b>Samsung Galaxy S25 Ultra 256GB</b><br><span class="cell-sub">Color: Black · 12GB/256GB</span></div></div></td><td>SAM-S25U-256</td><td>Electronics</td><td>৳129,999<br><span class="cell-sub"><s>৳135,000</s></span></td><td><span class="badge b-green">142</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">👟</div><div><b>Nike Air Zoom Pegasus 41</b><br><span class="cell-sub">Size: 41 EU · Color: Black</span></div></div></td><td>NK-AZP-41-BK</td><td>Fashion</td><td>৳11,500<br><span class="cell-sub"><s>৳13,000</s></span></td><td><span class="badge b-green">87</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">🍚</div><div><b>Miniket Rice 5kg</b></div></div></td><td>GR-RIC-5KG</td><td>Grocery</td><td>৳680</td><td><span class="badge b-amber">320</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">👗</div><div><b>Anarkali Kurta — Sky</b></div></div></td><td>FAS-ANK-SKY</td><td>Fashion</td><td>৳2,350<br><span class="cell-sub"><s>৳2,900</s></span></td><td><span class="badge b-red">22</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">💻</div><div><b>MacBook Air M3 13"</b><br><span class="cell-sub">16GB / 512GB</span></div></div></td><td>APL-MBA-M3-512</td><td>Electronics</td><td>৳154,000</td><td><span class="badge b-amber">18</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">⌚</div><div><b>Smart Watch Pro X</b></div></div></td><td>ELC-SWP-X</td><td>Electronics</td><td>৳4,200<br><span class="cell-sub"><s>৳5,000</s></span></td><td><span class="badge b-red">4</span></td><td><span class="badge b-amber">Draft</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">🍯</div><div><b>Organic Honey 500g</b></div></div></td><td>GR-HON-500</td><td>Grocery</td><td>৳450</td><td><span class="badge b-green">540</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;background:var(--slate-100);border-radius:8px;display:grid;place-items:center;font-size:20px">👔</div><div><b>Linen Shirt — Sky Blue</b></div></div></td><td>FAS-LSH-SKY</td><td>Fashion</td><td>৳1,890<br><span class="cell-sub"><s>৳2,200</s></span></td><td><span class="badge b-green">62</span></td><td><span class="badge b-green">Published</span></td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+</tbody>
+</table>
+</div>
+<div class="card-hd" style="border-top:1px solid var(--slate-100);border-bottom:0"><span class="cell-sub">Showing 8 of 4,212 products</span><div class="hd-acts"><button class="btn b-ghost bsm">‹</button><span class="cell-sub">Page 1 / 527</span><button class="btn b-ghost bsm">›</button></div></div>
+</div>
+</div>
+</div>
+
+<div class="modal-bg" id="addProduct">
+<div class="modal">
+<div class="modal-hd"><h3>＋ New Product</h3><button class="icon-btn" data-close-modal>✕</button></div>
+<div class="modal-bd">
+<div class="field"><label>Product name</label><input class="inp" placeholder="e.g. Samsung Galaxy S25 Ultra 256GB"></div>
+<div class="form-row"><div class="field"><label>Brand</label><select class="sel"><option>Samsung</option><option>Apple</option><option>Nike</option><option>Other…</option></select></div><div class="field"><label>Category</label><select class="sel"><option>Electronics</option><option>Fashion</option><option>Grocery</option><option>Home & Living</option></select></div></div>
+<div class="form-row"><div class="field"><label>Base price (৳)</label><input class="inp" type="number" placeholder="129999"></div><div class="field"><label>Compare-at price (৳)</label><input class="inp" type="number" placeholder="135000"></div></div>
+<div class="field"><label>Description</label><textarea class="ta" placeholder="Product description for PDP…"></textarea></div>
+<div class="form-row"><div class="field"><label>Warehouse / Branch</label><select class="sel"><option>Dhaka HQ</option><option>Chittagong</option><option>Sylhet</option></select></div><div class="field"><label>Barcode (SKU)</label><input class="inp" placeholder="SAM-S25U-256"></div></div>
+<div class="field"><label>SEO Title</label><input class="inp" placeholder="Samsung Galaxy S25 Ultra — Buy at best price in Bangladesh"></div>
+<label class="switch"><input type="checkbox" checked><span class="dot"></span> Publish immediately</label>
+</div>
+<div class="modal-ft"><button class="btn b-ghost" data-close-modal>Cancel</button><button class="btn b-primary" data-toast="Product draft saved (mock)">Save Product</button></div>
+</div>
+</div>
+
+<script src="../assets/js/app.js"></script></body></html>

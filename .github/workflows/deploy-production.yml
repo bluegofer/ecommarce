@@ -1,0 +1,96 @@
+name: deploy-production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'deploy-production' to confirm production deploy"
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 390630836942.dkr.ecr.ap-south-1.amazonaws.com
+  EC2_INSTANCE_ID: i-02e21d2aba38958db
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  approval-gate:
+    name: Confirm production deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify confirmation input
+        run: |
+          if [ "${{ inputs.confirm }}" != "deploy-production" ]; then
+            echo "Confirmation failed. Input was: ${{ inputs.confirm }}"
+            echo "Expected: deploy-production"
+            exit 1
+          fi
+          echo "Confirmation OK"
+
+  build-and-push:
+    name: Build and push Docker images
+    needs: approval-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-Production-Deploy
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push API image (placeholder)
+        run: |
+          echo "Production ECR push will be enabled in Step 16 after production ECR repos + EC2 are provisioned"
+          echo "Expected: ${{ env.ECR_REGISTRY }}/bluegofer-production-api:latest"
+
+      - name: Build and push Storefront image (placeholder)
+        run: |
+          echo "Production ECR push will be enabled in Step 16"
+          echo "Expected: ${{ env.ECR_REGISTRY }}/bluegofer-production-storefront:latest"
+
+      - name: Build and push Admin image (placeholder)
+        run: |
+          echo "Production ECR push will be enabled in Step 16"
+          echo "Expected: ${{ env.ECR_REGISTRY }}/bluegofer-production-admin:latest"
+
+  deploy:
+    name: Deploy to production EC2
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy via SSM (placeholder — production EC2 not yet provisioned)
+        run: |
+          echo "Production deploy will be enabled in Step 16"
+          echo "Production EC2 instance ID: TBD"
+          echo "For now: staging-only"
+          exit 0

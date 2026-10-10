@@ -1,0 +1,109 @@
+.wrap {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sk-divider);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 0;
+}
+.header::-webkit-details-marker { display: none; }
+
+.chevron {
+  font-size: 12px;
+  color: var(--sk-muted);
+  transition: transform var(--sk-motion-fast) var(--sk-ease);
+}
+.wrap[open] .chevron { transform: rotate(180deg); }
+
+.list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; }
+
+.row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--sk-divider);
+}
+
+.thumbLink { display: block; }
+
+.thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: var(--sk-radius-sm);
+  border: 1px solid var(--sk-border);
+  background: var(--sk-surface);
+}
+.thumbEmpty {
+  display: block;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-surface-alt);
+}
+
+.info { min-width: 0; }
+
+.title {
+  font-size: 14px;
+  color: var(--sk-body);
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.title:hover { color: var(--sk-info); }
+
+.price {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sk-price);
+  margin-top: 4px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.primary {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-surface);
+  color: var(--sk-brand-700);
+  border: 1.5px solid var(--sk-brand-300);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary:hover { background: var(--sk-hover-row); }
+
+.link {
+  background: transparent;
+  border: none;
+  color: var(--sk-info);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.link:hover { text-decoration: underline; }
+
+html[lang="bn"] .header,
+html[lang="bn"] .title,
+html[lang="bn"] .primary,
+html[lang="bn"] .link { font-family: var(--sk-font-bn); }
