@@ -1,0 +1,60 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Purchase Management · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item active" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search PR / PO / GRN…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🧺 Purchase Management</h2><div class="crumb">ERP Suite / Purchase</div><p>Requisition → Purchase Order → GRN workflow per Appendix A.2.3. Each receipt auto-increments inventory &amp; posts to AP ledger.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Open PR">📝 New Requisition</button><button class="btn b-primary" data-toast="Open PO form">📦 New PO</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">📝</div><div><div class="stat-lbl">Open Requisitions</div><div class="stat-val">6</div><div class="stat-sub">3 awaiting approval</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">📦</div><div><div class="stat-lbl">Open POs</div><div class="stat-val">14</div><div class="stat-sub">৳6,82,400 commit</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-lbl">GRNs this week</div><div class="stat-val">18</div><div class="stat-sub">stock updated</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">📊</div><div><div class="stat-lbl">Avg Lead Time</div><div class="stat-val">3.2d</div><div class="cell-sub">PO → GRN</div></div></div>
+</div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">🧾 Purchase Orders</div>
+<div class="tab">📝 Requisitions</div>
+<div class="tab">✅ GRN (Goods Received)</div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>PO #</th><th>Supplier</th><th>Items</th><th>Value</th><th>Status</th><th>Expected</th><th>GRN</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>PO-2421</b><br><span class="cell-sub">created 10 Sep</span></td><td>ABC Distributors<br><span class="cell-sub">Dhaka</span></td><td>4</td><td>৳3,28,400</td><td><span class="badge b-green">Received</span></td><td>12 Sep</td><td><a class="btn b-ghost bsm" href="#">GRN-018 →</a></td><td><div class="t-actions"><button>👁</button><button>📄</button></div></td></tr>
+<tr><td><b>PO-2420</b></td><td>Garments BD Ltd.</td><td>12</td><td>৳2,82,000</td><td><span class="badge b-amber">In transit</span></td><td>14 Sep</td><td>—</td><td><div class="t-actions"><button>👁</button><button>📄</button></div></td></tr>
+<tr><td><b>PO-2419</b></td><td>Grocery Supply Co.</td><td>8</td><td>৳1,18,200</td><td><span class="badge b-amber">In transit</span></td><td>13 Sep</td><td>—</td><td><div class="t-actions"><button>👁</button><button>📄</button></div></td></tr>
+<tr><td><b>PO-2418</b></td><td>Tech Imports Pvt.</td><td>2</td><td>৳6,42,000</td><td><span class="badge b-sky">Pending</span></td><td>22 Sep</td><td>—</td><td><div class="t-actions"><button>👁</button><button>✓</button></div></td></tr>
+<tr><td><b>PO-2417</b></td><td>ABC Distributors</td><td>6</td><td>৳4,12,200</td><td><span class="badge b-red">Partial</span></td><td>—</td><td><a class="btn b-ghost bsm" href="#">GRN-016 →</a></td><td><div class="t-actions"><button>👁</button><button>📄</button></div></td></tr>
+<tr><td><b>PO-2416</b></td><td>Garments BD Ltd.</td><td>10</td><td>৳2,18,000</td><td><span class="badge b-green">Closed</span></td><td>08 Sep</td><td><a class="btn b-ghost bsm" href="#">GRN-015 →</a></td><td><div class="t-actions"><button>👁</button><button>📄</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>📦 PO-2421 · Detail (3 of 4 lines shown)</h3><span class="badge b-green">Received</span></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>SKU</th><th>Item</th><th>Qty Ordered</th><th>Qty Received</th><th>Unit Cost</th><th>Total</th></tr></thead>
+<tbody>
+<tr><td>SAM-S25U-256</td><td>Galaxy S25 Ultra 256GB</td><td>20</td><td>20 ✅</td><td>৳1,18,000</td><td>৳23,60,000</td></tr>
+<tr><td>ELC-SWP-X</td><td>Smart Watch Pro X</td><td>50</td><td>50 ✅</td><td>৳2,800</td><td>৳1,40,000</td></tr>
+<tr><td>APL-IP15-256</td><td>iPhone 15 Pro 256GB · Blue</td><td>15</td><td>15 ✅</td><td>৳1,12,000</td><td>৳16,80,000</td></tr>
+<tr><td>APL-MBA-M3-512</td><td>MacBook Air M3 13"</td><td>5</td><td>4 ⚠️</td><td>৳1,38,000</td><td>৳5,52,000<br><span class="cell-sub">1 short</span></td></tr>
+</tbody></table></div><div style="padding:10px 18px;background:var(--sky-50);font-size:13px"><b>Auto-posted to inventory:</b> Dhaka HQ +20, +50, +15, +4 · <b>AP debit</b> ৳47,32,000 to ABC Distributors.</div></div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

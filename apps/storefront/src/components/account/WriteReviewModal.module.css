@@ -1,0 +1,86 @@
+.overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.6);
+  display: grid; place-items: center; z-index: 100; padding: 16px;
+}
+.modal {
+  background: #fff; border-radius: 12px;
+  width: 100%; max-width: 560px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+}
+.h2 { font-size: 16px; font-weight: 600; color: #0f172a; margin: 0; }
+.close {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: transparent; border: none; cursor: pointer;
+  display: grid; place-items: center; color: #64748b;
+}
+.close:hover { background: #f1f5f9; }
+.close svg { width: 16px; height: 16px; }
+
+.body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 13px; font-weight: 500; color: #334155; }
+
+.select, .input, .textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; color: #1e293b; font-family: inherit; background: #fff;
+}
+.select:focus, .input:focus, .textarea:focus { border-color: #0ea5e9; outline: none; }
+.textarea { resize: vertical; }
+
+.stars { display: flex; gap: 4px; }
+.starBtn {
+  width: 40px; height: 40px; border: none; background: transparent;
+  cursor: pointer; padding: 4px;
+}
+.starBtn svg { width: 32px; height: 32px; }
+
+.photos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.thumb {
+  aspect-ratio: 1; border-radius: 6px; overflow: hidden;
+  position: relative; background: #f1f5f9; border: 1px solid #e2e8f0;
+}
+.thumbImg { width: 100%; height: 100%; object-fit: cover; }
+.removeBtn {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px; border-radius: 4px;
+  background: rgba(15,23,42,0.85); color: #fff;
+  border: none; cursor: pointer; display: grid; place-items: center;
+}
+.removeBtn svg { width: 12px; height: 12px; }
+
+.uploadBtn {
+  aspect-ratio: 1; border: 2px dashed #38bdf8; border-radius: 6px;
+  background: #f0f9ff; color: #0284c7;
+  display: grid; place-items: center;
+  font-size: 22px; font-weight: 500;
+  cursor: pointer;
+}
+.fileInput { display: none; }
+
+.error {
+  padding: 10px 12px; border-radius: 6px;
+  background: #fef2f2; border: 1px solid #fecaca;
+  color: #b91c1c; font-size: 13px;
+}
+
+.footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 20px; border-top: 1px solid #e2e8f0;
+}
+.cancel {
+  padding: 10px 16px; border-radius: 8px;
+  background: #fff; border: 1px solid #e2e8f0;
+  color: #334155; font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.submit {
+  padding: 10px 20px; border-radius: 8px;
+  background: #0284c7; color: #fff;
+  font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+}
+.submit:disabled { opacity: 0.55; cursor: not-allowed; }

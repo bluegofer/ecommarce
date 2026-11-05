@@ -1,0 +1,56 @@
+.placeholder {
+  min-height: 400px;
+  background: var(--sk-surface-alt);
+  border-radius: var(--sk-radius-lg);
+}
+/* Bug 1 — Guest-choice banner */
+.signInHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--sk-surface-alt);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-md);
+  flex-wrap: wrap;
+}
+.signInHintText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--sk-ink);
+}
+.signInHintText strong { font-weight: 600; }
+.signInHintText span { color: var(--sk-muted); font-size: 12.5px; }
+
+.signInHintActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.signInHintBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  background: var(--sk-cta);
+  color: var(--sk-ink);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12.5px;
+  text-decoration: none;
+}
+.signInHintBtn:hover { background: var(--sk-cta-hover, #FFB800); }
+.signInHintClose {
+  border: 1px solid var(--sk-border);
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--sk-muted);
+}
+.signInHintClose:hover { background: var(--sk-hover-row); color: var(--sk-ink); }

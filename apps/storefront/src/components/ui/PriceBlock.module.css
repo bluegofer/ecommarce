@@ -1,0 +1,24 @@
+.wrap { display: inline-flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+
+.current {
+  color: var(--sk-price);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.card .current { font-size: 18px; line-height: 24px; }
+.pdp .current { font-size: 28px; line-height: 32px; font-weight: 500; }
+
+.list {
+  color: var(--sk-muted);
+  text-decoration: line-through;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.savings {
+  color: var(--sk-success-text);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  flex-basis: 100%;
+}

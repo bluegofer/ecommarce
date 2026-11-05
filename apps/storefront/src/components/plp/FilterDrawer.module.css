@@ -1,0 +1,24 @@
+.body { padding-bottom: 76px; }
+
+.stickyFooter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 16px;
+  background: var(--sk-surface);
+  border-top: 1px solid var(--sk-divider);
+}
+
+.applyBtn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-cta-money);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.applyBtn:hover { background: var(--sk-cta-money-hover); }

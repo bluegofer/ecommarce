@@ -1,0 +1,64 @@
+/* SkyMart global stylesheet — imports tokens, loads fonts */
+@import '../styles/tokens.css';
+
+/* Google Fonts — Inter (400/500/600/700) + Noto Sans Bengali */
+/* display=swap prevents FOIT; tabular-nums enabled via class where needed */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+
+/* App-level base — inherits from tokens.css reset.
+   NOTE: We deliberately DO NOT set `a { color: ... }` globally — component
+   CSS modules set their own link colors, and a global rule was overriding
+   dark-background Header/Footer links in dynamic pages (PDP, PLP) due to
+   Next.js CSS extraction order. Only text-decoration is normalized here. */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:not([class]) {
+  /* Bare <a> in prose (CMS content) gets a default link color */
+  color: var(--sk-info);
+  text-decoration: underline;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+/* Skip-to-content (A8 accessibility) */
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--sk-brand-300);
+  color: var(--sk-brand-950);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 var(--sk-radius-md) 0;
+}
+.skipLink:focus {
+  left: 0;
+}
+/* Visually hidden but screen-reader + SEO accessible (WCAG 2.1) */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

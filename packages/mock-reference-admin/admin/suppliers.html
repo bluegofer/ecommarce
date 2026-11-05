@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Suppliers · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item active" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search suppliers…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🏭 Suppliers / Vendors</h2><div class="crumb">ERP Suite / Suppliers</div><p>Supplier profiles · payable tracking · performance overview (on-time delivery, fulfillment) per Appendix A.2.4.</p></div>
+<div class="page-acts"><button class="btn b-primary" data-toast="New supplier form">＋ New Supplier</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">🏭</div><div><div class="stat-lbl">Active Suppliers</div><div class="stat-val">42</div><div class="stat-sub">across 5 categories</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">💰</div><div><div class="stat-lbl">Total Payable (AP)</div><div class="stat-val">৳4,62,800</div><div class="stat-sub">8 suppliers · 12 unpaid POs</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">📦</div><div><div class="stat-lbl">On-time delivery</div><div class="stat-val">94%</div><div class="stat-sub">last 90 days</div></div></div>
+<div class="card stat"><div class="stat-ic ic-violet">⭐</div><div><div class="stat-lbl">Top rated</div><div class="stat-val">ABC Dist.</div><div class="cell-sub">avg 4.8 / 5</div></div></div>
+</div>
+
+<div class="card"><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Supplier</th><th>Category</th><th>Contact</th><th>Open POs</th><th>Outstanding (AP)</th><th>On-time %</th><th>Rating</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>ABC Distributors</b><br><span class="cell-sub">Dhaka</span></td><td>Electronics</td><td>Mr. Shafiq<br><span class="cell-sub">shafiq@abcdist.bd</span></td><td>3</td><td>৳1,84,400</td><td><b style="color:var(--green-600)">96%</b></td><td>⭐⭐⭐⭐⭐</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>📞</button></div></td></tr>
+<tr><td><b>Garments BD Ltd.</b><br><span class="cell-sub">Gazipur</span></td><td>Fashion</td><td>Mrs. Salma<br><span class="cell-sub">salma@garments.bd</span></td><td>2</td><td>৳1,42,000</td><td><b style="color:var(--green-600)">94%</b></td><td>⭐⭐⭐⭐</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>📞</button></div></td></tr>
+<tr><td><b>Grocery Supply Co.</b><br><span class="cell-sub">Chittagong</span></td><td>Grocery</td><td>Mr. Karim<br><span class="cell-sub">karim@grocery.com</span></td><td>2</td><td>৳68,200</td><td><b style="color:var(--amber-600)">88%</b></td><td>⭐⭐⭐⭐</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>📞</button></div></td></tr>
+<tr><td><b>Tech Imports Pvt.</b><br><span class="cell-sub">Singapore</span></td><td>Premium Electronics</td><td>Ms. Lim<br><span class="cell-sub">lim@techimp.sg</span></td><td>4</td><td>৳1,12,400</td><td><b style="color:var(--green-600)">98%</b></td><td>⭐⭐⭐⭐⭐</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>📞</button></div></td></tr>
+<tr><td><b>Akash Printing</b><br><span class="cell-sub">Dhaka</span></td><td>Packaging</td><td>Mr. Akash<br><span class="cell-sub">01811-223344</span></td><td>1</td><td>৳26,800</td><td><b style="color:var(--red-600)">82%</b></td><td>⭐⭐⭐</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>📞</button></div></td></tr>
+<tr><td><b>Robi Logistics</b><br><span class="cell-sub">Dhaka</span></td><td>3PL Courier</td><td>Mr. Hasan<br><span class="cell-sub">hasan@robi-log.bd</span></td><td>—</td><td>৳9,000</td><td><b style="color:var(--green-600)">93%</b></td><td>⭐⭐⭐⭐</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>📞</button></div></td></tr>
+</tbody></table></div></div></div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>⭐ Performance · ABC Distributors (last 90 days)</h3></div><div class="card-bd">
+<div class="summary-line"><span>POs issued</span><b>32</b></div>
+<div class="summary-line"><span>On-time delivery</span><b style="color:var(--green-600)">96%</b></div>
+<div class="summary-line"><span>Full-fillment rate</span><b>98%</b></div>
+<div class="summary-line"><span>Defect rate</span><b style="color:var(--amber-600)">1.4%</b></div>
+<div class="summary-line"><span>Avg lead time</span><b>2.8 days</b></div>
+<div class="summary-line"><span>Total spend</span><b>৳14,82,000</b></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>💰 Payment Schedule</h3></div><div class="card-bd">
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><div style="display:flex;justify-content:space-between"><b>PO-2421</b><span class="badge b-amber">Due 22 Sep</span></div><div class="cell-sub">ABC Distributors · ৳3,28,400</div></div>
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><div style="display:flex;justify-content:space-between"><b>PO-2420</b><span class="badge b-sky">Due 28 Sep</span></div><div class="cell-sub">Garments BD · ৳2,82,000</div></div>
+<div style="padding:10px 0"><div style="display:flex;justify-content:space-between"><b>PO-2419</b><span class="badge b-green">Due 16 Sep</span></div><div class="cell-sub">Grocery Supply · ৳1,18,200</div></div>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

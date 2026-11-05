@@ -1,0 +1,30 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-ink);
+}
+
+.bar {
+  height: 6px;
+  background: var(--sk-divider);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--sk-success-text);
+  border-radius: 3px;
+  transition: width var(--sk-motion-base) var(--sk-ease);
+}
+
+.fillDone { background: var(--sk-success); }
+
+html[lang="bn"] .text { font-family: var(--sk-font-bn); }

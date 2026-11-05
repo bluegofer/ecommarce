@@ -1,0 +1,69 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventory &amp; Stock · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item active" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search SKU or variant…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>📦 Inventory &amp; Stock</h2><div class="crumb">Catalog / Inventory</div><p>Quick editor grid · multi-branch stock · Redis reservations · low-stock alerts &amp; adjustment log.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Transfer modal (mock)">⇄ Inter-Branch Transfer</button><button class="btn b-primary" data-toast="Adjustment modal opened">＋ New Adjustment</button></div></div>
+
+<div class="tabs" data-tab-group>
+<div class="tab active">📦 Stock Grid</div>
+<div class="tab">🏬 Multi-Branch · A.3</div>
+<div class="tab">📜 Adjustment Log</div>
+<div class="tab">⚠️ Low-Stock Alerts</div>
+</div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">📦</div><div><div class="stat-lbl">Total SKUs</div><div class="stat-val">4,212</div><div class="stat-sub">across 3 branches</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-lbl">In Stock</div><div class="stat-val">3,884</div><div class="stat-sub">92.1% of catalog</div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">⚠️</div><div><div class="stat-lbl">Low Stock</div><div class="stat-val">248</div><div class="stat-sub">below threshold</div></div></div>
+<div class="card stat"><div class="stat-ic ic-red">🔻</div><div><div class="stat-lbl">Out of Stock</div><div class="stat-val">80</div><div class="stat-sub">needs PO</div></div></div>
+</div>
+
+<div class="card">
+<div class="card-hd"><h3>Quick Stock Editor · Dhaka HQ (default branch)</h3><div class="hd-acts"><select class="sel bsm"><option>Dhaka HQ</option><option>Chittagong</option><option>Sylhet</option></select> <button class="btn b-ghost bsm" data-toast="Saved inline edits">💾 Save Edits</button></div></div>
+<div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>SKU</th><th>Variant</th><th>Threshold</th><th style="width:120px">On Hand</th><th>Reserved (Redis)</th><th>Status</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td><b>SAM-S25U-256</b></td><td>Galaxy S25 Ultra · 256GB · Black</td><td>10</td><td><input class="inp bsm" type="number" value="142"></td><td>3</td><td><span class="badge b-green">In stock</span></td><td><select class="sel bsm"><option>—</option><option>Restock</option><option>Damage</option><option>Return</option><option>Mismatch</option></select></td></tr>
+<tr><td><b>NK-AZP-41-BK</b></td><td>Air Zoom · 41 EU · Black</td><td>8</td><td><input class="inp bsm" type="number" value="87"></td><td>5</td><td><span class="badge b-green">In stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>GR-RIC-5KG</b></td><td>Miniket Rice 5kg</td><td>50</td><td><input class="inp bsm" type="number" value="320"></td><td>14</td><td><span class="badge b-green">In stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>FAS-ANK-SKY</b></td><td>Anarkali Kurta · Sky</td><td>15</td><td><input class="inp bsm" type="number" value="22"></td><td>2</td><td><span class="badge b-amber">Low stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>APL-MBA-M3-512</b></td><td>MacBook Air M3 · 13"</td><td>5</td><td><input class="inp bsm" type="number" value="18"></td><td>4</td><td><span class="badge b-green">In stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>ELC-SWP-X</b></td><td>Smart Watch Pro X</td><td>10</td><td><input class="inp bsm" type="number" value="4"></td><td>1</td><td><span class="badge b-red">Low stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>GR-HON-500</b></td><td>Organic Honey 500g</td><td>30</td><td><input class="inp bsm" type="number" value="540"></td><td>11</td><td><span class="badge b-green">In stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>FAS-LSH-SKY</b></td><td>Linen Shirt · Sky Blue</td><td>10</td><td><input class="inp bsm" type="number" value="62"></td><td>0</td><td><span class="badge b-green">In stock</span></td><td><select class="sel bsm"><option>—</option></select></td></tr>
+<tr><td><b>APL-IP15-256</b></td><td>iPhone 15 Pro 256GB · Blue</td><td>5</td><td><input class="inp bsm" type="number" value="2"></td><td>1</td><td><span class="badge b-red">Critical</span></td><td><select class="sel bsm"><option>Damage</option></select></td></tr>
+</tbody>
+</table></div></div>
+</div>
+
+<div class="grid g-2c" style="margin-top:16px">
+<div class="card"><div class="card-hd"><h3>✏️ Recent Stock Adjustments</h3></div><div class="card-bd flush"><div class="tbl"><table><thead><tr><th>When</th><th>SKU</th><th>Δ Qty</th><th>Reason</th><th>By</th></tr></thead><tbody>
+<tr><td>Today 10:32</td><td>SAM-S25U-256</td><td><b style="color:var(--green-600)">+30</b></td><td><span class="badge b-green">Restock</span></td><td>Arif</td></tr>
+<tr><td>Today 09:18</td><td>APL-IP15-256</td><td><b style="color:var(--red-600)">−3</b></td><td><span class="badge b-red">Damage</span></td><td>Sadia</td></tr>
+<tr><td>Yesterday 22:14</td><td>FAS-ANK-SKY</td><td><b style="color:var(--green-600)">+40</b></td><td><span class="badge b-green">Restock</span></td><td>Arif</td></tr>
+<tr><td>Yesterday 18:40</td><td>GR-RIC-5KG</td><td><b style="color:var(--green-600)">+120</b></td><td><span class="badge b-green">Restock</span></td><td>Sadia</td></tr>
+</tbody></table></div></div></div>
+<div class="card"><div class="card-hd"><h3>⚠️ Low-Stock Alerts</h3></div><div class="card-bd"><div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><b>iPhone 15 Pro 256GB · Blue</b><br><span class="cell-sub">SKU APL-IP15-256 · Only 2 left</span><div style="margin-top:6px"><span class="badge b-red">Critical</span> <a href="purchases.html" class="btn b-ghost bsm" style="float:right">Create PO →</a></div></div>
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100)"><b>Smart Watch Pro X</b><br><span class="cell-sub">SKU ELC-SWP-X · 4 left</span><div style="margin-top:6px"><span class="badge b-amber">Low</span></div></div>
+<div style="padding:10px 0"><b>Anarkali Kurta · Sky</b><br><span class="cell-sub">SKU FAS-ANK-SKY · 22 left</span><div style="margin-top:6px"><span class="badge b-amber">Low</span></div></div></div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

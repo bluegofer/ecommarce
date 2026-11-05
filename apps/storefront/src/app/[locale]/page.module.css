@@ -1,0 +1,19 @@
+/* Batch 3A: Homepage main wrapper — responsive padding */
+
+.mainWrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px 48px;
+}
+
+@media (max-width: 639px) {
+  .mainWrapper {
+    padding: 12px 12px 32px;
+  }
+}
+
+@media (max-width: 374px) {
+  .mainWrapper {
+    padding: 8px 8px 24px;
+  }
+}

@@ -1,0 +1,83 @@
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.node {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0 20px 0;
+  position: relative;
+}
+
+.node:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 32px;
+  bottom: 0;
+  width: 2px;
+  background: var(--sk-divider);
+}
+.node.done:not(:last-child)::before { background: var(--sk-brand-400); }
+
+.marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sk-surface);
+  border: 2px solid var(--sk-divider);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+.done .marker {
+  background: var(--sk-brand-600);
+  border-color: var(--sk-brand-600);
+}
+
+.current .marker {
+  background: var(--sk-brand-600);
+  border-color: var(--sk-brand-600);
+}
+
+.pulseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.75); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulseDot { animation: none; }
+}
+
+.body { display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sk-ink);
+}
+.upcoming .label { color: var(--sk-muted); font-weight: 500; }
+
+.meta {
+  font-size: 12px;
+  color: var(--sk-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+html[lang="bn"] .label,
+html[lang="bn"] .meta { font-family: var(--sk-font-bn); }

@@ -1,0 +1,40 @@
+.wrap { padding: 24px 0; }
+
+.homeLink {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  background: var(--sk-brand-300);
+  color: var(--sk-brand-950);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: var(--sk-radius-md);
+}
+.homeLink:hover { background: var(--sk-brand-400); text-decoration: none; }
+
+.recommend {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--sk-divider);
+}
+
+.recommendTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--sk-ink);
+  margin: 0 0 16px;
+}
+
+.recommendGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 639px) {
+  .recommendGrid { grid-template-columns: 1fr 1fr; }
+}
+
+html[lang="bn"] .recommendTitle { font-family: var(--sk-font-bn); }

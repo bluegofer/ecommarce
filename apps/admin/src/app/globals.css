@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #f1f5f9;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+  }
+
+  html, body {
+    height: 100%;
+    background-color: var(--bg);
+    color: #334155; /* slate-700 */
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
+  }
+
+  /* Bangla line-height +20% per UI Spec A3 */
+  html[lang='bn'] body {
+    line-height: 1.5;
+  }
+
+  /* Focus ring per UI Spec A8 */
+  *:focus-visible {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Scrollbar polish */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+  /* Reusable card pattern matching mock .card */
+  .card {
+    @apply bg-surface rounded shadow border border-border;
+  }
+}

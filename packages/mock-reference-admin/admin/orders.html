@@ -1,0 +1,81 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orders · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item active" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search order #, customer, phone…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🧾 Orders (OMS)</h2><div class="crumb">Sales / Orders</div><p>Order lifecycle state-machine: <b>Placed → Verified (A.1) → Confirmed → Processing → Shipped → Delivered</b>. With <b>Exchange</b> status.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Export selected orders">⬇ Export</button><button class="btn b-ghost" data-toast="Bulk state change">🔄 Bulk Update</button><button class="btn b-primary" data-open-modal="newOrder">＋ New Order</button></div></div>
+
+<div class="filter-bar">
+<div class="search"><input class="inp" placeholder="Search…"></div>
+<select class="sel"><option>All status</option><option>Placed</option><option>Verified (A.1)</option><option>Processing</option><option>Shipped</option><option>Delivered</option><option>Exchanged (A.1)</option><option>Cancelled</option></select>
+<select class="sel"><option>Any payment</option><option>COD</option><option>bKash</option><option>Nagad</option><option>SSLCommerz</option></select>
+<select class="sel"><option>Today</option><option>This week</option><option>This month</option><option>Custom…</option></select>
+<button class="btn b-ghost bsm">Reset</button>
+</div>
+
+<div class="card">
+<div class="tbl">
+<table>
+<thead><tr><th><input type="checkbox" class="cb"></th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status (A.1)</th><th>Courier</th><th></th></tr></thead>
+<tbody>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10234</b><br><span class="cell-sub">Today 10:42</span></td><td>Rahim Uddin<br><span class="cell-sub">01712-345678</span></td><td>2</td><td>৳4,560</td><td><span class="badge b-slate">COD</span></td><td><span class="badge b-amber">Pending Verify</span></td><td>—</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10233</b><br><span class="cell-sub">Today 10:18</span></td><td>Nusrat Jahan</td><td>1</td><td>৳1,250</td><td><span class="badge b-sky">bKash</span></td><td><span class="badge b-sky">Verified</span></td><td>Pathao</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10232</b><br><span class="cell-sub">Today 09:56</span></td><td>Tanvir Ahmed</td><td>3</td><td>৳6,980</td><td><span class="badge b-violet">SSLCommerz</span></td><td><span class="badge b-violet">Processing</span></td><td>Steadfast</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10231</b><br><span class="cell-sub">Today 09:31</span></td><td>Mita Chowdhury</td><td>1</td><td>৳2,150</td><td><span class="badge b-teal">Nagad</span></td><td><span class="badge b-green">Shipped</span></td><td>RedX</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10230</b><br><span class="cell-sub">Today 08:47</span></td><td>Kabir Hasan</td><td>4</td><td>৳9,320</td><td><span class="badge b-slate">COD</span></td><td><span class="badge b-green">Delivered</span></td><td>Pathao</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10229</b><br><span class="cell-sub">Today 08:12</span></td><td>Sadia Islam</td><td>1</td><td>৳890</td><td><span class="badge b-slate">COD</span></td><td><span class="badge b-amber">Exchanged (A.1)</span></td><td>In-house Rider</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+<tr><td><input type="checkbox" class="cb"></td><td><b>#BG-10228</b><br><span class="cell-sub">Today 07:36</span></td><td>Jamil Ahmed</td><td>2</td><td>৳3,420</td><td><span class="badge b-sky">bKash</span></td><td><span class="badge b-violet">Out for Delivery</span></td><td>RedX</td><td><div class="t-actions"><button>👁</button><button>✏️</button><button>⋯</button></div></td></tr>
+</tbody>
+</table>
+</div>
+<div class="card-hd" style="border-top:1px solid var(--slate-100);border-bottom:0"><span class="cell-sub">Showing 7 of 12,438 orders</span><div class="hd-acts"><button class="btn b-ghost bsm">‹</button><span class="cell-sub">Page 1 / 247</span><button class="btn b-ghost bsm">›</button></div></div>
+</div>
+
+<div class="grid g-2c" style="margin-top:14px">
+<div class="card"><div class="card-hd"><h3>Quick Order Drawer · #BG-10234</h3><span class="badge b-amber">Pending Verify</span></div><div class="card-bd">
+<div class="form-row"><div><b>Rahim Uddin</b><br><span class="cell-sub">01712-345678</span></div><div><b>Ship to:</b><br><span class="cell-sub">House 22, Road 7, Dhanmondi, Dhaka</span></div></div>
+<div style="margin:12px 0;padding:10px;background:var(--slate-50);border-radius:8px"><div class="summary-line"><span>Galaxy S25 Ultra · 256GB</span><span>৳129,999 × 1</span></div><div class="summary-line"><span>Linen Shirt · Sky Blue</span><span>৳1,890 × 1</span></div><div class="summary-line"><span>Subtotal</span><span>৳131,889</span></div><div class="summary-line"><span>Discount (WELCOME10)</span><span style="color:var(--red-600)">− ৳1,500</span></div><div class="summary-line"><span>Delivery (Inside Dhaka)</span><span>৳60</span></div><div class="summary-line total"><span>Total</span><span>৳130,449</span></div></div>
+<div class="form-row"><div class="field"><label>Move to Verified</label><input type="checkbox" class="cb" checked> Verify &amp; Confirm</div></div>
+</div></div>
+<div class="card"><div class="card-hd"><h3>Generate Docs</h3></div><div class="card-bd">
+<button class="btn b-ghost block" data-toast="Invoice PDF generated (mock)">📄 Generate Invoice</button>
+<button class="btn b-ghost block" style="margin-top:8px" data-toast="Packing slip downloaded">📋 Packing Slip</button>
+<button class="btn b-primary block" style="margin-top:8px" data-toast="Consignment ID created with Pathao">🚚 Dispatch via Pathao</button>
+<hr style="margin:14px 0;border:none;border-top:1px solid var(--slate-100)">
+<h4 style="font-size:13px;margin-bottom:8px">📝 Internal Note</h4>
+<textarea class="ta" placeholder="Add internal staff note…">Customer requested blue color variant — confirmed unavailable, offered replacement.</textarea>
+</div></div>
+</div>
+</div>
+</div>
+
+<div class="modal-bg" id="newOrder">
+<div class="modal">
+<div class="modal-hd"><h3>＋ Manual Order (Offline / Phone)</h3><button class="icon-btn" data-close-modal>✕</button></div>
+<div class="modal-bd">
+<div class="form-row"><div class="field"><label>Customer name</label><input class="inp" placeholder="Rahim Uddin"></div><div class="field"><label>Phone</label><input class="inp" placeholder="01712-345678"></div></div>
+<div class="form-row"><div class="field"><label>Address</label><input class="inp" placeholder="House, Road, Area"></div><div class="field"><label>City</label><select class="sel"><option>Dhaka</option><option>Chittagong</option><option>Sylhet</option></select></div></div>
+<div class="form-row"><div class="field"><label>Payment method</label><select class="sel"><option>COD</option><option>bKash</option><option>Nagad</option><option>SSLCommerz</option></select></div><div class="field"><label>Branch</label><select class="sel"><option>Dhaka HQ</option></select></div></div>
+<div class="field"><label>Add products</label><textarea class="ta" placeholder="Scan SKU or type product/SKU (one per line)"></textarea></div>
+</div>
+<div class="modal-ft"><button class="btn b-ghost" data-close-modal>Cancel</button><button class="btn b-primary" data-toast="Order draft created">Create Order</button></div>
+</div>
+</div>
+
+<script src="../assets/js/app.js"></script></body></html>

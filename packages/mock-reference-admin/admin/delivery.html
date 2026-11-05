@@ -1,0 +1,65 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delivery &amp; Courier · BlueGofer Admin</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body><div class="layout">
+<aside class="sidebar" id="sidebar"><div class="brand"><span class="logo">🛍️</span><div class="brand-txt"><b>BlueGofer</b><span>Admin &amp; Operations Console</span></div><button class="icon-btn x" data-close-sidebar>✕</button></div>
+<nav class="side-nav">
+<div class="grp-label">OVERVIEW</div><a class="nav-item" href="dashboard.html"><span class="nav-ic">📊</span>Dashboard</a><a class="nav-item" href="analytics.html"><span class="nav-ic">📈</span>Analytics &amp; Reports</a>
+<div class="grp-label">CATALOG</div><a class="nav-item" href="products.html"><span class="nav-ic">🛍️</span>Products</a><a class="nav-item" href="categories.html"><span class="nav-ic">🗂️</span>Categories</a><a class="nav-item" href="inventory.html"><span class="nav-ic">📦</span>Inventory &amp; Stock</a>
+<div class="grp-label">SALES</div><a class="nav-item" href="orders.html"><span class="nav-ic">🧾</span>Orders (OMS)</a><a class="nav-item active" href="delivery.html"><span class="nav-ic">🚚</span>Delivery &amp; Courier</a><a class="nav-item" href="payments.html"><span class="nav-ic">💰</span>Payments &amp; Refunds</a>
+<div class="grp-label">CUSTOMER</div><a class="nav-item" href="customers.html"><span class="nav-ic">👥</span>Customers (CRM)</a><a class="nav-item" href="returns.html"><span class="nav-ic">↩️</span>Returns &amp; Support</a><a class="nav-item" href="reviews.html"><span class="nav-ic">⭐</span>Reviews &amp; Ratings</a>
+<div class="grp-label">MARKETING</div><a class="nav-item" href="promotions.html"><span class="nav-ic">🏷️</span>Promotions &amp; Coupons</a><a class="nav-item" href="cms.html"><span class="nav-ic">📝</span>Website Content (CMS)</a><a class="nav-item" href="notifications.html"><span class="nav-ic">🔔</span>Notifications</a>
+<div class="grp-label">ERP SUITE</div><a class="nav-item" href="pos.html"><span class="nav-ic">🏪</span>POS Terminal</a><a class="nav-item" href="accounting.html"><span class="nav-ic">📒</span>Accounting &amp; Finance</a><a class="nav-item" href="purchases.html"><span class="nav-ic">🧺</span>Purchase Management</a><a class="nav-item" href="suppliers.html"><span class="nav-ic">🏭</span>Suppliers / Vendors</a><a class="nav-item" href="hr.html"><span class="nav-ic">🧑‍💼</span>HR &amp; Employees</a><a class="nav-item" href="attendance.html"><span class="nav-ic">⏱️</span>Attendance</a><a class="nav-item" href="payroll.html"><span class="nav-ic">💸</span>Payroll</a>
+<div class="grp-label">SYSTEM</div><a class="nav-item" href="users.html"><span class="nav-ic">🔐</span>Users, Roles &amp; Security</a>
+</nav>
+<div class="side-foot"><span class="avatar av-sky">A</span><div><b>Admin</b><span>Super Admin</span></div></div>
+</aside>
+<div class="overlay" data-close-sidebar></div>
+<div class="main">
+<header class="topbar"><button class="icon-btn" id="menuBtn">☰</button><div class="tb-search"><input placeholder="Search consignment #…"></div><span class="lang-switch">EN · <b>বাংলা</b></span><button class="icon-btn">🔔<span class="notif-badge">5</span></button><span class="avatar av-sky">A</span></header>
+<div class="content">
+<div class="page-hd"><div><h2>🚚 Delivery &amp; Courier</h2><div class="crumb">Sales / Delivery</div><p>Courier adapters (Steadfast · Pathao · RedX) + in-house rider dispatch. Manual status updates per Appendix A.4. COD reconciliation tracking.</p></div>
+<div class="page-acts"><button class="btn b-ghost" data-toast="Courier ledger exported">⬇ Reconciliation Report</button><button class="btn b-primary" data-toast="Manual dispatch form opened">＋ Manual Dispatch</button></div></div>
+
+<div class="grid g-4" style="margin-bottom:14px">
+<div class="card stat"><div class="stat-ic ic-sky">📦</div><div><div class="stat-lbl">In Transit</div><div class="stat-val">128</div><div class="stat-sub">3 couriers</div></div></div>
+<div class="card stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-lbl">Delivered Today</div><div class="stat-val">214</div><div class="stat-sub"><span class="up">▲ 18</span></div></div></div>
+<div class="card stat"><div class="stat-ic ic-amber">⏳</div><div><div class="stat-lbl">Pending Pickup</div><div class="stat-val">42</div><div class="stat-sub">awaiting courier</div></div></div>
+<div class="card stat"><div class="stat-ic ic-red">↩️</div><div><div class="stat-lbl">RTO Today</div><div class="stat-val">7</div><div class="stat-sub">customer refused</div></div></div>
+</div>
+
+<div class="card">
+<div class="card-hd"><h3>Active Consignments · A.4 (manual controls)</h3><div class="hd-acts"><select class="sel bsm"><option>All couriers</option><option>Steadfast</option><option>Pathao</option><option>RedX</option><option>In-house Rider</option></select></div></div>
+<div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Order</th><th>Customer</th><th>Courier</th><th>Tracking</th><th>Status</th><th>COD</th><th>Last Update</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>#BG-10234</b></td><td>Rahim Uddin</td><td><span class="badge b-sky">Pathao</span></td><td>PT-8823</td><td><select class="sel bsm"><option>Pending Verify</option><option>Picked up</option><option>In transit</option><option>Out for delivery</option><option>Delivered</option><option>RTO</option></select></td><td>৳4,560</td><td><span class="cell-sub">Today 10:32</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+<tr><td><b>#BG-10228</b></td><td>Jamil Ahmed</td><td><span class="badge b-violet">RedX</span></td><td>RX-7711</td><td><select class="sel bsm"><option>Out for delivery</option></select></td><td>৳0 (bKash)</td><td><span class="cell-sub">Today 10:05 · Rider: Arif</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+<tr><td><b>#BG-10231</b></td><td>Mita Chowdhury</td><td><span class="badge b-violet">RedX</span></td><td>RX-7701</td><td><select class="sel bsm"><option>Delivered</option></select></td><td>৳2,150</td><td><span class="cell-sub">Today 09:55</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+<tr><td><b>#BG-10225</b></td><td>Salma Khatun</td><td><span class="badge b-sky">Pathao</span></td><td>PT-8812</td><td><select class="sel bsm"><option>In transit</option></select></td><td>৳3,820</td><td><span class="cell-sub">Yest 21:40</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+<tr><td><b>#BG-10222</b></td><td>Rasel Mia</td><td><span class="badge b-green">Steadfast</span></td><td>SD-4490</td><td><select class="sel bsm"><option>Picked up</option></select></td><td>৳1,890</td><td><span class="cell-sub">Yest 19:12</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+<tr><td><b>#BG-10221</b></td><td>Nadia Akter</td><td><span class="badge b-amber">In-house Rider</span></td><td>IH-014</td><td><select class="sel bsm"><option>Out for delivery</option></select></td><td>৳2,560</td><td><span class="cell-sub">Today 08:42 · Rider: Karim</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+<tr><td><b>#BG-10220</b></td><td>Imran Hossain</td><td><span class="badge b-sky">Pathao</span></td><td>PT-8801</td><td><select class="sel bsm"><option>RTO</option></select></td><td>৳5,210</td><td><span class="cell-sub">Yest 18:22</span></td><td><div class="t-actions"><button>📍</button><button>🔁</button></div></td></tr>
+</tbody>
+</table></div></div>
+</div>
+
+<div class="grid g-2c" style="margin-top:16px">
+<div class="card"><div class="card-hd"><h3>COD Reconciliation · A.4</h3><span class="hd-sub">Daily settlement ledger</span></div><div class="card-bd flush"><div class="tbl"><table>
+<thead><tr><th>Courier</th><th>Delivered (count)</th><th>COD Receivable</th><th>Settled</th><th>Outstanding</th></tr></thead>
+<tbody>
+<tr><td>Pathao</td><td>74</td><td>৳2,86,400</td><td style="color:var(--green-600)">৳2,40,000</td><td style="color:var(--red-600)">৳46,400</td></tr>
+<tr><td>RedX</td><td>62</td><td>৳1,98,200</td><td style="color:var(--green-600)">৳1,98,200</td><td>৳0</td></tr>
+<tr><td>Steadfast</td><td>58</td><td>৳1,62,400</td><td style="color:var(--amber-600)">৳1,10,000</td><td style="color:var(--red-600)">৳52,400</td></tr>
+<tr><td>In-house Rider</td><td>20</td><td>৳62,300</td><td style="color:var(--green-600)">৳62,300</td><td>৳0</td></tr>
+</tbody></table></div></div></div>
+<div class="card"><div class="card-hd"><h3>Rider Directory</h3><button class="btn b-ghost bsm">＋ Add rider</button></div><div class="card-bd">
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Karim Hossain</b><br><span class="cell-sub">In-house · Dhaka Zone A</span></div><span class="badge b-green">Online · 12 delivered</span></div>
+<div style="padding:10px 0;border-bottom:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Arif Khan</b><br><span class="cell-sub">In-house · Dhaka Zone B</span></div><span class="badge b-amber">Offline · 8 delivered</span></div>
+<div style="padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Rumi Akter</b><br><span class="cell-sub">In-house · Chittagong</span></div><span class="badge b-green">Online · 5 delivered</span></div>
+<p style="margin-top:12px;font-size:11.5px;color:var(--slate-400)">📍 GPS live tracking — out of scope for Phase 1.</p>
+</div></div>
+</div>
+</div>
+</div>
+<script src="../assets/js/app.js"></script></body></html>

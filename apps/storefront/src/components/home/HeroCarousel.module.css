@@ -1,0 +1,106 @@
+.hero {
+  position: relative;
+  aspect-ratio: 16 / 5;
+  border-radius: var(--sk-radius-lg);
+  overflow: hidden;
+  background: var(--sk-surface-alt);
+}
+
+.slideWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.caption {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--sk-radius-lg);
+  padding: 20px 24px;
+  max-width: 420px;
+  box-shadow: var(--sk-shadow-2);
+}
+
+.captionTitle {
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--sk-ink);
+  margin: 0 0 12px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: var(--sk-radius-md);
+  background: var(--sk-cta-primary);
+  color: var(--sk-brand-950);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+.cta:hover { background: var(--sk-cta-primary-hover); text-decoration: none; }
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--sk-brand-950);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sk-shadow-1);
+}
+.arrow:hover { background: #FFFFFF; }
+.arrowPrev { left: 12px; }
+.arrowNext { right: 12px; }
+
+.dots {
+  position: absolute;
+  bottom: 12px;
+  right: 24px;
+  display: flex;
+  gap: 6px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sk-border);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.dotActive { background: var(--sk-brand-600); }
+
+@media (max-width: 1023px) {
+  .hero { aspect-ratio: 16 / 9; }
+}
+@media (max-width: 639px) {
+  .hero { aspect-ratio: 4 / 3; }
+  .caption { left: 12px; right: 12px; bottom: 12px; padding: 16px; max-width: none; }
+  .captionTitle { font-size: 18px; }
+  .arrow { display: none; }
+  .dots { right: 50%; transform: translateX(50%); }
+}
+
+html[lang="bn"] .captionTitle { font-family: var(--sk-font-bn); line-height: 1.4; }
