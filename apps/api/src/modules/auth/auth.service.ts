@@ -184,7 +184,7 @@ export class AuthService {
     const roleCodes = user.userRoles.map((ur) => ur.role.code);
     const isStaff = roleCodes.some((r) => STAFF_ROLE_CODES.has(r));
 
-    if (isStaff) {
+    if (isStaff && process.env.TOTP_ENFORCEMENT !== 'off') {
       const enrolled = await this.totp.isEnrolled(user.id);
 
       if (enrolled) {
